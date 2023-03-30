@@ -9,10 +9,13 @@
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
 #include "HUD/ServerLine.h"
+#include "HUD/PlayerSlot.h"
+#include "PlayerStates/CaptainState.h"
 
 
 void UMainMenu::Setup()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Setup called"))
 	this->AddToViewport();
 
 	UWorld* World = GetWorld();
@@ -77,6 +80,9 @@ bool UMainMenu::Initialize()
 	if (!ensure(ExitSettingsMenuButton != nullptr)) return false;
 	ExitSettingsMenuButton->OnClicked.AddDynamic(this, &UMainMenu::OpenMainMenu);
 
+	if (!ensure(ExitLobbyButton != nullptr)) return false;
+	ExitLobbyButton->OnClicked.AddDynamic(this, &UMainMenu::CloseLobbyMenu);
+
 	if (!ensure(RefreshServersButton != nullptr)) return false;
 	RefreshServersButton->OnClicked.AddDynamic(this, &UMainMenu::RefreshServers);
 
@@ -85,6 +91,9 @@ bool UMainMenu::Initialize()
 
 	if (!ensure(SettingsButton != nullptr)) return false;
 	SettingsButton->OnClicked.AddDynamic(this, &UMainMenu::OpenSettingsMenu);
+
+	if (!ensure(StartGameButton != nullptr)) return false;
+	StartGameButton->OnClicked.AddDynamic(this, &UMainMenu::StartGame);
 
 	return true;
 }
@@ -165,8 +174,88 @@ void UMainMenu::JoinServer()
 void UMainMenu::OpenMainMenu()
 {
 	if (!ensure(MenuSwitcher != nullptr)) return;
-	if (!ensure(JoinMenuWidget != nullptr)) return;
-	MenuSwitcher->SetActiveWidget(0);
+	if (!ensure(MainMenuWidget != nullptr)) return;
+	MenuSwitcher->SetActiveWidgetIndex(0);
+}
+
+void UMainMenu::OpenLobbyMenu()
+{
+	if (!ensure(MenuSwitcher != nullptr)) return;
+	if (!ensure(LobbyMenuWidget != nullptr)) return;
+	MenuSwitcher->SetActiveWidgetIndex(4);
+	
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	if (MenuInterface)
+	{
+		APlayerController* PlayerController = World->GetFirstPlayerController();
+		if (PlayerController)
+		{
+			ACaptainState* CaptainState = PlayerController->GetPlayerState<ACaptainState>();
+			if (CaptainState)
+			{
+				ETeam HostTeam = MenuInterface->AssignTeam(CaptainState);
+				CreateUserSlot(CaptainState->GetPlayerName(), CaptainState, HostTeam);
+			}
+		}
+	}
+}
+
+void UMainMenu::StartGame()
+{
+	if (MenuInterface)
+	{
+		MenuInterface->StartGame();
+	}
+}
+
+void UMainMenu::CloseLobbyMenu()
+{
+	if (MenuInterface)
+	{
+		MenuInterface->DestroySession();
+	}
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	
+	if (MenuInterface)
+	{
+		MenuInterface->ClearTeams();
+	}
+
+	PirateTeam->ClearChildren();
+	PrivateerTeam->ClearChildren();
+
+	if (!ensure(MenuSwitcher != nullptr)) return;
+	if (!ensure(MainMenuWidget != nullptr)) return;
+	MenuSwitcher->SetActiveWidgetIndex(0);
+}
+
+void UMainMenu::CreateUserSlot(FString PlayerName, ACaptainState* NewPlayerCaptainState, ETeam PlayerTeam)
+{
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	APlayerController* PlayerController = World->GetFirstPlayerController();
+
+	if (!PlayerSlotClass || !PlayerController) return;
+
+	UPlayerSlot* PlayerSlot = CreateWidget<UPlayerSlot>(PlayerController, PlayerSlotClass);
+	if (PlayerSlot)
+	{
+		PlayerSlot->SetPlayerNameText(PlayerName);
+		if (PlayerTeam == ETeam::ET_Pirate)
+		{
+			PirateTeam->AddChild(PlayerSlot);
+		}
+		else if (PlayerTeam == ETeam::ET_Privateer)
+		{
+			PrivateerTeam->AddChild(PlayerSlot);
+		}
+	}
+
 }
 
 void UMainMenu::QuitPressed()

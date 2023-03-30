@@ -18,6 +18,7 @@
 #include "EnhancedInputSubsystems.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 APlayerShip::APlayerShip()
 {
@@ -42,6 +43,12 @@ void APlayerShip::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		EnhancedInputComponent->BindAction(FirePortCannonsAction, ETriggerEvent::Triggered, this, &APlayerShip::FirePortCannons);
 		EnhancedInputComponent->BindAction(FireStarboardCannonsAction, ETriggerEvent::Triggered, this, &APlayerShip::FireStarboardCannons);
 	}
+}
+
+void APlayerShip::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
 }
 
 void APlayerShip::GetInputSubsytem()
@@ -109,6 +116,8 @@ void APlayerShip::FirePortCannons()
 {
 	Super::FirePortCannons();
 
+	if (bIsDead) return;
+
 	if (HasAuthority())
 	{
 		if (CaptainState)
@@ -126,6 +135,7 @@ void APlayerShip::FireStarboardCannons()
 {
 	Super::FireStarboardCannons();
 
+	if (bIsDead) return;
 	if (HasAuthority())
 	{
 		if (CaptainState)
@@ -142,7 +152,7 @@ void APlayerShip::FireStarboardCannons()
 void APlayerShip::ServerFireCannons_Implementation(TSubclassOf<USBGameplayAbility> CannonAbilityToActivate)
 {
 	//Super::ServerFireCannons(CannonAbilityToActivate);
-
+	if (bIsDead) return;
 	CaptainState = CaptainState == nullptr ? CaptainState = GetPlayerState<ACaptainState>() : CaptainState;
 	if (CaptainState)
 	{
@@ -234,7 +244,90 @@ void APlayerShip::BeginPlay()
 	Super::BeginPlay();
 	PlayerController = PlayerController == nullptr ? Cast<APlayerController>(Controller) : PlayerController;
 	GetInputSubsytem();
-	GetCaptainState();
+	CaptainState = GetCaptainState();
+}
+
+void APlayerShip::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	PollInit();
+}
+
+void APlayerShip::PollInit()
+{
+	if(CaptainState == nullptr)
+	{
+		CaptainState = GetCaptainState();
+	}
+
+	if (!bSailColorSet && CaptainState)
+	{
+		if (!HasAuthority())
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("Called from client"))
+		}
+		SetSailColors(CaptainState->GetPlayerTeam());
+	}
+}
+
+void APlayerShip::SetSailColors(ETeam PlayerTeam)
+{
+	TArray<UActorComponent*> Sails = GetComponentsByTag(UActorComponent::StaticClass(), "Sail");
+	TArray<UActorComponent*> Flags = GetComponentsByTag(UActorComponent::StaticClass(), "Flag");
+
+	if (HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Called from auth"))
+	}
+
+	if (PlayerTeam == ETeam::ET_Pirate)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Set pirate material"))
+
+		ShipMesh->SetMaterial(4, PirateMaterialSecondary);
+		for (UActorComponent* Sail : Sails)
+		{
+			USkeletalMeshComponent* MeshComponent = Cast<USkeletalMeshComponent>(Sail);
+			if (MeshComponent)
+			{
+				MeshComponent->SetMaterial(0, PirateMaterial);
+			}
+		}
+
+		for (UActorComponent* Flag : Flags)
+		{
+			USkeletalMeshComponent* MeshComponent = Cast<USkeletalMeshComponent>(Flag);
+			if (MeshComponent)
+			{
+				MeshComponent->SetMaterial(0, PirateFlag);
+			}
+		}
+		bSailColorSet = true;
+	}
+	else if (PlayerTeam == ETeam::ET_Privateer)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Set Privateer material"))
+		ShipMesh->SetMaterial(4, PrivateerMaterialSecondary);
+		for (UActorComponent* Sail : Sails)
+		{
+			USkeletalMeshComponent* MeshComponent = Cast<USkeletalMeshComponent>(Sail);
+			if (MeshComponent)
+			{
+				MeshComponent->SetMaterial(0, PrivateerMaterial);
+			}
+		}
+
+		for (UActorComponent* Flag : Flags)
+		{
+			USkeletalMeshComponent* MeshComponent = Cast<USkeletalMeshComponent>(Flag);
+			if (MeshComponent)
+			{
+				MeshComponent->SetMaterial(0, PrivateerFlag);
+			}
+		}
+		bSailColorSet = true;
+	}
 }
 
 void APlayerShip::OnRep_PlayerState()
@@ -284,8 +377,6 @@ void APlayerShip::PossessedBy(AController* NewController)
 	AcquireCannonAbilities();
 }
 
-
-
 void APlayerShip::BindAbilityComponentDelegates()
 {
 	Super::BindAbilityComponentDelegates();
@@ -298,26 +389,29 @@ void APlayerShip::BindAbilityComponentDelegates()
 
 ACaptainState* APlayerShip::GetCaptainState()
 {
-	if (!HasAuthority())
+	//if (!HasAuthority())
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("Called from client -- get cap state"))
+	//}
+	CaptainState = CaptainState == nullptr ? Cast<ACaptainState>(GetPlayerState()) : CaptainState;
+	if (CaptainState)
 	{
-		ServerGetCaptainState();
+		CaptainState->GetAttributeSet()->OnHealthChange.AddDynamic(this, &APlayerShip::OnHealthChanged);
+		return CaptainState;
+		/*AcquireCannonAbilities();*/
+	}
+	else
+	{
 		return nullptr;
 	}
-	CaptainState = Cast<ACaptainState>(GetPlayerState());
-	if (CaptainState)
-	{
-		CaptainState->GetAttributeSet()->OnHealthChange.AddDynamic(this, &APlayerShip::OnHealthChanged);
-		AcquireCannonAbilities();
-	}
-	return CaptainState;
 }
 
-void APlayerShip::ServerGetCaptainState_Implementation()
-{
-	CaptainState = Cast<ACaptainState>(GetPlayerState());
-	if (CaptainState)
-	{
-		CaptainState->GetAttributeSet()->OnHealthChange.AddDynamic(this, &APlayerShip::OnHealthChanged);
-	}
-	return;
-}
+//void APlayerShip::ServerGetCaptainState_Implementation()
+//{
+//	CaptainState = Cast<ACaptainState>(GetPlayerState());
+//	if (CaptainState)
+//	{
+//		CaptainState->GetAttributeSet()->OnHealthChange.AddDynamic(this, &APlayerShip::OnHealthChanged);
+//	}
+//	return;
+//}

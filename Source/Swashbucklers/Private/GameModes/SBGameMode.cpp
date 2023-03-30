@@ -3,7 +3,57 @@
 
 #include "GameModes/SBGameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameStates/SBGameState.h"
 #include "GameFramework/PlayerStart.h"
+#include "PlayerStates/CaptainState.h"
+#include "GameInstance/SBGameInstance.h"
+
+#include "TimerManager.h"
+
+void ASBGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+	GetWorldTimerManager().SetTimer(TeamCheckTimer, this, &ASBGameMode::TeamCheck, 15.f);
+
+}
+
+void ASBGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+
+	USBGameInstance* SBGameInstance = GetGameInstance<USBGameInstance>();
+	if (SBGameInstance)
+	{
+		ACaptainState* CaptainState = NewPlayer->GetPlayerState<ACaptainState>();
+		if (CaptainState && CaptainState->GetPlayerTeam() == ETeam::ET_NoTeam)
+		{
+			SBGameInstance->CheckTeams();
+			UE_LOG(LogTemp, Warning, TEXT("PlayerState Name %s"), *CaptainState->GetPlayerName())
+			UE_LOG(LogTemp, Warning, TEXT("Get Team from game instance...."))
+			if (SBGameInstance->PirateTeamNames.Contains(CaptainState->GetPlayerName()))
+			{
+				CaptainState->SetTeam(ETeam::ET_Pirate);
+			}
+			else if (SBGameInstance->PrivateerTeamNames.Contains(CaptainState->GetPlayerName()))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Privateer found...."))
+				CaptainState->SetTeam(ETeam::ET_Privateer);
+			}
+
+		}
+	}
+	
+}
+
+void ASBGameMode::TeamCheck()
+{
+	USBGameInstance* SBGameInstance = GetGameInstance<USBGameInstance>();
+	if (SBGameInstance)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CheckTimer!"))
+		SBGameInstance->CheckTeams();
+	}
+}
 
 AActor* ASBGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
@@ -80,3 +130,4 @@ void ASBGameMode::RestartPlayerAtPlayerStart(AController* NewPlayer, AActor* Sta
 		FinishRestartPlayer(NewPlayer, SpawnRotation);
 	}
 }
+

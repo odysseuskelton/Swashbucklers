@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Ships/Ship.h"
+#include "PlayerStates/Teams.h"
 #include "PlayerShip.generated.h"
 
 
@@ -20,6 +21,8 @@ class SWASHBUCKLERS_API APlayerShip : public AShip
 public:
 	APlayerShip();
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	virtual void Die() override;
 	FTimerHandle RespawnTimer;
@@ -30,8 +33,36 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerResetHealth();
 
+	void SetSailColors(ETeam PlayerTeam);
+	bool bSailColorSet = false;
+
 protected:
+
+	//Input
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputMappingContext* PlayerContext;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* MovementAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* TurnAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* LookAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* FirePortCannonsAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* FireStarboardCannonsAction;
+
 	virtual void BeginPlay() override;
+
+	virtual  void Tick(float DeltaTime) override;
+
+	void PollInit();
+
 	void OnRep_PlayerState() override;
 
 	void PossessedBy(AController* NewController) override;
@@ -59,6 +90,24 @@ protected:
 
 	void FireStarboardCannons() override;
 	void ServerFireCannons_Implementation(TSubclassOf<USBGameplayAbility> CannonAbilityToActivate) override;
+	
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* PirateMaterial;
+
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* PrivateerMaterial;
+
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* PirateMaterialSecondary;
+
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* PrivateerMaterialSecondary;
+
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* PirateFlag;
+
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* PrivateerFlag;
 
 private:
 	UPROPERTY(VisibleAnywhere)
@@ -72,8 +121,10 @@ private:
 	ACaptainState* CaptainState;
 
 	//HitInterface Override
-	ACaptainState* GetCaptainState();
-	void ServerGetCaptainState_Implementation() override;
+	ACaptainState* GetCaptainState() override;
+
+	//UFUNCTION(Server, Reliable)
+	//void ServerGetCaptainState();
 
 
 	//Movement Controls

@@ -7,6 +7,7 @@
 #include "Interfaces/MenuInterface.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
+#include "PlayerStates/Teams.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "SBGameInstance.generated.h"
 
@@ -15,14 +16,17 @@
  */
 class UMainMenu;
 class FOnlineSessionSearch;
+class ACaptainState;
 UCLASS()
 class SWASHBUCKLERS_API USBGameInstance : public UGameInstance, public IMenuInterface
 {
 	GENERATED_BODY()
 	
 public:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	virtual void Init() override;
-	virtual void LoadMainMenuWidget() override;
+	virtual UMainMenu* LoadMainMenuWidget() override;
 
 	virtual void RefreshServerList() override;
 
@@ -42,7 +46,15 @@ public:
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 
 	virtual void Host(FString ServerNameFromUser) override;
+	virtual void StartGame() override;
 	virtual void DestroySession() override;
 	virtual void ReturnToMainMenu() override;
+
+	TArray<FString> PirateTeamNames;
+	TArray<FString> PrivateerTeamNames;
+
+	ETeam AssignTeam(ACaptainState* PlayerToAssignTeamTo);
+	void CheckTeams();
+	virtual void ClearTeams() override;
 	virtual void Join(uint32 Index) override;
 };

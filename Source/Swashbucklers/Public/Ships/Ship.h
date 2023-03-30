@@ -28,7 +28,7 @@ class SWASHBUCKLERS_API AShip : public APawn, public IHitInterface
 public:
 	AShip();
 
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 	virtual void BeginPlay() override;
 
@@ -45,10 +45,7 @@ public:
 	virtual void Die();
 
 	//HitInterface Override
-	ACaptainState* GetCaptainState();
-
-	UFUNCTION(Server, Reliable)
-	void ServerGetCaptainState();
+	ACaptainState* GetCaptainState() override;
 
 	void AcquireCannonAbilities();
 
@@ -69,25 +66,6 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	UAudioComponent* CruisingSoundComponent;
-
-	//Input
-	UPROPERTY(EditAnywhere, Category = Input)
-	UInputMappingContext* PlayerContext;
-
-	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* MovementAction;
-
-	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* TurnAction;
-
-	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* LookAction;
-
-	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* FirePortCannonsAction;
-
-	UPROPERTY(EditAnywhere, Category = Input)
-	UInputAction* FireStarboardCannonsAction;
 
 	//Healthbar Functionality
 	FTimerHandle HealthbarTimer;
@@ -153,10 +131,8 @@ protected:
 
 	void HandleCannonSpawning(int32 CannonSlots, FString CannonAttachString);
 
-
 	//Ability System Reference
 	TWeakObjectPtr<class USBAbilitySystemComponent> AbilitySystemComponent;
-
 
 public:	
 	UPROPERTY(Replicated, BlueprintReadOnly)
@@ -166,4 +142,7 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float StrafeSpeed = .5f;
+
+	UPROPERTY(EditAnywhere)
+	float SinkingRate = 1.f;
 };

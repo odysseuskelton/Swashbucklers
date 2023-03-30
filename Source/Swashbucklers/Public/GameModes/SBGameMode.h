@@ -14,6 +14,11 @@ class SWASHBUCKLERS_API ASBGameMode : public AGameMode
 {
 	GENERATED_BODY()
 	
+protected:
+	virtual void BeginPlay() override;
+	void PostLogin(APlayerController* NewPlayer) override;
+	FTimerHandle TeamCheckTimer;
+	void TeamCheck();
 public:
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 	void RequestRespawn(APawn* ElimmedShip, AController* ElimmedController);

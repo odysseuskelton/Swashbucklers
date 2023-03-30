@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "Teams.h"
 #include "AbilitySystemInterface.h"
 #include "CaptainState.generated.h"
 
@@ -23,6 +24,8 @@ class SWASHBUCKLERS_API ACaptainState : public APlayerState, public IAbilitySyst
 public:
 	ACaptainState();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AbilitySystem", meta = (AllowPrivateAccess))
 	USBAbilitySystemComponent* AbilityComponent;
@@ -32,6 +35,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AbilitySystem", meta = (AllowPrivateAccess))
 	TArray<TSubclassOf<USBGameplayAbility>> StartingAbilities;
+
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_Team)
+	ETeam PlayerTeam;
 
 protected:
 	virtual void BeginPlay() override;
@@ -50,5 +56,10 @@ public:
 
 public:
 	FORCEINLINE USBAttributeSet* GetAttributeSet() { return AttributeSet; }
-	
+	void SetTeam(ETeam TeamToSet);
+
+	UFUNCTION()
+	void OnRep_Team(ETeam TeamToSet);
+
+	FORCEINLINE ETeam GetPlayerTeam() { return PlayerTeam; }
 };

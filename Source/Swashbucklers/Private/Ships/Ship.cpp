@@ -153,10 +153,6 @@ ACaptainState* AShip::GetCaptainState()
 	return nullptr;
 }
 
-void AShip::ServerGetCaptainState_Implementation()
-{
-}
-
 void AShip::AcquireCannonAbilities()
 {
 	// Grant abilities, but only on the server	
@@ -197,14 +193,17 @@ void AShip::HandleCannonSpawning(int32 CannonSlots, FString CannonAttachString)
 		FString TempCannonAttachStr = CannonAttachString;
 		TempCannonAttachStr.AppendInt(i);
 		FName AttachName = FName(*TempCannonAttachStr);
-		CannonToSpawn->AttachToComponent(ShipMesh, TransformRules, AttachName);
-		if (CannonAttachString == FString("LCannon"))
+		if (CannonToSpawn)
 		{
-			PortCannons.Add(CannonToSpawn);
-		}
-		else if (CannonAttachString == FString("RCannon"))
-		{
-			StarboardCannons.Add(CannonToSpawn);
+			CannonToSpawn->AttachToComponent(ShipMesh, TransformRules, AttachName);
+			if (CannonAttachString == FString("LCannon"))
+			{
+				PortCannons.Add(CannonToSpawn);
+			}
+			else if (CannonAttachString == FString("RCannon"))
+			{
+				StarboardCannons.Add(CannonToSpawn);
+			}
 		}
 	}
 }
@@ -213,7 +212,14 @@ void AShip::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	if (bIsDead) return;
+	if (bIsDead)
+	{
+		FRotator TargetRotation = ShipMesh->GetRelativeRotation();
+		TargetRotation.Pitch = 90.f;
+
+		ShipMesh->SetRelativeRotation(FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaTime, SinkingRate));
+		return;
+	}
 	/*if (ShipMesh->GetComponentRotation().Roll > 5.f || ShipMesh->GetComponentRotation().Roll < -5.f)
 	{
 		ShipMesh->SetWorldRotation(FMath::RInterpTo(GetActorRotation(), FRotator(GetActorRotation().Pitch, GetActorRotation().Yaw, 0.f), DeltaTime, 3.f));

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "PlayerStates/Teams.h"
 #include "OnlineSessionSettings.h"
 #include "MainMenu.generated.h"
 
@@ -15,6 +16,8 @@ class UServerLine;
 class UScrollBox;
 class UTextBlock;
 class UEditableText;
+class ACaptainState;
+class UPlayerSlot;
 
 USTRUCT()
 struct FServerData
@@ -51,6 +54,20 @@ public:
 	UFUNCTION()
 	void SetFindServerStatusText(FString StatusToSet);
 
+	UFUNCTION()
+	void OpenLobbyMenu();
+
+	UFUNCTION()
+	void StartGame();
+
+	UFUNCTION()
+	void CloseLobbyMenu();
+
+	void CreateUserSlot(FString PlayerName, ACaptainState* NewPlayerCaptainState, ETeam PlayerTeam);
+	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UPlayerSlot> PlayerSlotClass;
+
 protected:
 	virtual bool Initialize();
 	
@@ -64,6 +81,9 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* StartHostingButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* StartGameButton;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* JoinButton;
@@ -87,6 +107,9 @@ private:
 	UButton* ExitJoinMenuButton;
 
 	UPROPERTY(meta = (BindWidget))
+	UButton* ExitLobbyButton;
+
+	UPROPERTY(meta = (BindWidget))
 	UButton* ExitSettingsMenuButton;
 
 	UPROPERTY(meta = (BindWidget))
@@ -102,6 +125,9 @@ private:
 	UWidget* HostMenuWidget;
 
 	UPROPERTY(meta = (BindWidget))
+	UWidget* LobbyMenuWidget;
+
+	UPROPERTY(meta = (BindWidget))
 	UWidget* SettingsMenuWidget;
 
 	UPROPERTY(meta = (BindWidget))
@@ -109,6 +135,12 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UScrollBox* ServerList;
+
+	UPROPERTY(meta = (BindWidget))
+	UScrollBox* PirateTeam;
+
+	UPROPERTY(meta = (BindWidget))
+	UScrollBox* PrivateerTeam;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UServerLine> ServerLineClass;
@@ -133,7 +165,6 @@ private:
 
 	UFUNCTION()
 	void QuitPressed();
-
 
 	void UpdateServerLines();
 

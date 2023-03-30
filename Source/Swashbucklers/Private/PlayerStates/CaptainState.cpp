@@ -2,11 +2,14 @@
 
 
 #include "PlayerStates/CaptainState.h"
+#include "Ships/PlayerShip.h"
 #include "Components/SBAbilitySystemComponent.h"
+#include "GameInstance/SBGameInstance.h"
 #include "GameplayAbilities/SBAttributeSet.h"
 #include "GameplayAbilities/SBGameplayAbility.h"
 
 #include "Weapons/Cannon.h"
+#include "Net/UnrealNetwork.h"
 
 ACaptainState::ACaptainState()
 {
@@ -18,6 +21,14 @@ ACaptainState::ACaptainState()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
+void ACaptainState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ACaptainState, PlayerTeam);
+
+}
+
 void ACaptainState::BeginPlay()
 {
 	Super::BeginPlay();
@@ -26,11 +37,23 @@ void ACaptainState::BeginPlay()
 	{
 		AcquireAbilities(StartingAbilities);
 	}
+
 }
 
 void ACaptainState::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	/*if (!HasAuthority())
+	{
+		if (PlayerTeam == ETeam::ET_Pirate)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Yarrr pirate!"))
+		}
+		else if (PlayerTeam == ETeam::ET_Privateer)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("For the king! Privateer"))
+		}
+	}*/
 
 }
 
@@ -66,5 +89,27 @@ void ACaptainState::AcquireAbilities(TArray<TSubclassOf<USBGameplayAbility>> Abi
 	for (TSubclassOf<USBGameplayAbility> Ability : AbilitiesToAcquire)
 	{
 		AcquireAbility(Ability);
+	}
+}
+
+void ACaptainState::SetTeam(ETeam TeamToSet)
+{
+	PlayerTeam = TeamToSet;
+
+	APlayerShip* PlayerShip = Cast<APlayerShip>(GetPawn());
+	if (PlayerShip)
+	{
+		PlayerShip->SetSailColors(PlayerTeam);
+	}
+
+}
+
+void ACaptainState::OnRep_Team(ETeam TeamToSet)
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnRepTeam"))
+	APlayerShip* PlayerShip = Cast<APlayerShip>(GetPawn());
+	if (PlayerShip)
+	{
+		PlayerShip->SetSailColors(PlayerTeam);
 	}
 }

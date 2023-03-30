@@ -3,9 +3,20 @@
 
 #include "GameInstance/SBGameInstance.h"
 #include "OnlineSubsystem.h"
+#include "PlayerStates/CaptainState.h"
 #include "HUD/MainMenu.h"
+#include "Net/UnrealNetwork.h"
 
 const static FName SESSION_NAME = TEXT("Swashbuckler Session");
+
+void USBGameInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(USBGameInstance, PirateTeamNames);
+	DOREPLIFETIME(USBGameInstance, PrivateerTeamNames);
+
+}
 
 void USBGameInstance::Init()
 {
@@ -31,16 +42,18 @@ void USBGameInstance::Init()
 
 }
 
-void USBGameInstance::LoadMainMenuWidget()
+UMainMenu* USBGameInstance::LoadMainMenuWidget()
 {
-	if (!ensure(MenuClass != nullptr)) return;
+	if (!ensure(MenuClass != nullptr)) return nullptr;
 
 	MainMenu = CreateWidget<UMainMenu>(this, MenuClass);
-	if (!ensure(MainMenu != nullptr)) return;
+	if (!ensure(MainMenu != nullptr)) return nullptr;
 
 	MainMenu->Setup();
 
 	MainMenu->SetMenuInterface(this);
+
+	return MainMenu;
 }
 
 void USBGameInstance::RefreshServerList()
@@ -48,7 +61,7 @@ void USBGameInstance::RefreshServerList()
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
 	if (SessionSearch.IsValid())
 	{
-		//SessionSearch->bIsLanQuery = false;
+		SessionSearch->bIsLanQuery = true;
 		SessionSearch->MaxSearchResults = 1000;
 		SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 		//SessionSearch->QuerySettings.Set();
@@ -118,22 +131,19 @@ void USBGameInstance::OnCreateSessionComplete(FName SessionName, bool bSuccess)
 {
 	if (!bSuccess)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Could not create session"));
+		UE_LOG(LogTemp, Warning, TEXT("Could not create session"));  
 		return;
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("Join session...."))
-	if (MainMenu != nullptr)
+	if (bSuccess)
 	{
-		MainMenu->Teardown();
+		UE_LOG(LogTemp, Warning, TEXT("Created session!"));
+
 	}
 
-	UEngine* Engine = GetEngine();
-	if (!ensure(Engine != nullptr)) return;
-	Engine->AddOnScreenDebugMessage(0, 2, FColor::Green, TEXT("Hosting"));
-	UWorld* World = GetWorld();
-	if (!ensure(World != nullptr)) return;
-	World->ServerTravel("/Game/CartoonWaterShader/Maps/DemoMapOcean?listen");
+	if (MainMenu != nullptr)
+	{
+		MainMenu->OpenLobbyMenu();
+	}
 }
 
 void USBGameInstance::OnDestroySessionComplete(FName SessionName, bool bSuccess)
@@ -157,7 +167,7 @@ void USBGameInstance::Host(FString ServerNameFromUser)
 		else
 		{
 			FOnlineSessionSettings SessionSettings;
-			SessionSettings.bIsLANMatch = false;
+			SessionSettings.bIsLANMatch = true;
 			SessionSettings.NumPublicConnections = 10;
 			SessionSettings.bShouldAdvertise = true;
 			SessionSettings.bUsesPresence = true;
@@ -166,6 +176,20 @@ void USBGameInstance::Host(FString ServerNameFromUser)
 			SessionInterface->CreateSession(0, SESSION_NAME, SessionSettings);
 			UE_LOG(LogTemp, Warning, TEXT("Create sessions"))
 		}
+	}
+}
+
+void USBGameInstance::StartGame()
+{
+	if (MainMenu)
+	{
+		MainMenu->Teardown();
+	}
+
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->ServerTravel("/Game/CartoonWaterShader/Maps/OceanNew?listen");
 	}
 }
 
@@ -186,4 +210,69 @@ void USBGameInstance::ReturnToMainMenu()
 	UWorld* World = GetWorld();
 	if (!ensure(World != nullptr)) return;
 	World->ServerTravel("/Game/Core/Maps/MainMenu?listen");
+}
+
+
+ETeam USBGameInstance::AssignTeam(ACaptainState* PlayerToAssignTeamTo)
+{
+	if (PlayerToAssignTeamTo == nullptr) return ETeam();
+
+	UE_LOG(LogTemp, Warning, TEXT("Assign team, playerstate valid"))
+	//If player already assigned to a team, return.
+	if (PirateTeamNames.Contains(PlayerToAssignTeamTo->GetPlayerName()) || PirateTeamNames.Contains(PlayerToAssignTeamTo->GetPlayerName())) return ETeam();
+
+	//If both teams are empty, auto assign to pirate
+	if (PirateTeamNames.IsEmpty() && PrivateerTeamNames.IsEmpty())
+	{
+		PirateTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
+		CheckTeams();
+		return ETeam::ET_Pirate;
+	}
+
+	//Assign player to team with less players; if teams have equal players, default to adding to pirate team
+	if (PirateTeamNames.Num() > PrivateerTeamNames.Num())
+	{
+		PrivateerTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
+		CheckTeams();
+		return ETeam::ET_Privateer;
+	}
+	else if (PrivateerTeamNames.Num() > PirateTeamNames.Num())
+	{
+		PirateTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
+		CheckTeams();
+		return ETeam::ET_Pirate;
+	}
+	else
+	{
+		PirateTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
+		CheckTeams();
+		return ETeam::ET_Pirate;
+	}
+}
+
+void USBGameInstance::CheckTeams()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Checkteams"))
+	for (FString Name : PirateTeamNames)
+	{
+
+		UE_LOG(LogTemp, Warning, TEXT("Pirate Team: %s"), *Name);
+	}
+
+	for (FString Name : PrivateerTeamNames)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Privateer Team: %s"), *Name);
+	}
+}
+
+void USBGameInstance::ClearTeams()
+{
+	if (!PirateTeamNames.IsEmpty())
+	{
+		PirateTeamNames.Empty();
+	}
+	if (!PrivateerTeamNames.IsEmpty())
+	{
+		PrivateerTeamNames.Empty();
+	}
 }

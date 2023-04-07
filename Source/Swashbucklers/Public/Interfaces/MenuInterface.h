@@ -34,4 +34,5 @@ public:
 	virtual void ReturnToMainMenu() = 0;
 	virtual void ClearTeams() = 0;
 	virtual ETeam AssignTeam(ACaptainState* CaptainStateToAssign) = 0;
+	virtual void SwitchTeams(ACaptainState* CaptainStateToAssign) = 0;
 };

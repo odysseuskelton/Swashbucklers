@@ -19,6 +19,8 @@ class SWASHBUCKLERS_API ACannon : public AActor
 public:	
 	ACannon();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
@@ -34,6 +36,14 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess))
 	FGameplayEffectSpecHandle CannonGEHandle;
+
+	UPROPERTY()
+	FName SocketName = "";
+
+	FRotator StartingRotation;
+
+	UPROPERTY(Replicated)
+	bool ExtraSoundsOnCannonball = false;
 
 protected:
 	virtual void BeginPlay() override;
@@ -58,7 +68,11 @@ private:
 	UPROPERTY(EditAnywhere)
 	USoundBase* CannonFireSound;
 
+	UPROPERTY(EditAnywhere)
+	float CannonAngularRecoil = 30.f;
 
+	UPROPERTY(EditAnywhere)
+	float CannonLinearRecoil = 30.f;
 	
 public:	
 

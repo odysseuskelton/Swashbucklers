@@ -21,6 +21,8 @@ class SWASHBUCKLERS_API AProjectile : public AActor
 public:	
 	AProjectile();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -30,6 +32,9 @@ public:
 	UFUNCTION()
 	void CollisionSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastWaterSplash();
+
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastShipHitEffects(FHitResult ShipHit);
 
@@ -37,8 +42,16 @@ public:
 
 	void SphereTrace(FHitResult& SphereHit);
 
+	void SetStencilValueOfCannonball(ETeam TeamOfOwner);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastSetStencilValueOfCannonball(ETeam TeamOfOwner);
+
 	UPROPERTY(BlueprintReadWrite)
 	FGameplayEffectSpecHandle AbilityHandle;
+
+	UPROPERTY(Replicated)
+	bool EasterEggSounds = false;
 
 
 private:
@@ -85,8 +98,20 @@ private:
 	UPROPERTY(EditAnywhere)
 	UNiagaraSystem* SplashSystem;
 
+	UPROPERTY(EditAnywhere)
+	USoundBase* SplashSound;
+
+	UPROPERTY(EditAnywhere)
+	USoundBase* KerSplooshSound;
+
+	UPROPERTY(EditAnywhere)
+	USoundBase* KaBoomSound;
+
+
+
 
 public:
 	FORCEINLINE void SetPlayerPawn(AActor* PlayerPawnToSet) { PlayerPawn = PlayerPawnToSet; }
+	FORCEINLINE UStaticMeshComponent* GetProjectileMesh() { return ProjectileMesh; }
 
 };

@@ -20,4 +20,7 @@ public:
 	UTextBlock* PlayerNameText;
 
 	void SetPlayerNameText(FString PlayerNameToSet);
+	FString PlayerName;
+
+	FORCEINLINE FString GetPlayerName() { return PlayerName; }
 };

@@ -15,7 +15,6 @@
 
 void UMainMenu::Setup()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Setup called"))
 	this->AddToViewport();
 
 	UWorld* World = GetWorld();
@@ -54,6 +53,38 @@ void UMainMenu::SetMenuInterface(IMenuInterface* InInterface)
 	this->MenuInterface = InInterface;
 }
 
+void UMainMenu::RemovePlayerFromList(FString PlayerNameToRemove)
+{
+				
+	for (UWidget* Child : PirateTeam->GetAllChildren())
+	{
+		UPlayerSlot* PlayerSlot = Cast<UPlayerSlot>(Child);
+		UE_LOG(LogTemp, Warning, TEXT("PlayerSlot name %s, Playernametoremove %s"), *PlayerSlot->GetPlayerName(), *PlayerNameToRemove)
+		if (PlayerSlot)
+		{
+			if (PlayerSlot->GetPlayerName() == PlayerNameToRemove)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Remove!"))
+				PirateTeam->RemoveChild(PlayerSlot);
+			}
+		}
+	}
+
+	for (UWidget* Child : PrivateerTeam->GetAllChildren())
+	{
+		UPlayerSlot* PlayerSlot = Cast<UPlayerSlot>(Child);
+		UE_LOG(LogTemp, Warning, TEXT("PlayerSlot name %s, Playernametoremove %s"), *PlayerSlot->GetPlayerName(), *PlayerNameToRemove)
+		if (PlayerSlot)
+		{
+			if (PlayerSlot->GetPlayerName() == PlayerNameToRemove)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Remove!"))
+				PrivateerTeam->RemoveChild(PlayerSlot);
+			}
+		}
+	}
+}
+
 bool UMainMenu::Initialize()
 {
 	bool Success = Super::Initialize();
@@ -64,6 +95,9 @@ bool UMainMenu::Initialize()
 
 	if (!ensure(HostButton != nullptr)) return false;
 	StartHostingButton->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
+
+	if (!ensure(SwitchTeamsButton != nullptr)) return false;
+	SwitchTeamsButton->OnClicked.AddDynamic(this, &UMainMenu::SwitchTeamsButtonPressed);
 
 	if (!ensure(JoinButton != nullptr)) return false;
 	JoinButton->OnClicked.AddDynamic(this, &UMainMenu::OpenJoinMenu);
@@ -107,7 +141,6 @@ void UMainMenu::OpenHostMenu()
 
 void UMainMenu::HostServer()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Host server"))
 
 	if (MenuInterface != nullptr && ServerNameFromUser)
 	{
@@ -118,6 +151,22 @@ void UMainMenu::HostServer()
 		else
 		{
 			MenuInterface->Host(ServerNameFromUser->GetText().ToString());
+		}
+	}
+}
+
+void UMainMenu::SwitchTeamsButtonPressed()
+{
+	if (MenuInterface)
+	{
+		APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+		if (PlayerController)
+		{
+			ACaptainState* CaptainState = PlayerController->GetPlayerState<ACaptainState>();
+			if (CaptainState)
+			{
+				MenuInterface->SwitchTeams(CaptainState);
+			}
 		}
 	}
 }
@@ -162,13 +211,9 @@ void UMainMenu::JoinServer()
 {
 	if (SelectedIndex.IsSet() && MenuInterface)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("IndexSet! %d"), SelectedIndex.GetValue())
 		MenuInterface->Join(SelectedIndex.GetValue());
 	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Not set..."))
-	}
+
 }
 
 void UMainMenu::OpenMainMenu()
@@ -241,17 +286,20 @@ void UMainMenu::CreateUserSlot(FString PlayerName, ACaptainState* NewPlayerCapta
 	APlayerController* PlayerController = World->GetFirstPlayerController();
 
 	if (!PlayerSlotClass || !PlayerController) return;
-
 	UPlayerSlot* PlayerSlot = CreateWidget<UPlayerSlot>(PlayerController, PlayerSlotClass);
 	if (PlayerSlot)
 	{
 		PlayerSlot->SetPlayerNameText(PlayerName);
 		if (PlayerTeam == ETeam::ET_Pirate)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("CreateSlotPirate"))
+
 			PirateTeam->AddChild(PlayerSlot);
 		}
 		else if (PlayerTeam == ETeam::ET_Privateer)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("CreateSlotPrivateer"))
+
 			PrivateerTeam->AddChild(PlayerSlot);
 		}
 	}

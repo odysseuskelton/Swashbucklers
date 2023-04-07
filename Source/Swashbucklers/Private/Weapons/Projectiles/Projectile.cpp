@@ -10,6 +10,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 
 AProjectile::AProjectile()
@@ -34,6 +35,15 @@ AProjectile::AProjectile()
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 
 }
+
+
+void AProjectile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AProjectile, EasterEggSounds);
+}
+
 
 void AProjectile::BeginPlay()
 {
@@ -64,26 +74,43 @@ void AProjectile::CollisionSphereOverlap(UPrimitiveComponent* OverlappedComponen
 	if (SphereHit.GetActor())
 	{
 		IHitInterface* HitInterface = Cast<IHitInterface>(SphereHit.GetActor());
+		IHitInterface* InstigatorInterface = Cast<IHitInterface>(PlayerPawn);
 		if (HitInterface)
 		{
+			if (HitInterface->IsHitActorDead()) return;
 
-			ACaptainState* HitCaptainState = HitInterface->GetCaptainState();
+			AActor* HitActor = HitInterface->GetActorWithAbilityComponent();
 
-			if (HitCaptainState && AbilityHandle.IsValid())
+			if (HitActor && AbilityHandle.IsValid())
 			{
-				FGameplayAbilityTargetDataHandle TargetHandle = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(HitCaptainState);
-				ApplyGESpecHandleToTargetData(AbilityHandle, TargetHandle);
+				FGameplayAbilityTargetDataHandle TargetHandle = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(HitActor);
+				if (InstigatorInterface->GetHitActorTeam() != HitInterface->GetHitActorTeam())
+				{
+					ApplyGESpecHandleToTargetData(AbilityHandle, TargetHandle);
+				}
 				MulticastShipHitEffects(SphereHit);
 				
 				Destroy();
 			}
 		}
+	}
 
-		if (SphereHit.GetActor()->Tags.Contains("HitOcean") && SplashSystem)
+	if (OtherActor->GetName().Contains("WaterBodyOcean") && SplashSystem)
+	{
+		MulticastWaterSplash();
+	}
+	
+}
+
+void AProjectile::MulticastWaterSplash_Implementation()
+{
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, SplashSystem, ProjectileMesh->GetComponentLocation());
+	if (SplashSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, SplashSound, ProjectileMesh->GetComponentLocation());
+		if (EasterEggSounds == true)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Oceanspawn"))
-			UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, SplashSystem, ProjectileMesh->GetComponentLocation());
-			Destroy();
+			UGameplayStatics::PlaySoundAtLocation(this, KerSplooshSound, ProjectileMesh->GetComponentLocation());
 		}
 	}
 }
@@ -97,12 +124,18 @@ void AProjectile::MulticastShipHitEffects_Implementation(FHitResult ShipHit)
 	if (ShipHitSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, ShipHitSound, ShipHit.ImpactPoint);
+		if (EasterEggSounds == true)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, KaBoomSound, ProjectileMesh->GetComponentLocation());
+		}
 	}
+
+	if (!ShipHit.GetActor()) return;
 
 	UStaticMeshComponent* MeshComponent = Cast<UStaticMeshComponent>(ShipHit.GetActor()->GetRootComponent());
 	if (MeshComponent)
 	{
-
+		if (!MeshComponent->IsSimulatingPhysics()) return;
 		FVector Forward = this->GetActorForwardVector();
 		FVector ForceToApply = Forward * CannonballForce * MeshComponent->GetMass();
 		MeshComponent->AddImpulse(ForceToApply, FName(), true);
@@ -142,4 +175,22 @@ void AProjectile::SphereTrace(FHitResult& SphereHit)
 
 	UKismetSystemLibrary::SphereTraceSingle(this, Start, End, SphereTraceRadius, ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, bShowDebugSphere ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None, SphereHit, true);
 	IgnoreActors.AddUnique(SphereHit.GetActor());
+}
+
+
+void AProjectile::SetStencilValueOfCannonball(ETeam TeamOfOwner)
+{
+	MulticastSetStencilValueOfCannonball(TeamOfOwner);
+}
+
+void AProjectile::MulticastSetStencilValueOfCannonball_Implementation(ETeam TeamOfOwner)
+{
+	if (TeamOfOwner == ETeam::ET_Pirate)
+	{
+		ProjectileMesh->SetCustomDepthStencilValue(254);
+	}
+	else if (TeamOfOwner == ETeam::ET_Privateer)
+	{
+		ProjectileMesh->SetCustomDepthStencilValue(253);
+	}
 }

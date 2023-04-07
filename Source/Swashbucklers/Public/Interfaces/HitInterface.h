@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "PlayerStates/Teams.h"
 #include "HitInterface.generated.h"
 
 class ACaptainState;
@@ -23,5 +24,7 @@ class SWASHBUCKLERS_API IHitInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	virtual ACaptainState* GetCaptainState() = 0;
+	virtual AActor* GetActorWithAbilityComponent() = 0;
+	virtual ETeam GetHitActorTeam() = 0;
+	virtual bool IsHitActorDead() = 0;
 };

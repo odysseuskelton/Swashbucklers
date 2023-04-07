@@ -10,6 +10,8 @@
  * 
  */
 class UMainMenu;
+
+
 UCLASS()
 class SWASHBUCKLERS_API ASBMainMenuGameMode : public AGameMode
 {
@@ -21,6 +23,7 @@ protected:
 	UMainMenu* HostMainMenu;
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+
 
 	
 };

@@ -18,8 +18,10 @@ class SWASHBUCKLERS_API UHealthbarComponent : public UWidgetComponent
 
 public:
 	void SetHealthPercent(float Percent);
+	void SetRenderOpacity(float OpacityToSet);
 
 private:
 	UPROPERTY()
 	UHealthbar* HealthBarWidget;
+
 };

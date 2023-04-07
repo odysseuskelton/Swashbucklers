@@ -48,5 +48,4 @@ void UServerLine::SetMaxPlayersText(uint16 MaxPlayersToSet)
 void UServerLine::OnClicked()
 {
 	Parent->SelectIndex(Index);
-	UE_LOG(LogTemp, Warning, TEXT("Selected"))
 }

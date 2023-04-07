@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
 #include "Teams.h"
+#include "Interfaces/CaptainStateInterface.h"
+#include "Buildings/BuildingTypes.h"
 #include "AbilitySystemInterface.h"
 #include "CaptainState.generated.h"
 
@@ -12,12 +14,13 @@
 class USBAbilitySystemComponent;
 class USBAttributeSet;
 class USBGameplayAbility;
+class AShip;
 
 /**
  * 
  */
 UCLASS()
-class SWASHBUCKLERS_API ACaptainState : public APlayerState, public IAbilitySystemInterface
+class SWASHBUCKLERS_API ACaptainState : public APlayerState, public IAbilitySystemInterface, public ICaptainStateInterface
 {
 	GENERATED_BODY()
 
@@ -25,6 +28,9 @@ public:
 	ACaptainState();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess))
+	TSubclassOf<AShip> DefaultShip;
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AbilitySystem", meta = (AllowPrivateAccess))
@@ -36,8 +42,20 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AbilitySystem", meta = (AllowPrivateAccess))
 	TArray<TSubclassOf<USBGameplayAbility>> StartingAbilities;
 
-	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_Team)
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite,meta = (AllowPrivateAccess))
+	TArray<TSubclassOf<AShip>> OwnedShips;
+
+	UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_Team)
 	ETeam PlayerTeam;
+
+	UFUNCTION()
+	void BuildingDestroyedNotification(EBuildingType BuildingTypeDestroyed);
+
+	UFUNCTION(Server, Reliable)
+	void ServerBuyShip(TSubclassOf<AShip> ShipToBuy);
+
+	UFUNCTION(Server, Reliable)
+	void ServerSwitchShips(TSubclassOf<AShip> ShipToSwitchTo);
 
 protected:
 	virtual void BeginPlay() override;
@@ -61,5 +79,15 @@ public:
 	UFUNCTION()
 	void OnRep_Team(ETeam TeamToSet);
 
-	FORCEINLINE ETeam GetPlayerTeam() { return PlayerTeam; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE ETeam GetPlayerTeam() override { return PlayerTeam; }
+
+	//CaptainState Interface
+	FORCEINLINE TArray<TSubclassOf<AShip>> GetPlayerShips() override { return OwnedShips; }
+	FORCEINLINE virtual void SetDefaultShip(TSubclassOf<AShip> NewDefaultShip) { DefaultShip = NewDefaultShip; }
+	void BuyShip(TSubclassOf<AShip> ShipToBuy) override;
+	int32 GetPlayerPOE() override; 
+	void SendPlayerPOE(int32 POEToSend) override;
+
+
 };

@@ -2,9 +2,11 @@
 
 
 #include "PlayerStates/CaptainState.h"
+#include "PlayerControllers/CaptainController.h"
 #include "Ships/PlayerShip.h"
 #include "Components/SBAbilitySystemComponent.h"
 #include "GameInstance/SBGameInstance.h"
+#include "GameStates/SBGameState.h"
 #include "GameplayAbilities/SBAttributeSet.h"
 #include "GameplayAbilities/SBGameplayAbility.h"
 
@@ -26,8 +28,10 @@ void ACaptainState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ACaptainState, PlayerTeam);
+	DOREPLIFETIME(ACaptainState, OwnedShips);
 
 }
+
 
 void ACaptainState::BeginPlay()
 {
@@ -38,6 +42,29 @@ void ACaptainState::BeginPlay()
 		AcquireAbilities(StartingAbilities);
 	}
 
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		ASBGameState* SBGameState = World->GetGameState<ASBGameState>();
+		if (SBGameState)
+		{
+			SBGameState->OnBuildingDestroyed.AddDynamic(this, &ACaptainState::BuildingDestroyedNotification);
+		}
+	}
+
+}
+
+void ACaptainState::BuildingDestroyedNotification(EBuildingType BuildingTypeDestroyed)
+{
+
+	if(BuildingTypeDestroyed == EBuildingType::EBT_PrivateerHQ || BuildingTypeDestroyed == EBuildingType::EBT_PirateHideout)
+	{
+		ACaptainController* CaptainController = Cast<ACaptainController>(GetPlayerController());
+		if (CaptainController)
+		{
+			CaptainController->DisplayVictoryScreen(BuildingTypeDestroyed);
+		}
+	}
 }
 
 void ACaptainState::Tick(float DeltaTime)
@@ -65,7 +92,6 @@ UAbilitySystemComponent* ACaptainState::GetAbilitySystemComponent() const
 
 void ACaptainState::ActivateAbility(TSubclassOf<USBGameplayAbility> Ability)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Call activate..."))
 
 	AbilityComponent->TryActivateAbilityByClass(Ability);
 }
@@ -106,10 +132,65 @@ void ACaptainState::SetTeam(ETeam TeamToSet)
 
 void ACaptainState::OnRep_Team(ETeam TeamToSet)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnRepTeam"))
 	APlayerShip* PlayerShip = Cast<APlayerShip>(GetPawn());
 	if (PlayerShip)
 	{
 		PlayerShip->SetSailColors(PlayerTeam);
 	}
 }
+
+void ACaptainState::BuyShip(TSubclassOf<AShip> ShipToBuy)
+{
+	ServerBuyShip(ShipToBuy);
+}
+
+
+void ACaptainState::ServerBuyShip_Implementation(TSubclassOf<AShip> ShipToBuy)
+{
+	if (OwnedShips.Contains(ShipToBuy))
+	{
+		ServerSwitchShips(ShipToBuy);
+		UE_LOG(LogTemp, Warning, TEXT("Just switch, no buy"))
+		return;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Server buy ship"))
+
+	OwnedShips.Add(ShipToBuy);
+	AttributeSet->Buy(ShipToBuy.GetDefaultObject()->StoreCost);
+	ServerSwitchShips(ShipToBuy);
+}
+
+void ACaptainState::ServerSwitchShips_Implementation(TSubclassOf<AShip> ShipToSwitchTo)
+{
+	SetDefaultShip(ShipToSwitchTo);
+	if (GetPlayerController()->GetPawn())
+	{
+		FTransform TransformForNewShip = GetPlayerController()->GetPawn()->GetActorTransform();
+		FActorSpawnParameters SpawnInfo;
+		SpawnInfo.ObjectFlags |= RF_Transient;
+		AShip* CurrentShip = Cast<AShip>(GetPlayerController()->GetPawn());
+		if (CurrentShip)
+		{
+			CurrentShip->CleanupCannons();
+			CurrentShip->Destroy();
+		}
+		AShip* NewShip = GetWorld()->SpawnActor<AShip>(ShipToSwitchTo, TransformForNewShip, SpawnInfo);
+		GetPlayerController()->Possess(NewShip);
+	}
+}
+
+
+int32 ACaptainState::GetPlayerPOE()
+{
+	if (!AttributeSet) return int32();
+	
+	return AttributeSet->PiecesOfEight.GetCurrentValue();
+}
+
+void ACaptainState::SendPlayerPOE(int32 POEToSend)
+{
+	if (!AttributeSet) return;
+
+	AttributeSet->ReceivePOE(POEToSend);
+}
+

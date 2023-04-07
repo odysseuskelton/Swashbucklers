@@ -3,6 +3,7 @@
 
 #include "GameInstance/SBGameInstance.h"
 #include "OnlineSubsystem.h"
+#include "GameStates/SBGameState.h"
 #include "PlayerStates/CaptainState.h"
 #include "HUD/MainMenu.h"
 #include "Net/UnrealNetwork.h"
@@ -61,10 +62,9 @@ void USBGameInstance::RefreshServerList()
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
 	if (SessionSearch.IsValid())
 	{
-		SessionSearch->bIsLanQuery = true;
+		SessionSearch->bIsLanQuery = false;
 		SessionSearch->MaxSearchResults = 1000;
 		SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
-		//SessionSearch->QuerySettings.Set();
 		SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
 	}
 }
@@ -150,7 +150,7 @@ void USBGameInstance::OnDestroySessionComplete(FName SessionName, bool bSuccess)
 {
 	if (bSuccess)
 	{
-		Host(StoredServerName);
+		//Host(StoredServerName);
 	}
 }
 
@@ -167,14 +167,20 @@ void USBGameInstance::Host(FString ServerNameFromUser)
 		else
 		{
 			FOnlineSessionSettings SessionSettings;
-			SessionSettings.bIsLANMatch = true;
+			SessionSettings.bIsLANMatch = false;
 			SessionSettings.NumPublicConnections = 10;
 			SessionSettings.bShouldAdvertise = true;
 			SessionSettings.bUsesPresence = true;
 			SessionSettings.bUseLobbiesIfAvailable = true;
+			SessionSettings.bAllowJoinInProgress = true;
 			SessionSettings.Set(TEXT("ServerName"), ServerNameFromUser, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 			SessionInterface->CreateSession(0, SESSION_NAME, SessionSettings);
-			UE_LOG(LogTemp, Warning, TEXT("Create sessions"))
+			FNamedOnlineSession* TestSession = SessionInterface->GetNamedSession(SESSION_NAME);
+			if (TestSession)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Create sessions %d"), TestSession->SessionSettings.NumPublicConnections)
+			}
+
 		}
 	}
 }
@@ -193,8 +199,16 @@ void USBGameInstance::StartGame()
 	}
 }
 
+void USBGameInstance::Shutdown()
+{
+	Super::Shutdown();
+
+	//DestroySession();
+}
+
 void USBGameInstance::DestroySession()
 {
+	ClearTeams();
 	if (SessionInterface.IsValid())
 	{
 		FNamedOnlineSession* ExistingSession = SessionInterface->GetNamedSession(SESSION_NAME);
@@ -210,6 +224,7 @@ void USBGameInstance::ReturnToMainMenu()
 	UWorld* World = GetWorld();
 	if (!ensure(World != nullptr)) return;
 	World->ServerTravel("/Game/Core/Maps/MainMenu?listen");
+	LoadMainMenuWidget();
 }
 
 
@@ -218,35 +233,104 @@ ETeam USBGameInstance::AssignTeam(ACaptainState* PlayerToAssignTeamTo)
 	if (PlayerToAssignTeamTo == nullptr) return ETeam();
 
 	UE_LOG(LogTemp, Warning, TEXT("Assign team, playerstate valid"))
-	//If player already assigned to a team, return.
-	if (PirateTeamNames.Contains(PlayerToAssignTeamTo->GetPlayerName()) || PirateTeamNames.Contains(PlayerToAssignTeamTo->GetPlayerName())) return ETeam();
 
-	//If both teams are empty, auto assign to pirate
-	if (PirateTeamNames.IsEmpty() && PrivateerTeamNames.IsEmpty())
+	UWorld* World = GetWorld();
+	if (World)
 	{
-		PirateTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
-		CheckTeams();
-		return ETeam::ET_Pirate;
-	}
+		ASBGameState* SBGameState = World->GetGameState<ASBGameState>();
+		//If player already assigned to a team, return.
+		if (PirateTeamNames.Contains(PlayerToAssignTeamTo->GetPlayerName()) || PirateTeamNames.Contains(PlayerToAssignTeamTo->GetPlayerName())) return ETeam();
 
-	//Assign player to team with less players; if teams have equal players, default to adding to pirate team
-	if (PirateTeamNames.Num() > PrivateerTeamNames.Num())
-	{
-		PrivateerTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
-		CheckTeams();
-		return ETeam::ET_Privateer;
+		//If both teams are empty, auto assign to pirate
+		if (PirateTeamNames.IsEmpty() && PrivateerTeamNames.IsEmpty())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Both teams empty, pirate %s"), *PlayerToAssignTeamTo->GetPlayerName())
+			PirateTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
+			if (SBGameState)
+			{
+				SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames);
+			}
+			return ETeam::ET_Pirate;
+		}
+
+		//Assign player to team with less players; if teams have equal players, default to adding to pirate team
+		if (PirateTeamNames.Num() > PrivateerTeamNames.Num())
+		{
+			PrivateerTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
+			UE_LOG(LogTemp, Warning, TEXT("Privateer team add (pirate has more players) %s"), *PlayerToAssignTeamTo->GetPlayerName())
+				for (FString Name : PrivateerTeamNames)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Looping through names... %s"), *Name)
+				}
+
+			if (SBGameState)
+			{
+				SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames);
+			}
+			return ETeam::ET_Privateer;
+		}
+		else if (PrivateerTeamNames.Num() > PirateTeamNames.Num())
+		{
+			PirateTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
+			UE_LOG(LogTemp, Warning, TEXT("Pirate team add (privateer has more players )%s"), *PlayerToAssignTeamTo->GetPlayerName())
+			if (SBGameState)
+			{
+				SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames);
+			}
+			return ETeam::ET_Pirate;
+		}
+		else
+		{
+			PirateTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
+			UE_LOG(LogTemp, Warning, TEXT("Pirate team addelse case %s"), *PlayerToAssignTeamTo->GetPlayerName())
+			if (SBGameState)
+			{
+				SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames);
+			}
+			return ETeam::ET_Pirate;
+		}
 	}
-	else if (PrivateerTeamNames.Num() > PirateTeamNames.Num())
+	return ETeam::ET_NoTeam;
+}
+
+void USBGameInstance::SwitchTeams(ACaptainState* CaptainStateTeamToSwitch)
+{
+	if (!CaptainStateTeamToSwitch) return;
+	
+	FString CaptainName = CaptainStateTeamToSwitch->GetPlayerName();
+	UE_LOG(LogTemp, Warning, TEXT("Called Switch Teams %s"), *CaptainStateTeamToSwitch->GetName())
+	ASBGameState* SBGameState = GetWorld()->GetGameState<ASBGameState>();
+	if (PirateTeamNames.Contains(CaptainName))
 	{
-		PirateTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
-		CheckTeams();
-		return ETeam::ET_Pirate;
+		UE_LOG(LogTemp, Warning, TEXT("in pirate team"))
+		PirateTeamNames.Remove(CaptainName);
+		PrivateerTeamNames.Add(CaptainName);
+		CaptainStateTeamToSwitch->SetTeam(ETeam::ET_Privateer);
+		if (MainMenu)
+		{
+			MainMenu->RemovePlayerFromList(CaptainName);
+			MainMenu->CreateUserSlot(CaptainName, CaptainStateTeamToSwitch, CaptainStateTeamToSwitch->GetPlayerTeam());
+		}
+		if (SBGameState)
+		{
+			SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames);
+		}
 	}
-	else
+	else if (PrivateerTeamNames.Contains(CaptainName))
 	{
-		PirateTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
-		CheckTeams();
-		return ETeam::ET_Pirate;
+		UE_LOG(LogTemp, Warning, TEXT("in privateerteam team"))
+		PrivateerTeamNames.Remove(CaptainName);
+		PirateTeamNames.Add(CaptainName);
+		CaptainStateTeamToSwitch->SetTeam(ETeam::ET_Pirate);
+		if (MainMenu)
+		{
+			MainMenu->RemovePlayerFromList(CaptainName);
+			MainMenu->CreateUserSlot(CaptainName, CaptainStateTeamToSwitch, CaptainStateTeamToSwitch->GetPlayerTeam());
+		}
+		if (SBGameState)
+		{
+			SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames);
+		}
 	}
 }
 

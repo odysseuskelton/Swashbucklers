@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Buildings/BuildingTypes.h"
 #include "InputActionValue.h"
 #include "CaptainController.generated.h"
 
@@ -11,6 +12,8 @@
 class UInputMappingContext;
 class UInputAction;
 class UInGameMenu;
+class UVictoryScreen;
+class UClientLobbyMenu;
 /**
  * 
  */
@@ -19,8 +22,22 @@ class SWASHBUCKLERS_API ACaptainController : public APlayerController
 {
 	GENERATED_BODY()
 
+public:
+	void DisplayVictoryScreen(EBuildingType BuildingType);
+
+	void CreateClientLobbyWidget();
+
+	void UpdateTeamsOnClient(TArray<FString> PirateTeamNames, TArray<FString> PrivateerTeamNames);
+
+	void RequestTeamSwitch();
+
+	UFUNCTION(Server, Reliable)
+	void ServerRequestSwitchTeam(ACaptainState* CaptainState);
+
 protected:
 	virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupInputComponent() override;
 
@@ -38,7 +55,31 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UInGameMenu> InGameMenuClass;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UClientLobbyMenu> ClientLobbyMenuClass;
+
 	UPROPERTY()
 	UInGameMenu* InGameMenuWidget;
+
+	UPROPERTY()
+	UClientLobbyMenu* ClientLobbyMenu;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UVictoryScreen> PirateVictoryScreenClass;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UVictoryScreen> PrivateerVictoryScreenClass;
+
+	FTimerHandle ReturnToMainMenuTimer;
+
+	UPROPERTY(EditAnywhere)
+	float ReturnToMainMenuDelay= 15.f;
+
+	void ReturnToMainMenu();
+
+
+	void ServerRequestSwitchTeam_Implementation(ACaptainState* CaptainState);
+
+
 	
 };

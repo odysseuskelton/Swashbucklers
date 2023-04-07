@@ -13,3 +13,13 @@ void UHealthbarComponent::SetHealthPercent(float Percent)
         HealthBarWidget->HealthBar->SetPercent(Percent);
     }
 }
+
+void UHealthbarComponent::SetRenderOpacity(float OpacityToSet)
+{
+
+    HealthBarWidget = HealthBarWidget == nullptr ? Cast<UHealthbar>(GetUserWidgetObject()) : HealthBarWidget;
+    if (HealthBarWidget && HealthBarWidget->HealthBar)
+    {
+        HealthBarWidget->HealthBar->SetRenderOpacity(OpacityToSet);
+    }
+}

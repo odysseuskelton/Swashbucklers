@@ -5,12 +5,14 @@
 
 #include "GameplayAbilities/SBGameplayAbility.h"
 #include "Components/SBAbilitySystemComponent.h"
+#include "GameplayAbilities/SBAttributeSet.h"
 
 #include "GameFramework/GameStateBase.h"
 #include "PlayerStates/CaptainState.h"
 
 #include "GameFramework/FloatingPawnMovement.h"
 #include "Components/AudioComponent.h"
+#include "BuoyancyComponent.h"
 
 #include "HUD/HealthbarComponent.h"
 
@@ -32,11 +34,12 @@ AShip::AShip()
 
 	HealthbarComponent = CreateDefaultSubobject<UHealthbarComponent>(TEXT("Healthbar"));
 	HealthbarComponent->SetupAttachment(ShipMesh);
-	HealthbarComponent->SetVisibility(false);
 
 	CruisingSoundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
 	CruisingSoundComponent->SetupAttachment(ShipMesh);
 	CruisingSoundComponent->Stop();
+
+	BuoyancyComponent = CreateDefaultSubobject<UBuoyancyComponent>(TEXT("BuoyancyComp"));
 
 	PawnMovement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("PawnMovement"));
 }
@@ -54,11 +57,13 @@ void AShip::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 void AShip::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	if (HealthbarComponent)
+	{
+		HealthbarComponent->SetRenderOpacity(0.f);
+	}
 	SpawnCannons();
 	AcquireCannonAbilities();
 	BindAbilityComponentDelegates();
-	HealthbarComponent->SetVisibility(false);
 	bIsDead = false;
 
 }
@@ -68,21 +73,23 @@ void AShip::BindAbilityComponentDelegates()
 
 }
 
-void AShip::OnHealthChanged(float Health, float MaxHealth)
+void AShip::OnHealthChanged(float Health, float MaxHealth, AActor* InstigatorActor)
 {
 	if (!HasAuthority()) return;
-	MulticastOnHealthChanged(Health, MaxHealth);
+	MulticastOnHealthChanged(Health, MaxHealth, InstigatorActor);
 }
 
 void AShip::HealthbarTimerFinished()
 {
-	HealthbarComponent->SetVisibility(false);
+	HealthbarComponent->SetRenderOpacity(0.f);
 }
 
-void AShip::MulticastOnHealthChanged_Implementation(float Health, float MaxHealth)
+void AShip::MulticastOnHealthChanged_Implementation(float Health, float MaxHealth, AActor* InstigatorActor)
 {
-	HealthbarComponent->SetVisibility(true);
-
+	if (!IsLocallyControlled())
+	{
+		HealthbarComponent->SetRenderOpacity(100.f);
+	}
 	GetWorldTimerManager().SetTimer(HealthbarTimer, this, &AShip::HealthbarTimerFinished, 4.f);
 
 	if (HealthbarComponent)
@@ -104,7 +111,7 @@ void AShip::MulticastOnHealthChanged_Implementation(float Health, float MaxHealt
 
 	if (Health <= 0 && !bIsDead)
 	{
-		Die();
+		Die(InstigatorActor);
 	}
 }
 
@@ -125,18 +132,16 @@ void AShip::SpawnShipDamageSystems(uint16 NumberOfSystemsToSpawn)
 	}
 }
 
-void AShip::Die()
+void AShip::Die(AActor* InstigatorActor)
 {
 	bIsDead = true;
 
-	for (ACannon* Cannon : PortCannons)
+	if (BuoyancyComponent)
 	{
-		Cannon->SetLifeSpan(RespawnTime);
+		BuoyancyComponent->DestroyComponent();
 	}
-	for (ACannon* Cannon : StarboardCannons)
-	{
-		Cannon->SetLifeSpan(RespawnTime);
-	}
+
+	CleanupCannons();
 
 	if (ShipDeathSystem)
 	{
@@ -148,9 +153,16 @@ void AShip::Die()
 	}
 }
 
-ACaptainState* AShip::GetCaptainState()
+void AShip::CleanupCannons()
 {
-	return nullptr;
+	for (ACannon* Cannon : PortCannons)
+	{
+		Cannon->SetLifeSpan(RespawnTime);
+	}
+	for (ACannon* Cannon : StarboardCannons)
+	{
+		Cannon->SetLifeSpan(RespawnTime);
+	}
 }
 
 void AShip::AcquireCannonAbilities()
@@ -196,6 +208,8 @@ void AShip::HandleCannonSpawning(int32 CannonSlots, FString CannonAttachString)
 		if (CannonToSpawn)
 		{
 			CannonToSpawn->AttachToComponent(ShipMesh, TransformRules, AttachName);
+			CannonToSpawn->SocketName = FName(*TempCannonAttachStr);
+			CannonToSpawn->StartingRotation = ShipMesh->GetSocketRotation(CannonToSpawn->SocketName);
 			if (CannonAttachString == FString("LCannon"))
 			{
 				PortCannons.Add(CannonToSpawn);
@@ -225,6 +239,16 @@ void AShip::Tick(float DeltaTime)
 		ShipMesh->SetWorldRotation(FMath::RInterpTo(GetActorRotation(), FRotator(GetActorRotation().Pitch, GetActorRotation().Yaw, 0.f), DeltaTime, 3.f));
 	}*/
 	DeltaSeconds = DeltaTime;
+}
+
+AActor* AShip::GetActorWithAbilityComponent()
+{
+	return nullptr;
+}
+
+ETeam AShip::GetHitActorTeam()
+{
+	return ETeam();
 }
 
 

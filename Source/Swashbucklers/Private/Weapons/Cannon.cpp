@@ -3,8 +3,12 @@
 
 #include "Weapons/Cannon.h"
 #include "Weapons/Projectiles/Projectile.h"
+#include "Interfaces/PlayerInterface.h"
+#include "Interfaces/HitInterface.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
+
+#include "Net/UnrealNetwork.h"
 
 ACannon::ACannon()
 {
@@ -12,6 +16,13 @@ ACannon::ACannon()
 
 	CannonMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CannonMesh"));
 	SetRootComponent(CannonMesh);
+}
+
+void ACannon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ACannon, ExtraSoundsOnCannonball);
 }
 
 
@@ -36,6 +47,24 @@ void ACannon::FireCannon()
 
 	CannonFireEffects();
 		
+	if (GetOwner())
+	{
+		IPlayerInterface* FiringPlayer = Cast<IPlayerInterface>(GetOwner());
+
+		if (FiringPlayer)
+		{
+			FVector Right = GetActorRightVector() * -1;
+
+			FVector AngularForceToApply = Right * CannonAngularRecoil * FiringPlayer->GetCannonRecoilMultiplierFromShip();
+			FiringPlayer->GetPlayerShipMesh()->AddAngularImpulseInDegrees(AngularForceToApply, FName(), true);
+
+			FVector Forward = GetActorForwardVector() * -1;
+			FVector LinearForceToApply = Forward * CannonLinearRecoil * FiringPlayer->GetCannonRecoilMultiplierFromShip();
+			FiringPlayer->GetPlayerShipMesh()->AddImpulse(LinearForceToApply, FName(), true);
+
+		}
+	}
+
 	if (GetOwner()->HasAuthority())
 	{
 		if (GetWorld() && CannonballClass)
@@ -46,10 +75,18 @@ void ACannon::FireCannon()
 				Cannonball->SetOwner(this);
 				Cannonball->SetPlayerPawn(GetOwner());
 				Cannonball->AbilityHandle = CannonGEHandle;
+
+				IHitInterface* OwnerHitInterface = Cast<IHitInterface>(GetOwner());
+				if (OwnerHitInterface)
+				{
+					Cannonball->SetStencilValueOfCannonball(OwnerHitInterface->GetHitActorTeam());
+					Cannonball->EasterEggSounds = ExtraSoundsOnCannonball;
+				}
 			}
 		}
 	}
 }
+
 
 void ACannon::CannonFireEffects()
 {

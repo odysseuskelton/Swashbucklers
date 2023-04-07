@@ -8,5 +8,6 @@ void UPlayerSlot::SetPlayerNameText(FString PlayerNameToSet)
 {
 	if (!PlayerNameText) return;
 
+	PlayerName = PlayerNameToSet;
 	PlayerNameText->SetText(FText::FromString(PlayerNameToSet));
 }

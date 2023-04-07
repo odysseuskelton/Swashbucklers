@@ -40,6 +40,8 @@ public:
 
 	UMainMenu* MainMenu;
 
+	virtual void Shutdown() override;
+
 	void OnCreateSessionComplete(FName SessionName, bool bSuccess);
 	void OnDestroySessionComplete(FName SessionName, bool bSuccess);
 	void OnFindSessionsComplete(bool bSuccess);
@@ -50,11 +52,15 @@ public:
 	virtual void DestroySession() override;
 	virtual void ReturnToMainMenu() override;
 
+	bool bInLobby = false;
+
 	TArray<FString> PirateTeamNames;
 	TArray<FString> PrivateerTeamNames;
 
 	ETeam AssignTeam(ACaptainState* PlayerToAssignTeamTo);
+	virtual void SwitchTeams(ACaptainState* CaptainStateTeamToSwitch) override;
 	void CheckTeams();
 	virtual void ClearTeams() override;
 	virtual void Join(uint32 Index) override;
+
 };

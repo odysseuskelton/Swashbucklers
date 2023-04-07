@@ -68,6 +68,14 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UPlayerSlot> PlayerSlotClass;
 
+	UPROPERTY(meta = (BindWidget))
+	UScrollBox* PirateTeam;
+
+	UPROPERTY(meta = (BindWidget))
+	UScrollBox* PrivateerTeam;
+
+	void RemovePlayerFromList(FString PlayerNameToRemove);
+
 protected:
 	virtual bool Initialize();
 	
@@ -81,6 +89,9 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* StartHostingButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* SwitchTeamsButton;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* StartGameButton;
@@ -136,12 +147,6 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UScrollBox* ServerList;
 
-	UPROPERTY(meta = (BindWidget))
-	UScrollBox* PirateTeam;
-
-	UPROPERTY(meta = (BindWidget))
-	UScrollBox* PrivateerTeam;
-
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UServerLine> ServerLineClass;
 
@@ -150,6 +155,9 @@ private:
 
 	UFUNCTION()
 	void HostServer();
+
+	UFUNCTION()
+	void SwitchTeamsButtonPressed();
 
 	UFUNCTION()
 	void JoinServer();

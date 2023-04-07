@@ -3,8 +3,11 @@
 
 #include "GameModes/SBMainMenuGameMode.h"
 #include "GameInstance/SBGameInstance.h"
+#include "GameStates/SBGameState.h"
 #include "PlayerStates/CaptainState.h"
+#include "PlayerControllers/CaptainController.h"
 #include "HUD/MainMenu.h"
+
 
 void ASBMainMenuGameMode::BeginPlay()
 {
@@ -15,12 +18,20 @@ void ASBMainMenuGameMode::BeginPlay()
 	{
 		HostMainMenu = GameInstance->LoadMainMenuWidget();
 	}
+
+	ASBGameState* SBGameState = GetGameState<ASBGameState>();
+	if (SBGameState)
+	{
+		SBGameState->SetIsInLobby(true);
+	}
 }
 
 void ASBMainMenuGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
+
 	UE_LOG(LogTemp, Warning, TEXT("Login..."))
+	
 
 	if (HostMainMenu)
 	{
@@ -35,4 +46,5 @@ void ASBMainMenuGameMode::PostLogin(APlayerController* NewPlayer)
 			}
 		}
 	}
+
 }

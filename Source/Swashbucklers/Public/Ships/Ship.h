@@ -10,6 +10,7 @@
 
 class UFloatingPawnMovement;
 class UHealthbarComponent;
+class UPlayerNameplateComponent;
 
 class UInputMappingContext;
 class UInputAction;
@@ -19,6 +20,7 @@ class ACaptainState;
 class USBGameplayAbility;
 class USBAbilitySystemComponent;
 class UNiagaraSystem;
+class UBuoyancyComponent;
 
 UCLASS()
 class SWASHBUCKLERS_API AShip : public APawn, public IHitInterface
@@ -35,19 +37,43 @@ public:
 	virtual void BindAbilityComponentDelegates();
 
 	UFUNCTION()
-	void OnHealthChanged(float Health, float MaxHealth);
+	void OnHealthChanged(float Health, float MaxHealth, AActor* InstigatorActor);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastOnHealthChanged(float Health, float MaxHealth);
+	void MulticastOnHealthChanged(float Health, float MaxHealth, AActor* InstigatorActor);
 
 	void SpawnShipDamageSystems(uint16 NumberOfSystemsToSpawn);
 
-	virtual void Die();
+	virtual void Die(AActor* InstigatorActor);
 
-	//HitInterface Override
-	ACaptainState* GetCaptainState() override;
+	void CleanupCannons();
 
 	void AcquireCannonAbilities();
+
+	//Store Info
+	UPROPERTY(EditAnywhere, Category = "Store Info")
+	FName StoreShipName;
+
+	UPROPERTY(EditAnywhere, Category = "Store Info")
+	UTexture2D* StoreShipImage;
+
+	UPROPERTY(EditAnywhere, Category = "Store Info")
+	int32 StoreHP;
+
+	UPROPERTY(EditAnywhere, Category = "Store Info")
+	int32 StoreCannons;
+
+	UPROPERTY(EditAnywhere, Category = "Store Info")
+	float StoreSpeed;
+
+	UPROPERTY(EditAnywhere, Category = "Store Info")
+	float StoreAcceleration;
+
+	UPROPERTY(EditAnywhere, Category = "Store Info")
+	FString StoreDescription;
+
+	UPROPERTY(EditAnywhere, Category = "Store Info")
+	int32 StoreCost;
 
 protected:
 
@@ -60,6 +86,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess))
 	UFloatingPawnMovement* PawnMovement;
+
+	UPROPERTY(VisibleAnywhere)
+	UBuoyancyComponent* BuoyancyComponent;
 
 	UPROPERTY(VisibleAnywhere)
 	UHealthbarComponent* HealthbarComponent;
@@ -95,6 +124,9 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	float RespawnTime = 10.f;
+
+	UPROPERTY(EditAnywhere)
+	float CannonRecoilMultiplier = 1.f;
 
 	//Cannons
 	UPROPERTY(EditAnywhere)
@@ -135,6 +167,8 @@ protected:
 	TWeakObjectPtr<class USBAbilitySystemComponent> AbilitySystemComponent;
 
 public:	
+	FORCEINLINE UFloatingPawnMovement* GetPawnMovement() { return PawnMovement; }
+
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	bool bOpenSails = false;
 
@@ -145,4 +179,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float SinkingRate = 1.f;
+
+	//HitInterface Override
+	AActor* GetActorWithAbilityComponent() override;
+	ETeam GetHitActorTeam() override;
+	FORCEINLINE bool IsHitActorDead() { return bIsDead; }
 };

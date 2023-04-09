@@ -13,6 +13,7 @@ USBAttributeSet::USBAttributeSet() :
 	MaxHealth(500.f), 
 	Mana(100.f),
 	MaxMana(100.f),
+	Speed(0.f),
 	Bounty(50.f),
 	PiecesOfEight(0.f)
 {
@@ -29,6 +30,7 @@ void USBAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME_CONDITION_NOTIFY(USBAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(USBAttributeSet, Mana, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(USBAttributeSet, MaxMana, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(USBAttributeSet, Speed, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(USBAttributeSet, Bounty, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(USBAttributeSet, PiecesOfEight, COND_None, REPNOTIFY_Always);
 }
@@ -49,7 +51,18 @@ void USBAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 	{
 		Mana.SetCurrentValue(FMath::Clamp(Mana.GetCurrentValue(), 0.f, MaxMana.GetCurrentValue()));
 		Mana.SetBaseValue(FMath::Clamp(Mana.GetBaseValue(), 0.f, MaxMana.GetCurrentValue()));
-		//OnManaChange.Broadcast(Mana.GetCurrentValue(), MaxMana.GetCurrentValue());
+		OnManaChange.Broadcast(Mana.GetCurrentValue(), MaxMana.GetCurrentValue());
+	}
+
+
+}
+
+void USBAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
+{
+	if (Attribute == FindFieldChecked<FProperty>(USBAttributeSet::StaticClass(), GET_MEMBER_NAME_CHECKED(USBAttributeSet, Speed)))
+	{
+		Speed.SetCurrentValue(Speed.GetCurrentValue());
+		OnSpeedChange.Broadcast(Speed.GetCurrentValue());
 	}
 }
 
@@ -102,11 +115,20 @@ void USBAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth
 void USBAttributeSet::OnRep_Mana(const FGameplayAttributeData& OldMana)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(USBAttributeSet, Mana, OldMana);
+	OnManaChange.Broadcast(Mana.GetCurrentValue(), MaxMana.GetCurrentValue());
 }
 
 void USBAttributeSet::OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(USBAttributeSet, MaxMana, OldMaxMana);
+}
+
+void USBAttributeSet::OnRep_Speed(const FGameplayAttributeData& OldSpeed)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(USBAttributeSet, Speed, OldSpeed);
+
+	OnSpeedChange.Broadcast(Speed.GetCurrentValue());
+
 }
 
 void USBAttributeSet::OnRep_Bounty(const FGameplayAttributeData& OldBounty)

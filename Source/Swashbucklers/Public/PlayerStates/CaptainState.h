@@ -6,7 +6,10 @@
 #include "GameFramework/PlayerState.h"
 #include "Teams.h"
 #include "Interfaces/CaptainStateInterface.h"
+#include "Interfaces/SlotInterface.h"
+#include "GameplayAbilities/AbilityTypes.h"
 #include "Buildings/BuildingTypes.h"
+#include "GameplayEffect.h"
 #include "AbilitySystemInterface.h"
 #include "CaptainState.generated.h"
 
@@ -15,32 +18,52 @@ class USBAbilitySystemComponent;
 class USBAttributeSet;
 class USBGameplayAbility;
 class AShip;
+class ACaptainController;
+class ACaptainHUD;
+
 
 /**
  * 
  */
 UCLASS()
-class SWASHBUCKLERS_API ACaptainState : public APlayerState, public IAbilitySystemInterface, public ICaptainStateInterface
+class SWASHBUCKLERS_API ACaptainState : public APlayerState, public IAbilitySystemInterface, public ICaptainStateInterface, public ISlotInterface
 {
 	GENERATED_BODY()
 
 public:
 	ACaptainState();
+	void ApplyRegenEffects();
+
+	void RemoveActiveEffects();
+
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess))
 	TSubclassOf<AShip> DefaultShip;
 
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "AbilitySystem", meta = (AllowPrivateAccess))
+	TArray<TSubclassOf<USBGameplayAbility>> StartingAbilities;
+
+	bool bHasStartingAbilities = false;
+
+	//Regen
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UGameplayEffect> ManaRegenEffectClass;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UGameplayEffect> HealthRegenEffectClass;
+
 private:
+
+	ACaptainController* CaptainController;
+	ACaptainHUD* CaptainHUD;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AbilitySystem", meta = (AllowPrivateAccess))
 	USBAbilitySystemComponent* AbilityComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AbilitySystem", meta = (AllowPrivateAccess))
 	USBAttributeSet* AttributeSet;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AbilitySystem", meta = (AllowPrivateAccess))
-	TArray<TSubclassOf<USBGameplayAbility>> StartingAbilities;
 
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite,meta = (AllowPrivateAccess))
 	TArray<TSubclassOf<AShip>> OwnedShips;
@@ -57,10 +80,28 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerSwitchShips(TSubclassOf<AShip> ShipToSwitchTo);
 
+	//Ability Slots
+	UPROPERTY(Replicated)
+	TSubclassOf<USBGameplayAbility> Slot1;
+
+	UPROPERTY(Replicated)
+	TSubclassOf<USBGameplayAbility> Slot2;
+
+	UPROPERTY(Replicated)
+	TSubclassOf<USBGameplayAbility> Slot3;
+
+	UPROPERTY(Replicated)
+	TSubclassOf<USBGameplayAbility> Slot4;
+
 protected:
 	virtual void BeginPlay() override;
 
 	void Tick(float DeltaTime);
+
+	void PollInit();
+
+	void InitializeSlotsInOverlay();
+	bool bInitializedSlots = false;
 
 public:
 	//IAbilitySystemInterface Override
@@ -68,7 +109,15 @@ public:
 
 	void ActivateAbility(TSubclassOf<USBGameplayAbility> Ability);
 
-	void AcquireAbility(TSubclassOf<USBGameplayAbility> AbilityToAcquire);
+	void ActivateSlotAbility(EAbilitySlot AbilitySlotToActivate);
+
+	void AcquireAbility(TSubclassOf<USBGameplayAbility> AbilityToAcquire, EAbilitySlot AbilitySlotRequested = EAbilitySlot::EAS_NoSlot);
+
+	void SendCurrentAbilitiesToHUD();
+
+	void SendAbilityToHUD(TSubclassOf<USBGameplayAbility>& AbilityToAcquire, EAbilitySlot SlotAssigned);
+
+	EAbilitySlot AssignAbilityToSlot(TSubclassOf<USBGameplayAbility> AbilityToAcquire, EAbilitySlot AbilitySlot);
 
 	void AcquireAbilities(TArray<TSubclassOf<USBGameplayAbility>> AbilitiesToAcquire);
 
@@ -88,6 +137,14 @@ public:
 	void BuyShip(TSubclassOf<AShip> ShipToBuy) override;
 	int32 GetPlayerPOE() override; 
 	void SendPlayerPOE(int32 POEToSend) override;
+
+
+	//Slot Interface
+	virtual void ActivateSlotCooldown(TSubclassOf<USBGameplayAbility> AbilityInSlotToActivate) override;
+	virtual TArray<TSubclassOf<USBGameplayAbility>> GetCurrentAbilities();
+
+	UFUNCTION(Client, Unreliable)
+	void ClientActivateSlotCooldown(TSubclassOf<USBGameplayAbility> AbilityInSlotToActivate);
 
 
 };

@@ -22,11 +22,31 @@ void ACaptainHUD::BeginPlay()
 	}
 }
 
-void ACaptainHUD::SetHUDHealth(float HealthPercentToSet)
+void ACaptainHUD::SetAbilitySlot(FGameplayAbilityInfo AbilityInfo, EAbilitySlot SlotAssigned)
+{
+	UE_LOG(LogTemp, Warning, TEXT("abilityslot ...."))
+
+	if (CaptainOverlay)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("cap overlay valid ...."))
+
+		CaptainOverlay->UpdateSlot(AbilityInfo, SlotAssigned);
+	}
+}
+
+void ACaptainHUD::SetHUDHealth(float CurrentHealth, float MaxHealth)
 {
 	if (CaptainOverlay)
 	{
-		CaptainOverlay->SetHealthProgress(HealthPercentToSet);
+		CaptainOverlay->SetHealthProgress(CurrentHealth, MaxHealth);
+	}
+}
+
+void ACaptainHUD::SetHUDMana(float CurrentMana, float MaxMana)
+{
+	if (CaptainOverlay)
+	{
+		CaptainOverlay->SetManaProgress(CurrentMana, MaxMana);
 	}
 }
 
@@ -36,5 +56,13 @@ void ACaptainHUD::SetHUDPoE(int32 PoEToSet)
 	{
 		CaptainOverlay->SetPoEText(PoEToSet);
 		CaptainOverlay->PlayPoEAnimation();
+	}
+}
+
+void ACaptainHUD::ActivateSlotCooldownOnOverlay(EAbilitySlot AbilitySlotToActivate)
+{
+	if (CaptainOverlay && GetOwningPawn()->IsLocallyControlled())
+	{
+		CaptainOverlay->StartCooldown(AbilitySlotToActivate);
 	}
 }

@@ -68,6 +68,18 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* FireStarboardCannonsAction;
 
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* Slot1Action;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* Slot2Action;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* Slot3Action;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* Slot4Action;
+
 	virtual void BeginPlay() override;
 
 	void InitializeOverlays();
@@ -109,6 +121,12 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	float CannonCorrectionSpeed = 2.f;
+
+	UPROPERTY(EditAnywhere)
+	float DefaultSpeed = 3000.f;
+
+	UPROPERTY(EditAnywhere)
+	float DefaultAcceleration = 900.f;
 
 	//
 
@@ -159,6 +177,14 @@ protected:
 
 	void FireStarboardCannons() override;
 	void ServerFireCannons_Implementation(TSubclassOf<USBGameplayAbility> CannonAbilityToActivate) override;
+
+	void ActivateSlot1Action();
+	void ActivateSlot2Action();
+	void ActivateSlot3Action();
+	void ActivateSlot4Action();
+
+	UFUNCTION(Server, Reliable)
+	void ServerActivateSlotAction(EAbilitySlot AbilitySlot);
 	
 	UPROPERTY(EditAnywhere)
 	UMaterialInterface* PirateMaterial;
@@ -195,6 +221,18 @@ private:
 	UFUNCTION()
 	ACaptainState* GetCaptainState();
 
+	UFUNCTION()
+	void OnManaChanged(float Mana, float MaxMana);
+
+	UFUNCTION()
+	void OnSpeedChanged(float AttributeSpeed);
+
+	UFUNCTION(Client, Reliable)
+	void ClientOnSpeedChanged(float NewSpeed, float NewAcceleration);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastOnSpeedChanged(float Speed);
+
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ABountyActor> BountyWidgetClass;
 
@@ -215,6 +253,7 @@ private:
 	//Movement Controls
 	UPROPERTY(EditAnywhere)
 	float TurnRollAmount = 15.f;
+
 
 public:
 	//Player Interface Override

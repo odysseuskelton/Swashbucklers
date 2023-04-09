@@ -14,6 +14,8 @@
 
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/FloatingPawnMovement.h"
+
 #include "HUD/PlayerNameplateComponent.h"
 #include "HUD/Actors/BountyActor.h"
 #include "HUD/CaptainHUD.h"
@@ -52,6 +54,11 @@ void APlayerShip::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &APlayerShip::StartInteracting);
 		EnhancedInputComponent->BindAction(FirePortCannonsAction, ETriggerEvent::Triggered, this, &APlayerShip::FirePortCannons);
 		EnhancedInputComponent->BindAction(FireStarboardCannonsAction, ETriggerEvent::Triggered, this, &APlayerShip::FireStarboardCannons);
+
+		EnhancedInputComponent->BindAction(Slot1Action, ETriggerEvent::Triggered, this, &APlayerShip::ActivateSlot1Action);
+		EnhancedInputComponent->BindAction(Slot2Action, ETriggerEvent::Triggered, this, &APlayerShip::ActivateSlot2Action);
+		EnhancedInputComponent->BindAction(Slot3Action, ETriggerEvent::Triggered, this, &APlayerShip::ActivateSlot3Action);
+		EnhancedInputComponent->BindAction(Slot4Action, ETriggerEvent::Triggered, this, &APlayerShip::ActivateSlot4Action);
 	}
 }
 
@@ -60,9 +67,7 @@ void APlayerShip::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APlayerShip, StarboardCannonRotation);
-	DOREPLIFETIME(APlayerShip, PortCannonRotation)
-
-
+	DOREPLIFETIME(APlayerShip, PortCannonRotation);
 }
 
 void APlayerShip::GetInputSubsytem()
@@ -172,7 +177,80 @@ void APlayerShip::ServerFireCannons_Implementation(TSubclassOf<USBGameplayAbilit
 	{
 		CaptainState->ActivateAbility(CannonAbilityToActivate);
 	}
+}
 
+void APlayerShip::ActivateSlot1Action() 
+{
+	if (bIsDead) return;
+	if (HasAuthority())
+	{
+		if (CaptainState)
+		{
+			CaptainState->ActivateSlotAbility(EAbilitySlot::EAS_Slot1);
+		}
+	}
+	else
+	{
+		ServerActivateSlotAction(EAbilitySlot::EAS_Slot1);
+	}
+}
+
+void APlayerShip::ActivateSlot2Action()
+{
+	if (bIsDead) return;
+	if (HasAuthority())
+	{
+		if (CaptainState)
+		{
+			CaptainState->ActivateSlotAbility(EAbilitySlot::EAS_Slot2);
+		}
+	}
+	else
+	{
+		ServerActivateSlotAction(EAbilitySlot::EAS_Slot2);
+	}
+}
+
+void APlayerShip::ActivateSlot3Action()
+{
+	if (bIsDead) return;
+	if (HasAuthority())
+	{
+		if (CaptainState)
+		{
+			CaptainState->ActivateSlotAbility(EAbilitySlot::EAS_Slot3);
+		}
+	}
+	else
+	{
+		ServerActivateSlotAction(EAbilitySlot::EAS_Slot3);
+	}
+}
+
+void APlayerShip::ActivateSlot4Action()
+{
+	if (bIsDead) return;
+	if (HasAuthority())
+	{
+		if (CaptainState)
+		{
+			CaptainState->ActivateSlotAbility(EAbilitySlot::EAS_Slot4);
+		}
+	}
+	else
+	{
+		ServerActivateSlotAction(EAbilitySlot::EAS_Slot4);
+	}
+}
+
+void APlayerShip::ServerActivateSlotAction_Implementation(EAbilitySlot AbilitySlotToActivate)
+{
+	if (bIsDead) return;
+	CaptainState = CaptainState == nullptr ? CaptainState = GetPlayerState<ACaptainState>() : CaptainState;
+	if (CaptainState)
+	{
+		CaptainState->ActivateSlotAbility(AbilitySlotToActivate);
+	}
 }
 
 void APlayerShip::Look(const FInputActionValue& Value)
@@ -225,6 +303,11 @@ void APlayerShip::Die(AActor* InstigatorActor)
 		InstigatorCS->GetAttributeSet()->CollectBounty(this, CaptainState->GetAttributeSet()->Bounty.GetCurrentValue());
 	}
 
+	if (CaptainState)
+	{
+		CaptainState->RemoveActiveEffects();
+	}
+
 }
 
 void APlayerShip::RequestRespawnFromServer()
@@ -235,16 +318,6 @@ void APlayerShip::RequestRespawnFromServer()
 	if (GameMode)
 	{
 		GameMode->RequestRespawn(this, this->Controller);
-	}
-}
-
-void APlayerShip::MulticastOnHealthChanged_Implementation(float Health, float MaxHealth, AActor* InstigatorActor)
-{
-	Super::MulticastOnHealthChanged_Implementation(Health, MaxHealth, InstigatorActor);
-
-	if (CaptainHUD && IsLocallyControlled())
-	{
-		CaptainHUD->SetHUDHealth(Health/MaxHealth);
 	}
 }
 
@@ -282,18 +355,26 @@ void APlayerShip::BeginPlay()
 	CaptainState = GetCaptainState();
 	SetPlayerNameplate(CaptainState);
 	InitializeOverlays();
+	DefaultSpeed = PawnMovement->MaxSpeed;
+	DefaultAcceleration = PawnMovement->Acceleration;
+
+
 }
 
 void APlayerShip::InitializeOverlays()
 {
 	if (!IsLocallyControlled()) return;
-	UE_LOG(LogTemp, Warning, TEXT("Initialize Overlays"))
 	PlayerController = PlayerController == nullptr ? Cast<APlayerController>(GetController()) : PlayerController;
 
 	if (PlayerController)
 	{
 		CaptainHUD = Cast<ACaptainHUD>(PlayerController->GetHUD());
-		CaptainHUD->SetHUDHealth(1.f);
+		if (CaptainState && CaptainHUD)
+		{
+			USBAttributeSet* AttSet = CaptainState->GetAttributeSet();
+			CaptainHUD->SetHUDHealth(AttSet->Health.GetCurrentValue(), AttSet->MaxHealth.GetCurrentValue());
+			CaptainHUD->SetHUDMana(AttSet->Mana.GetCurrentValue(), AttSet->MaxMana.GetCurrentValue());
+		}
 	}
 }
 
@@ -449,7 +530,6 @@ void APlayerShip::OnRep_PortCannonRotationCalc()
 			Cannon->SetActorRotation(FMath::RInterpTo(Cannon->GetActorRotation(), PortCannonRotation, DeltaSeconds, CannonCorrectionSpeed));
 		}
 	}
-
 }
 
 
@@ -523,7 +603,7 @@ void APlayerShip::OnRep_PlayerState()
 		}
 
 		CS->GetAbilitySystemComponent()->InitAbilityActorInfo(CS, this);
-
+		CS->ApplyRegenEffects();
 		SetPlayerNameplate(CS);
 	}
 	PlayerController = PlayerController == nullptr ? Cast<APlayerController>(Controller) : PlayerController;
@@ -565,11 +645,13 @@ void APlayerShip::PossessedBy(AController* NewController)
 			ResetHealth();
 		}
 		CaptainState->GetAbilitySystemComponent()->InitAbilityActorInfo(CaptainState, this);
-
 		SetPlayerNameplate(CaptainState);
+
+
+		CaptainState->ApplyRegenEffects();
+
 	}
 	PlayerController = PlayerController == nullptr ? Cast<APlayerController>(Controller) : PlayerController;
-
 	AcquireCannonAbilities();
 }
 
@@ -580,6 +662,8 @@ void APlayerShip::BindAbilityComponentDelegates()
 	if (CaptainState)
 	{
 		CaptainState->GetAttributeSet()->OnHealthChange.AddUniqueDynamic(this, &AShip::OnHealthChanged);
+		CaptainState->GetAttributeSet()->OnManaChange.AddUniqueDynamic(this, &APlayerShip::OnManaChanged);
+		CaptainState->GetAttributeSet()->OnSpeedChange.AddUniqueDynamic(this, &APlayerShip::OnSpeedChanged);
 		CaptainState->GetAttributeSet()->OnBountyChange.AddUniqueDynamic(this, &APlayerShip::OnBountyChange);
 		CaptainState->GetAttributeSet()->OnPiecesOfEightChange.AddUniqueDynamic(this, &APlayerShip::OnPiecesOfEightChange);
 	}
@@ -589,7 +673,6 @@ void APlayerShip::BindInteractionDelegates()
 {
 	ShipMesh->OnComponentBeginOverlap.AddDynamic(this, &APlayerShip::CanInteract);
 	ShipMesh->OnComponentEndOverlap.AddDynamic(this, &APlayerShip::EndInteract);
-	UE_LOG(LogTemp, Warning, TEXT("Binddelegats"))
 }
 
 void APlayerShip::CanInteract(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -598,7 +681,6 @@ void APlayerShip::CanInteract(UPrimitiveComponent* OverlappedComponent, AActor* 
 
 	if (HasAuthority())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Name of overlapped component... %s"), *OtherActor->GetName())
 		InteractableInterface = Cast<IInteractableInterface>(OtherActor);
 	}
 }
@@ -666,6 +748,8 @@ ACaptainState* APlayerShip::GetCaptainState()
 	if (CaptainState)
 	{
 		CaptainState->GetAttributeSet()->OnHealthChange.AddUniqueDynamic(this, &AShip::OnHealthChanged);
+		CaptainState->GetAttributeSet()->OnManaChange.AddUniqueDynamic(this, &APlayerShip::OnManaChanged);
+		CaptainState->GetAttributeSet()->OnSpeedChange.AddUniqueDynamic(this, &APlayerShip::OnSpeedChanged);
 		CaptainState->GetAttributeSet()->OnBountyChange.AddUniqueDynamic(this, &APlayerShip::OnBountyChange);
 		CaptainState->GetAttributeSet()->OnPiecesOfEightChange.AddUniqueDynamic(this, &APlayerShip::OnPiecesOfEightChange);
 		return CaptainState;
@@ -675,7 +759,72 @@ ACaptainState* APlayerShip::GetCaptainState()
 	{
 		return nullptr;
 	}
+
 }
+
+
+void APlayerShip::MulticastOnHealthChanged_Implementation(float Health, float MaxHealth, AActor* InstigatorActor)
+{
+	Super::MulticastOnHealthChanged_Implementation(Health, MaxHealth, InstigatorActor);
+
+	if (CaptainHUD && IsLocallyControlled())
+	{
+		CaptainHUD->SetHUDHealth(Health, MaxHealth);
+	}
+}
+
+void APlayerShip::OnManaChanged(float Mana, float MaxMana)
+{
+	if (CaptainHUD && IsLocallyControlled())
+	{
+		CaptainHUD->SetHUDMana(Mana, MaxMana);
+	}
+}
+
+void APlayerShip::OnSpeedChanged(float AttributeSpeed)
+{
+	if (!HasAuthority()) return;
+
+	float NewSpeed = DefaultSpeed;
+	float NewAcceleration = DefaultAcceleration;
+	if (AttributeSpeed == 0)
+	{
+		PawnMovement->MaxSpeed = NewSpeed;
+		PawnMovement->Acceleration = NewAcceleration;
+	}
+	else
+	{
+		NewSpeed += AttributeSpeed;
+		NewAcceleration += AttributeSpeed / 2;
+		PawnMovement->MaxSpeed = NewSpeed;
+		PawnMovement->Acceleration = NewAcceleration;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("New speed (server) %f"), NewSpeed)
+	UE_LOG(LogTemp, Warning, TEXT("New Accel (server) %f"), NewAcceleration)
+
+	ClientOnSpeedChanged(NewSpeed, NewAcceleration);
+}
+
+void APlayerShip::ClientOnSpeedChanged_Implementation(float NewSpeed, float NewAcceleration)
+{
+	PawnMovement->MaxSpeed = NewSpeed;
+	PawnMovement->Acceleration = NewAcceleration;
+	
+	UE_LOG(LogTemp, Warning, TEXT("New speed (client) %f"), NewSpeed)
+	UE_LOG(LogTemp, Warning, TEXT("New Accel (client) %f"), NewAcceleration)
+}
+
+void APlayerShip::MulticastOnSpeedChanged_Implementation(float Speed)
+{
+	if (PawnMovement)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Extra Speed = %f"), Speed)
+		PawnMovement->MaxSpeed = PawnMovement->GetMaxSpeed() + Speed;
+		UE_LOG(LogTemp, Warning, TEXT("CurrentSpeedSet Speed = %f"), PawnMovement->GetMaxSpeed() + Speed)
+	}
+}
+
 
 void APlayerShip::OnBountyChange(int32 Bounty, AActor* DestroyedActor)
 {
@@ -690,7 +839,6 @@ void APlayerShip::OnBountyChange(int32 Bounty, AActor* DestroyedActor)
 
 void APlayerShip::OnPiecesOfEightChange(int32 PiecesOfEight, AActor* DestroyedActor, int32 Bounty)
 {
-	UE_LOG(LogTemp, Warning, TEXT("POE change called on playership"))
 	if (!IsLocallyControlled()) return;
 
 	if (CaptainHUD)

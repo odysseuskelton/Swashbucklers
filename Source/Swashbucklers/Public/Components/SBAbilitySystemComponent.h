@@ -17,4 +17,5 @@ class SWASHBUCKLERS_API USBAbilitySystemComponent : public UAbilitySystemCompone
 public:
 	bool bCharacterAbilitiesGiven = false;
 
+	virtual void NotifyAbilityCommit(UGameplayAbility* Ability) override;
 };

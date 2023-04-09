@@ -7,11 +7,14 @@
 #include "Components/SBAbilitySystemComponent.h"
 #include "GameInstance/SBGameInstance.h"
 #include "GameStates/SBGameState.h"
+#include "HUD/CaptainHUD.h"
 #include "GameplayAbilities/SBAttributeSet.h"
 #include "GameplayAbilities/SBGameplayAbility.h"
 
 #include "Weapons/Cannon.h"
 #include "Net/UnrealNetwork.h"
+
+#include "TimerManager.h"
 
 ACaptainState::ACaptainState()
 {
@@ -29,18 +32,16 @@ void ACaptainState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 
 	DOREPLIFETIME(ACaptainState, PlayerTeam);
 	DOREPLIFETIME(ACaptainState, OwnedShips);
-
+	DOREPLIFETIME(ACaptainState, StartingAbilities);
+	DOREPLIFETIME(ACaptainState, Slot1);
+	DOREPLIFETIME(ACaptainState, Slot2);
+	DOREPLIFETIME(ACaptainState, Slot3);
+	DOREPLIFETIME(ACaptainState, Slot4);
 }
-
 
 void ACaptainState::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if(!StartingAbilities.IsEmpty())
-	{
-		AcquireAbilities(StartingAbilities);
-	}
 
 	UWorld* World = GetWorld();
 	if (World)
@@ -50,19 +51,51 @@ void ACaptainState::BeginPlay()
 		{
 			SBGameState->OnBuildingDestroyed.AddDynamic(this, &ACaptainState::BuildingDestroyedNotification);
 		}
+
 	}
 
 }
 
+void ACaptainState::ApplyRegenEffects()
+{
+	if (HasAuthority() && AbilityComponent)
+	{
+		FGameplayEffectContextHandle ContextHandle;
+		ContextHandle.AddInstigator(this, this);
+		
+		if (ManaRegenEffectClass)
+		{
+			FGameplayEffectSpecHandle ManaRegenSpec = AbilityComponent->MakeOutgoingSpec(ManaRegenEffectClass, 0, ContextHandle);
+			AbilityComponent->ApplyGameplayEffectSpecToSelf(*ManaRegenSpec.Data.Get());
+		}
+
+		if (HealthRegenEffectClass)
+		{
+			FGameplayEffectSpecHandle HealthRegenSpec = AbilityComponent->MakeOutgoingSpec(HealthRegenEffectClass, 0, ContextHandle);
+			AbilityComponent->ApplyGameplayEffectSpecToSelf(*HealthRegenSpec.Data.Get());
+		}
+	}
+
+}
+
+void ACaptainState::RemoveActiveEffects()
+{
+	if (AbilityComponent)
+	{
+		FGameplayEffectQuery Query;
+		Query.ModifyingAttribute;
+		AbilityComponent->RemoveActiveEffects(Query);
+	}
+}
+
 void ACaptainState::BuildingDestroyedNotification(EBuildingType BuildingTypeDestroyed)
 {
-
 	if(BuildingTypeDestroyed == EBuildingType::EBT_PrivateerHQ || BuildingTypeDestroyed == EBuildingType::EBT_PirateHideout)
 	{
-		ACaptainController* CaptainController = Cast<ACaptainController>(GetPlayerController());
-		if (CaptainController)
+		ACaptainController* CapController = Cast<ACaptainController>(GetPlayerController());
+		if (CapController)
 		{
-			CaptainController->DisplayVictoryScreen(BuildingTypeDestroyed);
+			CapController->DisplayVictoryScreen(BuildingTypeDestroyed);
 		}
 	}
 }
@@ -70,18 +103,56 @@ void ACaptainState::BuildingDestroyedNotification(EBuildingType BuildingTypeDest
 void ACaptainState::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	/*if (!HasAuthority())
-	{
-		if (PlayerTeam == ETeam::ET_Pirate)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Yarrr pirate!"))
-		}
-		else if (PlayerTeam == ETeam::ET_Privateer)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("For the king! Privateer"))
-		}
-	}*/
+	
+	PollInit();
+}
 
+void ACaptainState::PollInit()
+{
+	if (CaptainController == nullptr)
+	{
+		CaptainController = CaptainController == nullptr ? Cast<ACaptainController>(GetPlayerController()) : CaptainController;
+	}
+
+	if (CaptainController && !CaptainHUD)
+	{
+		CaptainHUD = CaptainHUD == nullptr ? CaptainController->GetHUD<ACaptainHUD>() : CaptainHUD;
+	}
+
+	if (!bHasStartingAbilities)
+	{
+		AcquireAbilities(StartingAbilities);
+	}
+
+	if (GetPawn() && GetPawn()->IsLocallyControlled() && CaptainHUD && CaptainHUD->IsCaptainOverlayValid() && bInitializedSlots == false)
+	{
+		InitializeSlotsInOverlay();
+	}
+}
+
+void ACaptainState::InitializeSlotsInOverlay()
+{
+	if (Slot1)
+	{
+		SendAbilityToHUD(Slot1, EAbilitySlot::EAS_Slot1);
+	}
+
+	if (Slot2)
+	{
+		SendAbilityToHUD(Slot2, EAbilitySlot::EAS_Slot2);
+	}
+
+	if (Slot3)
+	{
+		SendAbilityToHUD(Slot3, EAbilitySlot::EAS_Slot3);
+	}
+
+	if (Slot4)
+	{
+		SendAbilityToHUD(Slot4, EAbilitySlot::EAS_Slot4);
+	}
+
+	bInitializedSlots = true;
 }
 
 UAbilitySystemComponent* ACaptainState::GetAbilitySystemComponent() const
@@ -89,34 +160,192 @@ UAbilitySystemComponent* ACaptainState::GetAbilitySystemComponent() const
     return AbilityComponent;
 }
 
-
 void ACaptainState::ActivateAbility(TSubclassOf<USBGameplayAbility> Ability)
 {
-
 	AbilityComponent->TryActivateAbilityByClass(Ability);
 }
 
-void ACaptainState::AcquireAbility(TSubclassOf<USBGameplayAbility> AbilityToAcquire)
+void ACaptainState::ActivateSlotAbility(EAbilitySlot AbilitySlotToActivate)
 {
+
+	switch (AbilitySlotToActivate)
+	{
+		case EAbilitySlot::EAS_Slot1:
+			AbilityComponent->TryActivateAbilityByClass(Slot1);
+		
+			break;
+		case EAbilitySlot::EAS_Slot2:
+			AbilityComponent->TryActivateAbilityByClass(Slot2);
+			break;
+		case EAbilitySlot::EAS_Slot3:
+			AbilityComponent->TryActivateAbilityByClass(Slot3);
+			break;
+		case EAbilitySlot::EAS_Slot4:
+			AbilityComponent->TryActivateAbilityByClass(Slot1);
+			break;
+	}
+}
+
+void ACaptainState::AcquireAbility(TSubclassOf<USBGameplayAbility> AbilityToAcquire, EAbilitySlot AbilitySlotRequested)
+{
+
 	if (AbilityComponent && HasAuthority() && AbilityToAcquire)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Give slot ability to actor"))
 		FGameplayAbilitySpecDef SpecDef = FGameplayAbilitySpecDef();
 		SpecDef.Ability = AbilityToAcquire;
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(SpecDef, 1);
 		AbilityComponent->GiveAbility(FGameplayAbilitySpec(AbilityToAcquire, 1, 1, this));
-		AbilityComponent->InitAbilityActorInfo(this, GetPawn());
+		AbilityComponent->InitAbilityActorInfo(this, GetPawn());	
+		EAbilitySlot SlotAssigned = AssignAbilityToSlot(AbilityToAcquire, AbilitySlotRequested);
+
+		if (AbilityToAcquire.GetDefaultObject()->GetAbilityInfo().AbilityType == EAbilityType::EAT_SlotAbility && GetPawn()->IsLocallyControlled())
+		{
+			SendAbilityToHUD(AbilityToAcquire, SlotAssigned);
+		}
 	}
+}
+
+void ACaptainState::SendAbilityToHUD(TSubclassOf<USBGameplayAbility>& AbilityToAcquire, EAbilitySlot SlotAssigned)
+{
+	CaptainController = CaptainController == nullptr ? Cast<ACaptainController>(GetPlayerController()) : CaptainController;
+	if (CaptainController)
+	{
+		CaptainHUD = CaptainHUD == nullptr ? CaptainController->GetHUD<ACaptainHUD>() : CaptainHUD;
+		USBGameplayAbility* AbilityInstance = AbilityToAcquire.Get()->GetDefaultObject<USBGameplayAbility>();
+		if (CaptainHUD && AbilityInstance)
+		{
+			FGameplayAbilityInfo AbilityInfo = AbilityInstance->GetAbilityInfo();
+			CaptainHUD->SetAbilitySlot(AbilityInfo, SlotAssigned);
+		}
+	}
+}
+
+void ACaptainState::ActivateSlotCooldown(TSubclassOf<USBGameplayAbility> AbilityInSlotToActivate)
+{
+	if (!GetPawn()->IsLocallyControlled())
+	{
+		ClientActivateSlotCooldown(AbilityInSlotToActivate);
+		return;
+	}
+
+	CaptainController = CaptainController == nullptr ? Cast<ACaptainController>(GetPlayerController()) : CaptainController;
+	if (CaptainController)
+	{
+		CaptainHUD = CaptainHUD == nullptr ? CaptainController->GetHUD<ACaptainHUD>() : CaptainHUD;
+		if (CaptainHUD)
+		{
+			if (AbilityInSlotToActivate == Slot1)
+			{
+				CaptainHUD->ActivateSlotCooldownOnOverlay(EAbilitySlot::EAS_Slot1);
+			}
+			if (AbilityInSlotToActivate == Slot2)
+			{
+				CaptainHUD->ActivateSlotCooldownOnOverlay(EAbilitySlot::EAS_Slot2);
+			}
+			if (AbilityInSlotToActivate == Slot3)
+			{
+				CaptainHUD->ActivateSlotCooldownOnOverlay(EAbilitySlot::EAS_Slot3);
+			}
+			if (AbilityInSlotToActivate == Slot4)
+			{
+				CaptainHUD->ActivateSlotCooldownOnOverlay(EAbilitySlot::EAS_Slot4);
+			}
+				
+		}
+	}
+}
+
+void ACaptainState::ClientActivateSlotCooldown_Implementation(TSubclassOf<USBGameplayAbility> AbilityInSlotToActivate)
+{
+	CaptainController = CaptainController == nullptr ? Cast<ACaptainController>(GetPlayerController()) : CaptainController;
+	if (CaptainController)
+	{
+		CaptainHUD = CaptainHUD == nullptr ? CaptainController->GetHUD<ACaptainHUD>() : CaptainHUD;
+		if (CaptainHUD)
+		{
+			if (AbilityInSlotToActivate == Slot1)
+			{
+				CaptainHUD->ActivateSlotCooldownOnOverlay(EAbilitySlot::EAS_Slot1);
+			}
+			if (AbilityInSlotToActivate == Slot2)
+			{
+				CaptainHUD->ActivateSlotCooldownOnOverlay(EAbilitySlot::EAS_Slot2);
+			}
+			if (AbilityInSlotToActivate == Slot3)
+			{
+				CaptainHUD->ActivateSlotCooldownOnOverlay(EAbilitySlot::EAS_Slot3);
+			}
+			if (AbilityInSlotToActivate == Slot4)
+			{
+				CaptainHUD->ActivateSlotCooldownOnOverlay(EAbilitySlot::EAS_Slot4);
+			}
+
+		}
+	}
+}
+
+
+TArray<TSubclassOf<USBGameplayAbility>> ACaptainState::GetCurrentAbilities()
+{
+	TArray<TSubclassOf<USBGameplayAbility>> CurrentAbilities;
+	CurrentAbilities.Add(Slot1);
+	CurrentAbilities.Add(Slot2);
+	CurrentAbilities.Add(Slot3);
+	CurrentAbilities.Add(Slot4);
+
+	return CurrentAbilities;
+}
+
+EAbilitySlot ACaptainState::AssignAbilityToSlot(TSubclassOf<USBGameplayAbility> AbilityToAcquire, EAbilitySlot AbilitySlotRequested)
+{
+	if (AbilitySlotRequested == EAbilitySlot::EAS_NoSlot)
+	{
+		if (!Slot1)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Assign to slot 1"))
+			Slot1 = AbilityToAcquire;
+			return EAbilitySlot::EAS_Slot1;
+		}
+		if (!Slot2)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Assign to slot 2"))
+			Slot2 = AbilityToAcquire;
+			return EAbilitySlot::EAS_Slot2;
+		}
+		if (!Slot3)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Assign to slot 3"))
+			Slot3 = AbilityToAcquire;
+			return EAbilitySlot::EAS_Slot3;
+		}
+		if (!Slot4)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Assign to slot 4"))
+			Slot4 = AbilityToAcquire;
+			return EAbilitySlot::EAS_Slot4;
+		}
+	}
+	else
+	{
+		//TODO: This will need to be changed when more than 4 abilities.
+		Slot1 = AbilityToAcquire;
+		return EAbilitySlot::EAS_Slot1;
+	}
+
+	return EAbilitySlot::EAS_Slot1;
 }
 
 void ACaptainState::AcquireAbilities(TArray<TSubclassOf<USBGameplayAbility>> AbilitiesToAcquire)
 {
-	if (!HasAuthority()) return;
-
 	for (TSubclassOf<USBGameplayAbility> Ability : AbilitiesToAcquire)
 	{
 		AcquireAbility(Ability);
 	}
+
+	bHasStartingAbilities = true;
 }
+
 
 void ACaptainState::SetTeam(ETeam TeamToSet)
 {
@@ -171,7 +400,8 @@ void ACaptainState::ServerSwitchShips_Implementation(TSubclassOf<AShip> ShipToSw
 		AShip* CurrentShip = Cast<AShip>(GetPlayerController()->GetPawn());
 		if (CurrentShip)
 		{
-			CurrentShip->CleanupCannons();
+
+			CurrentShip->CleanupCannons(0.1f);
 			CurrentShip->Destroy();
 		}
 		AShip* NewShip = GetWorld()->SpawnActor<AShip>(ShipToSwitchTo, TransformForNewShip, SpawnInfo);
@@ -193,4 +423,3 @@ void ACaptainState::SendPlayerPOE(int32 POEToSend)
 
 	AttributeSet->ReceivePOE(POEToSend);
 }
-

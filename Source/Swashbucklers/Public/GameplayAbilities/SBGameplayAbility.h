@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "AbilityTypes.h"
 #include "SBGameplayAbility.generated.h"
 
 /**
@@ -13,5 +14,21 @@ UCLASS()
 class SWASHBUCKLERS_API USBGameplayAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
+
+public:
+	UFUNCTION(BlueprintCallable)
+	FGameplayAbilityInfo GetAbilityInfo();
+
+	UPROPERTY(EditAnywhere)
+	FString AbilityName;
+
+	UPROPERTY(EditAnywhere)
+	EAbilityType AbilityType;
+
+	UPROPERTY(EditAnywhere)
+	FString AbilityDescription;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AbilityBase")
+	UMaterialInstance* UIMaterial;
 	
 };

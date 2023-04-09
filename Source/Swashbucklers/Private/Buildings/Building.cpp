@@ -68,10 +68,17 @@ void ABuilding::BeginPlay()
 
 void ABuilding::OnBuildingHealthChange(float Health, float MaxHealth, AActor* InstigatorActor)
 {
+	if (!HasAuthority()) return;
+
+	MulticastOnBuildingHealthChange(Health, MaxHealth, InstigatorActor);
+	
+}
+
+void ABuilding::MulticastOnBuildingHealthChange_Implementation(float Health, float MaxHealth, AActor* InstigatorActor)
+{
 	HealthbarComponent->SetRenderOpacity(100.f);
 
 	GetWorldTimerManager().SetTimer(HealthbarTimer, this, &ABuilding::HealthbarTimerFinished, 4.f);
-
 
 	if (BuildingHitSound)
 	{
@@ -99,7 +106,6 @@ void ABuilding::OnBuildingHealthChange(float Health, float MaxHealth, AActor* In
 	{
 		Die();
 	}
-	
 }
 
 void ABuilding::SpawnDamageSystem(uint16 NumberOfSystemsToSpawn)
@@ -121,7 +127,7 @@ void ABuilding::SpawnDamageSystem(uint16 NumberOfSystemsToSpawn)
 
 void ABuilding::Die()
 {
-	if (bIsDead || !HasAuthority()) return;
+	if (bIsDead) return;
 	bIsDead = true;
 	FVector LocationToSpawn = GetActorLocation();
 	LocationToSpawn.Z += 200.f;
@@ -135,20 +141,23 @@ void ABuilding::Die()
 		UGameplayStatics::PlaySoundAtLocation(this, BuildingDeathSound, GetActorLocation());
 	}
 
-	SpawnDestructible();
-	BuildingMesh->DestroyComponent();
+	if (BuildingType == EBuildingType::EBT_PirateHideout || BuildingType == EBuildingType::EBT_PrivateerHQ)
+	{
+		SpawnDestructible();
+		BuildingMesh->DestroyComponent();
+	}
 
 	UWorld* World = GetWorld();
-	if (World)
+	if (World && HasAuthority())
 	{
 		ASBGameState* SBGameState = World->GetGameState<ASBGameState>();
 		if (SBGameState)
 		{
 			SBGameState->BuildingDestroyed(BuildingType, this);
 		}
+		GetWorldTimerManager().SetTimer(DeathTimer, this, &ABuilding::DeathTimerFinished, DeathTimerDelay);
 	}
 
-	GetWorldTimerManager().SetTimer(DeathTimer, this, &ABuilding::DeathTimerFinished, DeathTimerDelay);
 }
 
 void ABuilding::DeathTimerFinished()

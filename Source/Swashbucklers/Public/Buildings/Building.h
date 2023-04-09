@@ -37,6 +37,9 @@ protected:
 	UFUNCTION()
 	void OnBuildingHealthChange(float Health, float MaxHealth, AActor* InstigatorActor);
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastOnBuildingHealthChange(float Health, float MaxHealth, AActor* InstigatorActor);
+
 	void SpawnDamageSystem(uint16 NumberOfSystemsToSpawn);
 
 	virtual void Die();

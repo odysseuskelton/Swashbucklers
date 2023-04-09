@@ -8,6 +8,7 @@
 #include "CaptainStateInterface.generated.h"
 
 class AShip;
+class USBGameplayAbility;
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UCaptainStateInterface : public UInterface
@@ -31,4 +32,5 @@ public:
 	virtual void SetDefaultShip(TSubclassOf<AShip> NewDefaultShip) = 0;
 	virtual ETeam GetPlayerTeam() = 0;
 	virtual void SendPlayerPOE(int32 POEToSend) = 0;
+
 };

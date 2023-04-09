@@ -46,7 +46,7 @@ public:
 
 	virtual void Die(AActor* InstigatorActor);
 
-	void CleanupCannons();
+	void CleanupCannons(float CannonDespawnTime);
 
 	void AcquireCannonAbilities();
 
@@ -102,6 +102,9 @@ protected:
 
 	//Ship Variables
 	float DeltaSeconds;
+
+	UPROPERTY(EditAnywhere)
+	float StealthBuoyancy = 5000.f;
 
 	//Death
 	UPROPERTY(Replicated, BlueprintReadOnly, meta=(AllowPrivateAccess), VisibleAnywhere)

@@ -65,6 +65,7 @@ void AShip::BeginPlay()
 	AcquireCannonAbilities();
 	BindAbilityComponentDelegates();
 	bIsDead = false;
+	//BuoyancyComponent->BuoyancyData.MaxBuoyantForce = StealthBuoyancy;
 
 }
 
@@ -141,7 +142,7 @@ void AShip::Die(AActor* InstigatorActor)
 		BuoyancyComponent->DestroyComponent();
 	}
 
-	CleanupCannons();
+	CleanupCannons(RespawnTime);
 
 	if (ShipDeathSystem)
 	{
@@ -153,15 +154,16 @@ void AShip::Die(AActor* InstigatorActor)
 	}
 }
 
-void AShip::CleanupCannons()
+void AShip::CleanupCannons(float CannonDespawnTime)
 {
 	for (ACannon* Cannon : PortCannons)
 	{
-		Cannon->SetLifeSpan(RespawnTime);
+		UE_LOG(LogTemp, Warning, TEXT("Cleanup Port Cannons.... %f"), CannonDespawnTime)
+		Cannon->SetLifeSpan(CannonDespawnTime);
 	}
 	for (ACannon* Cannon : StarboardCannons)
 	{
-		Cannon->SetLifeSpan(RespawnTime);
+		Cannon->SetLifeSpan(CannonDespawnTime);
 	}
 }
 

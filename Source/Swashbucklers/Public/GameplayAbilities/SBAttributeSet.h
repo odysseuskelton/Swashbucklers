@@ -14,7 +14,9 @@
 	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHealthChangeDelegate, float, Health, float, MaxHealth, AActor*, InstigatorActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnManaChangeDelegate, float, Mana, float, MaxMana);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBountyChangeDelegate, int32, Bounty, AActor*, DestroyedActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSpeedChangeDelegate, float, Speed);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPiecesOfEightDelegate, int32, PiecesOfEight, AActor*, DestroyedActor, int32, BountyToCollect);
 
 /**
@@ -42,6 +44,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AttributeSetBase", ReplicatedUsing = OnRep_MaxMana)
 	FGameplayAttributeData MaxMana;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AttributeSetBase", ReplicatedUsing = OnRep_Speed)
+	FGameplayAttributeData Speed;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AttributeSetBase", ReplicatedUsing = OnRep_Bounty)
 	FGameplayAttributeData Bounty;
 	ATTRIBUTE_ACCESSORS(USBAttributeSet, Bounty)
@@ -52,6 +57,8 @@ public:
 
 	void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 
+	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
+
 	void CollectBounty(AActor* BountiedActor, float BountyToCollect);
 
 	void Buy(int32 Cost);
@@ -59,6 +66,8 @@ public:
 	void ReceivePOE(int32 POEToReceive);
 
 	FOnHealthChangeDelegate OnHealthChange;
+	FOnManaChangeDelegate OnManaChange;
+	FOnSpeedChangeDelegate OnSpeedChange;
 	FOnBountyChangeDelegate OnBountyChange;
 	FOnPiecesOfEightDelegate OnPiecesOfEightChange;
 
@@ -83,6 +92,9 @@ protected:
 
 	UFUNCTION()
 	virtual void OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana);
+
+	UFUNCTION()
+	virtual void OnRep_Speed(const FGameplayAttributeData& OldSpeed);
 
 	UFUNCTION()
 	virtual void OnRep_Bounty(const FGameplayAttributeData& OldBounty);

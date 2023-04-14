@@ -117,6 +117,8 @@ public:
 
 	void SendAbilityToHUD(TSubclassOf<USBGameplayAbility>& AbilityToAcquire, EAbilitySlot SlotAssigned);
 
+	void SendLocalInputToASC(bool bIsPressed, const int32 AbilityID);
+
 	EAbilitySlot AssignAbilityToSlot(TSubclassOf<USBGameplayAbility> AbilityToAcquire, EAbilitySlot AbilitySlot);
 
 	void AcquireAbilities(TArray<TSubclassOf<USBGameplayAbility>> AbilitiesToAcquire);

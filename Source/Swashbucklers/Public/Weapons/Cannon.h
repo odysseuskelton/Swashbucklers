@@ -4,12 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "GameplayEffectTypes.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "Cannon.generated.h"
 
 
 class AProjectile;
 class UNiagaraSystem;
+class UNiagaraSystemComponent;
 
 UCLASS()
 class SWASHBUCKLERS_API ACannon : public AActor
@@ -25,6 +26,11 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void FireCannon();
+
+	UFUNCTION(BlueprintCallable)
+	void FireDragonsBreath();
+
+	void ApplyGESpecHandleToTargetData(const FGameplayEffectSpecHandle& GESpecHandle, const FGameplayAbilityTargetDataHandle& TargetDataHandle);
 
 	void CannonFireEffects();
 
@@ -45,11 +51,14 @@ public:
 	UPROPERTY(Replicated)
 	bool ExtraSoundsOnCannonball = false;
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bCannonStreamAbilityActive = false;
+
 protected:
 	virtual void BeginPlay() override;
 
 private:
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
 	USkeletalMeshComponent* CannonMesh;
 
 	UPROPERTY(EditAnywhere)

@@ -12,7 +12,6 @@
 void ASBMainMenuGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogTemp, Warning, TEXT("Gamemodebeginplay"))
 	USBGameInstance* GameInstance = Cast<USBGameInstance>(GetGameInstance());
 	if (GameInstance)
 	{
@@ -29,8 +28,6 @@ void ASBMainMenuGameMode::BeginPlay()
 void ASBMainMenuGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
-
-	UE_LOG(LogTemp, Warning, TEXT("Login..."))
 	
 
 	if (HostMainMenu)

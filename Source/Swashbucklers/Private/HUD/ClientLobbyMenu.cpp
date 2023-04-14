@@ -59,14 +59,12 @@ void UClientLobbyMenu::ExitLobbyButtonPressed()
 
 void UClientLobbyMenu::UpdateClientLobbyWidget(TArray<FString> PirateTeamNames, TArray<FString> PrivateerTeamNames)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Update client... entered"))
 	UWorld* World = GetWorld();
 	if (!World) return;
 
 	APlayerController* PlayerController = World->GetFirstPlayerController();
 
 	if (!PlayerSlotClass || !PlayerController) return;
-	UE_LOG(LogTemp, Warning, TEXT("Update client... should work"))
 	ClearTeamNames();
 
 	AddPirateTeamNames(PirateTeamNames, PlayerController);

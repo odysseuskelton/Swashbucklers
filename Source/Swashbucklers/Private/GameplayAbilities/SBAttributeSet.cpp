@@ -78,10 +78,6 @@ void USBAttributeSet::CollectBounty(AActor* BountiedActor, float BountyToCollect
 
 	PiecesOfEight.SetCurrentValue(FMath::CeilToInt(PiecesOfEight.GetCurrentValue() + BountyToCollect));
 	OnPiecesOfEightChange.Broadcast(FMath::CeilToInt(PiecesOfEight.GetCurrentValue()), DestroyedActor, BountyToCollect);
-
-	UE_LOG(LogTemp, Warning, TEXT("Bounty Destroyed Actor %s"), *BountiedActor->GetName())
-	UE_LOG(LogTemp, Warning, TEXT("BountyToCollect %f"), BountyToCollect)
-	UE_LOG(LogTemp, Warning, TEXT("Currentbounty %f"), Bounty.GetCurrentValue())
 }
 
 void USBAttributeSet::Buy(int32 Cost)

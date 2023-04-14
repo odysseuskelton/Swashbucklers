@@ -23,16 +23,6 @@ void ASBGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 
 void ASBGameState::UpdateTeams(TArray<FString> UpdatedPirateTeam, TArray<FString> UpdatedPrivateerTeam)
 {
-	UE_LOG(LogTemp, Warning, TEXT("updateteams"))
-	for (FString Name : UpdatedPirateTeam)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Pirate team %s"), *Name)
-	}
-
-	for (FString Name : UpdatedPrivateerTeam)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("PrivateerTeam..... %s"), *Name)
-	}
 
 	PirateTeam = UpdatedPirateTeam;
 	PrivateerTeam = UpdatedPrivateerTeam;

@@ -63,10 +63,22 @@ protected:
 	UInputAction* InteractAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* MouseWheelAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* FirePortCannonsAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* FireStarboardCannonsAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* FireAuxiliaryCannonsAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* PortCannonsReleasedAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* StarboardCannonsReleasedAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* Slot1Action;
@@ -157,9 +169,11 @@ protected:
 	UFUNCTION()
 	void EndInteract(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	void Look(const FInputActionValue& Value);
+	virtual void Look(const FInputActionValue& Value);
 
 	void Move(const FInputActionValue& Value);
+
+	virtual void MouseWheel(const FInputActionValue& Value);
 
 	UFUNCTION(Server, Unreliable)
 	void ServerDropSails();
@@ -173,9 +187,12 @@ protected:
 
 	void RightShip(const FInputActionValue& Value);
 
-	void FirePortCannons() override;
+	virtual void FirePortCannons() override;
 
-	void FireStarboardCannons() override;
+	virtual void FireStarboardCannons() override;
+	virtual void ReleasePortCannons();
+	virtual void ReleaseStarboardCannons();
+	virtual void FireAuxiliaryCannons();
 	void ServerFireCannons_Implementation(TSubclassOf<USBGameplayAbility> CannonAbilityToActivate) override;
 
 	void ActivateSlot1Action();
@@ -204,6 +221,14 @@ protected:
 	UPROPERTY(EditAnywhere)
 	UMaterialInterface* PrivateerFlag;
 
+
+	//Playerstate
+	UPROPERTY()
+	ACaptainState* CaptainState;
+
+	UFUNCTION()
+	ACaptainState* GetCaptainState();
+
 private:
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* Camera;
@@ -214,12 +239,6 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UPlayerNameplateComponent* PlayerNameplateComponent;
 
-	//Playerstate
-	UPROPERTY()
-	ACaptainState* CaptainState;
-
-	UFUNCTION()
-	ACaptainState* GetCaptainState();
 
 	UFUNCTION()
 	void OnManaChanged(float Mana, float MaxMana);

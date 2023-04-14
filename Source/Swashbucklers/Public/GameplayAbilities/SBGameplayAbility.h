@@ -19,6 +19,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FGameplayAbilityInfo GetAbilityInfo();
 
+	UFUNCTION(BlueprintCallable)
+	void ApplyHealEffectToActorsInAOE(FGameplayEffectSpecHandle Spec, AActor* OwnerActor, FVector Origin, float Radius);
+
+	void ApplyGESpecHandleToTargetData(const FGameplayEffectSpecHandle& GESpecHandle, const FGameplayAbilityTargetDataHandle& TargetDataHandle);
+
+
 	UPROPERTY(EditAnywhere)
 	FString AbilityName;
 
@@ -30,5 +36,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AbilityBase")
 	UMaterialInstance* UIMaterial;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	int32 AbilityInputID = 0;
 	
 };

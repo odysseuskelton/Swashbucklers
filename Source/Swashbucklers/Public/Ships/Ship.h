@@ -106,6 +106,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float StealthBuoyancy = 5000.f;
 
+	UPROPERTY(EditAnywhere)
+	float MouseWheelMultiplier = 3.f;
+
 	//Death
 	UPROPERTY(Replicated, BlueprintReadOnly, meta=(AllowPrivateAccess), VisibleAnywhere)
 	bool bIsDead = false;
@@ -147,11 +150,17 @@ protected:
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess))
 	TArray<ACannon*> StarboardCannons;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AbilitySystem", meta = (AllowPrivateAccess))
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "AbilitySystem", meta = (AllowPrivateAccess))
 	TSubclassOf<USBGameplayAbility> PortCannonAbility;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AbilitySystem", meta = (AllowPrivateAccess))
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "AbilitySystem", meta = (AllowPrivateAccess))
 	TSubclassOf<USBGameplayAbility> StarboardCannonAbility;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AbilitySystem", meta = (AllowPrivateAccess))
+	TSubclassOf<USBGameplayAbility> AuxiliaryCannonAbility;
+
+	UFUNCTION(BlueprintCallable)
+	void SwitchCannonAbilities(TSubclassOf<USBGameplayAbility> NewPortCannonAbility, TSubclassOf<USBGameplayAbility> NewStarboardCannonAbility);
 
 	bool bAcquiredCannonAbilities = false;
 

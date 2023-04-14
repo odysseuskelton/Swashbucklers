@@ -140,6 +140,27 @@ void ATower::Tick(float DeltaTime)
 	}
 }
 
+void ATower::RotateCannonMesh(FRotator LookAtRotation)
+{
+	FRotator NewCannonBaseRotation = LookAtRotation;
+	NewCannonBaseRotation.Roll = 0.f;
+	NewCannonBaseRotation.Yaw = 0.f;
+	NewCannonBaseRotation.Pitch += 5.f;
+	NewCannonBaseRotation.Pitch = FMath::Clamp(NewCannonBaseRotation.Pitch, -27.f, 12.f);
+	TurretCannonMesh->SetRelativeRotation(NewCannonBaseRotation);
+	TurretCannonMeshRotation = TurretCannonMesh->GetRelativeRotation();
+}
+
+
+void ATower::RotateTurret(FRotator LookAtRotation, float DeltaTime)
+{
+	FRotator NewTurretBaseRotation = LookAtRotation;
+	NewTurretBaseRotation.Roll = 0.f;
+	NewTurretBaseRotation.Pitch = 0.f;
+	TurretBaseMesh->SetRelativeRotation(FMath::RInterpTo(TurretBaseMesh->GetComponentRotation(), NewTurretBaseRotation, DeltaTime, TurretRotationSpeed));
+	TurretBaseMeshRotation = TurretBaseMesh->GetRelativeRotation();
+}
+
 void ATower::HandleCannonFiring(FRotator& LookAtRotation)
 {
 	bool bShouldFire = HasAuthority() &&
@@ -156,29 +177,9 @@ void ATower::HandleCannonFiring(FRotator& LookAtRotation)
 	}
 }
 
-void ATower::RotateCannonMesh(FRotator LookAtRotation)
-{
-	FRotator NewCannonBaseRotation = LookAtRotation;
-	NewCannonBaseRotation.Roll = 0.f;
-	NewCannonBaseRotation.Yaw = 0.f;
-	NewCannonBaseRotation.Pitch += 5.f;
-	NewCannonBaseRotation.Pitch = FMath::Clamp(NewCannonBaseRotation.Pitch, -27.f, 12.f);
-	TurretCannonMesh->SetRelativeRotation(NewCannonBaseRotation);
-	TurretCannonMeshRotation = TurretCannonMesh->GetRelativeRotation();
-}
-
 void ATower::OnRep_RotateCannonMesh()
 {
 	TurretCannonMesh->SetRelativeRotation(TurretCannonMeshRotation);
-}
-
-void ATower::RotateTurret(FRotator LookAtRotation, float DeltaTime)
-{
-	FRotator NewTurretBaseRotation = LookAtRotation;
-	NewTurretBaseRotation.Roll = 0.f;
-	NewTurretBaseRotation.Pitch = 0.f;
-	TurretBaseMesh->SetRelativeRotation(FMath::RInterpTo(TurretBaseMesh->GetComponentRotation(), NewTurretBaseRotation, DeltaTime, TurretRotationSpeed));
-	TurretBaseMeshRotation = TurretBaseMesh->GetRelativeRotation();
 }
 
 void ATower::OnRep_RotateTurret()

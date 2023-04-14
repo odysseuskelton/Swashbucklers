@@ -37,6 +37,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	//UTexture2D* GetSteamAvatar();
+
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupInputComponent() override;

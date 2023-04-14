@@ -52,8 +52,12 @@ void APlayerShip::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		EnhancedInputComponent->BindAction(TurnAction, ETriggerEvent::None, this, &APlayerShip::RightShip);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerShip::Look);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &APlayerShip::StartInteracting);
+		EnhancedInputComponent->BindAction(MouseWheelAction, ETriggerEvent::Triggered, this, &APlayerShip::MouseWheel);
 		EnhancedInputComponent->BindAction(FirePortCannonsAction, ETriggerEvent::Triggered, this, &APlayerShip::FirePortCannons);
 		EnhancedInputComponent->BindAction(FireStarboardCannonsAction, ETriggerEvent::Triggered, this, &APlayerShip::FireStarboardCannons);
+		EnhancedInputComponent->BindAction(FireAuxiliaryCannonsAction, ETriggerEvent::Triggered, this, &APlayerShip::FireAuxiliaryCannons);
+		EnhancedInputComponent->BindAction(PortCannonsReleasedAction, ETriggerEvent::Triggered, this, &APlayerShip::ReleasePortCannons);
+		EnhancedInputComponent->BindAction(StarboardCannonsReleasedAction, ETriggerEvent::Triggered, this, &APlayerShip::ReleaseStarboardCannons);
 
 		EnhancedInputComponent->BindAction(Slot1Action, ETriggerEvent::Triggered, this, &APlayerShip::ActivateSlot1Action);
 		EnhancedInputComponent->BindAction(Slot2Action, ETriggerEvent::Triggered, this, &APlayerShip::ActivateSlot2Action);
@@ -168,6 +172,28 @@ void APlayerShip::FireStarboardCannons()
 	}
 }
 
+void APlayerShip::ReleasePortCannons()
+{
+	UE_LOG(LogTemp, Warning, TEXT("RElease!~"))
+	if (CaptainState)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cap state valid, release!~"))
+		CaptainState->SendLocalInputToASC(false, 1);
+	}
+}
+
+void APlayerShip::ReleaseStarboardCannons()
+{
+	if (CaptainState)
+	{
+		CaptainState->SendLocalInputToASC(false, 2);
+	}
+}
+
+void APlayerShip::FireAuxiliaryCannons()
+{
+}
+
 void APlayerShip::ServerFireCannons_Implementation(TSubclassOf<USBGameplayAbility> CannonAbilityToActivate)
 {
 	//Super::ServerFireCannons(CannonAbilityToActivate);
@@ -267,6 +293,10 @@ void APlayerShip::Look(const FInputActionValue& Value)
 	}
 }
 
+void APlayerShip::MouseWheel(const FInputActionValue& Value)
+{
+}
+
 void APlayerShip::HoistSails(const FInputActionValue& Value)
 {
 	if (bIsDead) return;
@@ -330,6 +360,8 @@ void APlayerShip::ResetHealth()
 		CS->GetAttributeSet()->MaxHealth.SetBaseValue(ShipHealth);
 		CS->GetAttributeSet()->Health.SetCurrentValue(ShipHealth);
 		CS->GetAttributeSet()->Health.SetBaseValue(ShipHealth);
+		CS->GetAttributeSet()->Mana.SetCurrentValue(100.f);
+		CS->GetAttributeSet()->MaxMana.SetBaseValue(100.f);
 		InitializeOverlays();
 	}
 }
@@ -343,6 +375,8 @@ void APlayerShip::ServerResetHealth_Implementation()
 		CS->GetAttributeSet()->MaxHealth.SetBaseValue(ShipHealth);
 		CS->GetAttributeSet()->Health.SetCurrentValue(ShipHealth);
 		CS->GetAttributeSet()->Health.SetBaseValue(ShipHealth);
+		CS->GetAttributeSet()->Mana.SetCurrentValue(100.f);
+		CS->GetAttributeSet()->MaxMana.SetBaseValue(100.f);
 	}
 }
 
@@ -384,6 +418,7 @@ void APlayerShip::Tick(float DeltaTime)
 	PollInit();
 	NormalizeCannonRotation(DeltaTime);
 	TraceForPlayerNameplates();
+
 }
 
 void APlayerShip::TraceForPlayerNameplates()
@@ -540,7 +575,6 @@ void APlayerShip::SetSailColors(ETeam PlayerTeam)
 
 	if (PlayerTeam == ETeam::ET_Pirate)
 	{
-
 		ShipMesh->SetMaterial(4, PirateMaterialSecondary);
 		for (UActorComponent* Sail : Sails)
 		{
@@ -800,9 +834,6 @@ void APlayerShip::OnSpeedChanged(float AttributeSpeed)
 		PawnMovement->Acceleration = NewAcceleration;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("New speed (server) %f"), NewSpeed)
-	UE_LOG(LogTemp, Warning, TEXT("New Accel (server) %f"), NewAcceleration)
-
 	ClientOnSpeedChanged(NewSpeed, NewAcceleration);
 }
 
@@ -810,18 +841,13 @@ void APlayerShip::ClientOnSpeedChanged_Implementation(float NewSpeed, float NewA
 {
 	PawnMovement->MaxSpeed = NewSpeed;
 	PawnMovement->Acceleration = NewAcceleration;
-	
-	UE_LOG(LogTemp, Warning, TEXT("New speed (client) %f"), NewSpeed)
-	UE_LOG(LogTemp, Warning, TEXT("New Accel (client) %f"), NewAcceleration)
 }
 
 void APlayerShip::MulticastOnSpeedChanged_Implementation(float Speed)
 {
 	if (PawnMovement)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Extra Speed = %f"), Speed)
 		PawnMovement->MaxSpeed = PawnMovement->GetMaxSpeed() + Speed;
-		UE_LOG(LogTemp, Warning, TEXT("CurrentSpeedSet Speed = %f"), PawnMovement->GetMaxSpeed() + Speed)
 	}
 }
 

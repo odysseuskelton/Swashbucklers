@@ -83,10 +83,10 @@ void AProjectile::CollisionSphereOverlap(UPrimitiveComponent* OverlappedComponen
 
 			if (HitActor && AbilityHandle.IsValid())
 			{
+
 				FGameplayAbilityTargetDataHandle TargetHandle = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(HitActor);
-				if (InstigatorInterface->GetHitActorTeam() != HitInterface->GetHitActorTeam())
+				if (InstigatorInterface && HitInterface && InstigatorInterface->GetHitActorTeam() != HitInterface->GetHitActorTeam())
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Send Ability to hit actor..."))
 					ApplyGESpecHandleToTargetData(AbilityHandle, TargetHandle);
 				}
 				MulticastShipHitEffects(SphereHit);

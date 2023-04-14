@@ -50,6 +50,8 @@ void AShip::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 
 	DOREPLIFETIME(AShip, StarboardCannons);
 	DOREPLIFETIME(AShip, PortCannons);
+	DOREPLIFETIME(AShip, PortCannonAbility);
+	DOREPLIFETIME(AShip, StarboardCannonAbility);
 	DOREPLIFETIME(AShip, bOpenSails);
 	DOREPLIFETIME(AShip, bIsDead);
 }
@@ -87,11 +89,11 @@ void AShip::HealthbarTimerFinished()
 
 void AShip::MulticastOnHealthChanged_Implementation(float Health, float MaxHealth, AActor* InstigatorActor)
 {
-	if (!IsLocallyControlled())
+	if (!IsLocallyControlled() && HealthbarComponent && HealthbarComponent->GetHealthPercent() > Health/MaxHealth)
 	{
 		HealthbarComponent->SetRenderOpacity(100.f);
+		GetWorldTimerManager().SetTimer(HealthbarTimer, this, &AShip::HealthbarTimerFinished, 4.f);
 	}
-	GetWorldTimerManager().SetTimer(HealthbarTimer, this, &AShip::HealthbarTimerFinished, 4.f);
 
 	if (HealthbarComponent)
 	{
@@ -158,7 +160,6 @@ void AShip::CleanupCannons(float CannonDespawnTime)
 {
 	for (ACannon* Cannon : PortCannons)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Cleanup Port Cannons.... %f"), CannonDespawnTime)
 		Cannon->SetLifeSpan(CannonDespawnTime);
 	}
 	for (ACannon* Cannon : StarboardCannons)
@@ -177,14 +178,31 @@ void AShip::AcquireCannonAbilities()
 			return;
 		}
 
-		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(PortCannonAbility, 1, 1, this));
-		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(StarboardCannonAbility, 1, 1, this));
+		if (PortCannonAbility)
+		{
+			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(PortCannonAbility, 1, 1, this));
+		}
+		if (StarboardCannonAbility)
+		{
+			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(StarboardCannonAbility, 1, 1, this));
+		}
+		if (AuxiliaryCannonAbility)
+		{
+			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(AuxiliaryCannonAbility, 1, static_cast<int32>(AuxiliaryCannonAbility.GetDefaultObject()->AbilityInputID), this));
+		}
 
 		AbilitySystemComponent->bCharacterAbilitiesGiven = true;
 
 		bAcquiredCannonAbilities = true;
 	}
 }
+
+void AShip::SwitchCannonAbilities(TSubclassOf<USBGameplayAbility> NewPortCannonAbility, TSubclassOf<USBGameplayAbility> NewStarboardCannonAbility)
+{
+	PortCannonAbility = NewPortCannonAbility;
+	StarboardCannonAbility = NewStarboardCannonAbility;
+}
+
 
 void AShip::SpawnCannons()
 {

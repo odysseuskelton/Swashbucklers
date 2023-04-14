@@ -232,7 +232,6 @@ ETeam USBGameInstance::AssignTeam(ACaptainState* PlayerToAssignTeamTo)
 {
 	if (PlayerToAssignTeamTo == nullptr) return ETeam();
 
-	UE_LOG(LogTemp, Warning, TEXT("Assign team, playerstate valid"))
 
 	UWorld* World = GetWorld();
 	if (World)
@@ -244,7 +243,6 @@ ETeam USBGameInstance::AssignTeam(ACaptainState* PlayerToAssignTeamTo)
 		//If both teams are empty, auto assign to pirate
 		if (PirateTeamNames.IsEmpty() && PrivateerTeamNames.IsEmpty())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Both teams empty, pirate %s"), *PlayerToAssignTeamTo->GetPlayerName())
 			PirateTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
 			if (SBGameState)
 			{
@@ -257,11 +255,6 @@ ETeam USBGameInstance::AssignTeam(ACaptainState* PlayerToAssignTeamTo)
 		if (PirateTeamNames.Num() > PrivateerTeamNames.Num())
 		{
 			PrivateerTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
-			UE_LOG(LogTemp, Warning, TEXT("Privateer team add (pirate has more players) %s"), *PlayerToAssignTeamTo->GetPlayerName())
-				for (FString Name : PrivateerTeamNames)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Looping through names... %s"), *Name)
-				}
 
 			if (SBGameState)
 			{
@@ -272,7 +265,6 @@ ETeam USBGameInstance::AssignTeam(ACaptainState* PlayerToAssignTeamTo)
 		else if (PrivateerTeamNames.Num() > PirateTeamNames.Num())
 		{
 			PirateTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
-			UE_LOG(LogTemp, Warning, TEXT("Pirate team add (privateer has more players )%s"), *PlayerToAssignTeamTo->GetPlayerName())
 			if (SBGameState)
 			{
 				SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames);
@@ -282,7 +274,6 @@ ETeam USBGameInstance::AssignTeam(ACaptainState* PlayerToAssignTeamTo)
 		else
 		{
 			PirateTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
-			UE_LOG(LogTemp, Warning, TEXT("Pirate team addelse case %s"), *PlayerToAssignTeamTo->GetPlayerName())
 			if (SBGameState)
 			{
 				SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames);
@@ -298,11 +289,9 @@ void USBGameInstance::SwitchTeams(ACaptainState* CaptainStateTeamToSwitch)
 	if (!CaptainStateTeamToSwitch) return;
 	
 	FString CaptainName = CaptainStateTeamToSwitch->GetPlayerName();
-	UE_LOG(LogTemp, Warning, TEXT("Called Switch Teams %s"), *CaptainStateTeamToSwitch->GetName())
 	ASBGameState* SBGameState = GetWorld()->GetGameState<ASBGameState>();
 	if (PirateTeamNames.Contains(CaptainName))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("in pirate team"))
 		PirateTeamNames.Remove(CaptainName);
 		PrivateerTeamNames.Add(CaptainName);
 		CaptainStateTeamToSwitch->SetTeam(ETeam::ET_Privateer);
@@ -318,7 +307,6 @@ void USBGameInstance::SwitchTeams(ACaptainState* CaptainStateTeamToSwitch)
 	}
 	else if (PrivateerTeamNames.Contains(CaptainName))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("in privateerteam team"))
 		PrivateerTeamNames.Remove(CaptainName);
 		PirateTeamNames.Add(CaptainName);
 		CaptainStateTeamToSwitch->SetTeam(ETeam::ET_Pirate);
@@ -336,7 +324,6 @@ void USBGameInstance::SwitchTeams(ACaptainState* CaptainStateTeamToSwitch)
 
 void USBGameInstance::CheckTeams()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Checkteams"))
 	for (FString Name : PirateTeamNames)
 	{
 

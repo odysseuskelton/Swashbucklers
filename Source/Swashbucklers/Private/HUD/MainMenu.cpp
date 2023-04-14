@@ -59,12 +59,10 @@ void UMainMenu::RemovePlayerFromList(FString PlayerNameToRemove)
 	for (UWidget* Child : PirateTeam->GetAllChildren())
 	{
 		UPlayerSlot* PlayerSlot = Cast<UPlayerSlot>(Child);
-		UE_LOG(LogTemp, Warning, TEXT("PlayerSlot name %s, Playernametoremove %s"), *PlayerSlot->GetPlayerName(), *PlayerNameToRemove)
 		if (PlayerSlot)
 		{
 			if (PlayerSlot->GetPlayerName() == PlayerNameToRemove)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Remove!"))
 				PirateTeam->RemoveChild(PlayerSlot);
 			}
 		}
@@ -73,12 +71,10 @@ void UMainMenu::RemovePlayerFromList(FString PlayerNameToRemove)
 	for (UWidget* Child : PrivateerTeam->GetAllChildren())
 	{
 		UPlayerSlot* PlayerSlot = Cast<UPlayerSlot>(Child);
-		UE_LOG(LogTemp, Warning, TEXT("PlayerSlot name %s, Playernametoremove %s"), *PlayerSlot->GetPlayerName(), *PlayerNameToRemove)
 		if (PlayerSlot)
 		{
 			if (PlayerSlot->GetPlayerName() == PlayerNameToRemove)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Remove!"))
 				PrivateerTeam->RemoveChild(PlayerSlot);
 			}
 		}
@@ -292,14 +288,10 @@ void UMainMenu::CreateUserSlot(FString PlayerName, ACaptainState* NewPlayerCapta
 		PlayerSlot->SetPlayerNameText(PlayerName);
 		if (PlayerTeam == ETeam::ET_Pirate)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("CreateSlotPirate"))
-
 			PirateTeam->AddChild(PlayerSlot);
 		}
 		else if (PlayerTeam == ETeam::ET_Privateer)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("CreateSlotPrivateer"))
-
 			PrivateerTeam->AddChild(PlayerSlot);
 		}
 	}

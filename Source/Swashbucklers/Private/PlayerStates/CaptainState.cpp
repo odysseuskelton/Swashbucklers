@@ -181,7 +181,7 @@ void ACaptainState::ActivateSlotAbility(EAbilitySlot AbilitySlotToActivate)
 			AbilityComponent->TryActivateAbilityByClass(Slot3);
 			break;
 		case EAbilitySlot::EAS_Slot4:
-			AbilityComponent->TryActivateAbilityByClass(Slot1);
+			AbilityComponent->TryActivateAbilityByClass(Slot4);
 			break;
 	}
 }
@@ -191,7 +191,6 @@ void ACaptainState::AcquireAbility(TSubclassOf<USBGameplayAbility> AbilityToAcqu
 
 	if (AbilityComponent && HasAuthority() && AbilityToAcquire)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Give slot ability to actor"))
 		FGameplayAbilitySpecDef SpecDef = FGameplayAbilitySpecDef();
 		SpecDef.Ability = AbilityToAcquire;
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(SpecDef, 1);
@@ -199,7 +198,10 @@ void ACaptainState::AcquireAbility(TSubclassOf<USBGameplayAbility> AbilityToAcqu
 		AbilityComponent->InitAbilityActorInfo(this, GetPawn());	
 		EAbilitySlot SlotAssigned = AssignAbilityToSlot(AbilityToAcquire, AbilitySlotRequested);
 
-		if (AbilityToAcquire.GetDefaultObject()->GetAbilityInfo().AbilityType == EAbilityType::EAT_SlotAbility && GetPawn()->IsLocallyControlled())
+		USBGameplayAbility* AbilityInstance = AbilityToAcquire.Get()->GetDefaultObject<USBGameplayAbility>();
+
+
+		if (AbilityInstance->GetAbilityInfo().AbilityType == EAbilityType::EAT_SlotAbility && GetPawn() && GetPawn()->IsLocallyControlled())
 		{
 			SendAbilityToHUD(AbilityToAcquire, SlotAssigned);
 		}
@@ -218,6 +220,20 @@ void ACaptainState::SendAbilityToHUD(TSubclassOf<USBGameplayAbility>& AbilityToA
 			FGameplayAbilityInfo AbilityInfo = AbilityInstance->GetAbilityInfo();
 			CaptainHUD->SetAbilitySlot(AbilityInfo, SlotAssigned);
 		}
+	}
+}
+
+void ACaptainState::SendLocalInputToASC(bool bIsPressed, const int32 AbilityID)
+{
+	if (!AbilityComponent) return;
+
+	if (bIsPressed)
+	{
+		AbilityComponent->AbilityLocalInputPressed(AbilityID);
+	}
+	else
+	{
+		AbilityComponent->AbilityLocalInputReleased(AbilityID);
 	}
 }
 
@@ -303,25 +319,21 @@ EAbilitySlot ACaptainState::AssignAbilityToSlot(TSubclassOf<USBGameplayAbility> 
 	{
 		if (!Slot1)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Assign to slot 1"))
 			Slot1 = AbilityToAcquire;
 			return EAbilitySlot::EAS_Slot1;
 		}
 		if (!Slot2)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Assign to slot 2"))
 			Slot2 = AbilityToAcquire;
 			return EAbilitySlot::EAS_Slot2;
 		}
 		if (!Slot3)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Assign to slot 3"))
 			Slot3 = AbilityToAcquire;
 			return EAbilitySlot::EAS_Slot3;
 		}
 		if (!Slot4)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Assign to slot 4"))
 			Slot4 = AbilityToAcquire;
 			return EAbilitySlot::EAS_Slot4;
 		}
@@ -379,10 +391,8 @@ void ACaptainState::ServerBuyShip_Implementation(TSubclassOf<AShip> ShipToBuy)
 	if (OwnedShips.Contains(ShipToBuy))
 	{
 		ServerSwitchShips(ShipToBuy);
-		UE_LOG(LogTemp, Warning, TEXT("Just switch, no buy"))
 		return;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Server buy ship"))
 
 	OwnedShips.Add(ShipToBuy);
 	AttributeSet->Buy(ShipToBuy.GetDefaultObject()->StoreCost);

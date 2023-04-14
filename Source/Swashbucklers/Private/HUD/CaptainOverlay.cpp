@@ -51,7 +51,6 @@ void UCaptainOverlay::UpdateSlot(FGameplayAbilityInfo AbilityInfo, EAbilitySlot 
 		{
 			Slot3DynamicMat = UKismetMaterialLibrary::CreateDynamicMaterialInstance(this, AbilityInfo.UIMat);
 			Slot3Image->SetBrushFromMaterial(Slot3DynamicMat);
-			Slot3Image->SetBrushFromMaterial(AbilityInfo.UIMat);
 			Slot3Image->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 1.f));
 			const FString String = FString::Printf(TEXT("%d"), FMath::CeilToInt(AbilityInfo.Cost *-1));
 			Slot3Text->SetText(FText::FromString(String));

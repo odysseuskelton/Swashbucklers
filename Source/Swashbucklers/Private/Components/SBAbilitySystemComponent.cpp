@@ -8,7 +8,6 @@
 void USBAbilitySystemComponent::NotifyAbilityCommit(UGameplayAbility* Ability)
 {
 	Super::NotifyAbilityCommit(Ability);
-	UE_LOG(LogTemp, Warning, TEXT("enter notify ability commit..."))
 
 	if (Ability)
 	{
@@ -24,9 +23,7 @@ void USBAbilitySystemComponent::NotifyAbilityCommit(UGameplayAbility* Ability)
 					USBGameplayAbility* AbilityInSlot = AbilityClassInSlot.GetDefaultObject();
 					if (AbilityInSlot && AbilityInSlot->AbilityName == SBGameplayAbility->AbilityName)
 					{
-						
-						UE_LOG(LogTemp, Warning, TEXT("found..."))
-						
+												
 						SlotInterface->ActivateSlotCooldown(AbilityClassInSlot);
 						return;
 					}

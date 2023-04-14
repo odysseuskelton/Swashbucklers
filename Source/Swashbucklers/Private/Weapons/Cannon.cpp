@@ -37,6 +37,11 @@ void ACannon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (bCannonStreamAbilityActive)
+	{
+		FireDragonsBreath();
+	}
+
 }
 
 void ACannon::FireCannon()
@@ -60,7 +65,7 @@ void ACannon::FireCannon()
 
 			FVector Forward = GetActorForwardVector() * -1;
 			FVector LinearForceToApply = Forward * CannonLinearRecoil * FiringPlayer->GetCannonRecoilMultiplierFromShip();
-			FiringPlayer->GetPlayerShipMesh()->AddImpulse(LinearForceToApply, FName(), true);
+				FiringPlayer->GetPlayerShipMesh()->AddImpulse(LinearForceToApply, FName(), true);
 
 		}
 	}
@@ -87,6 +92,56 @@ void ACannon::FireCannon()
 	}
 }
 
+void ACannon::FireDragonsBreath()
+{
+	FTransform MuzzleTransform = CannonMesh->GetSocketTransform(FName("MuzzleSocket"));
+	
+	FVector End = GetActorRotation().Vector() * 2000.f + GetActorLocation();
+	TArray<AActor*>ActorsToIgnore;
+	TArray<FHitResult> HitActors;
+	ActorsToIgnore.Add(this);
+
+	if (GetOwner())
+	{
+		ActorsToIgnore.Add(GetOwner());
+	}
+	UKismetSystemLibrary::SphereTraceMulti(this, MuzzleTransform.GetLocation(), End, 150, ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::ForOneFrame, HitActors, true);
+	//DrawDebugSphere(GetWorld(), MuzzleTransform.GetLocation(), 130, 12, FColor::Red);
+
+	for (FHitResult Hit : HitActors)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HitActor: %s"), *Hit.GetActor()->GetName())
+		IHitInterface* HitInterface = Cast<IHitInterface>(Hit.GetActor());
+		IHitInterface* InstigatorInterface = Cast<IHitInterface>(GetOwner());
+		if (HitInterface)
+		{
+			if (HitInterface->IsHitActorDead()) return;
+
+			AActor* HitActor = HitInterface->GetActorWithAbilityComponent();
+
+			if (HitActor && CannonGEHandle.IsValid())
+			{
+
+				FGameplayAbilityTargetDataHandle TargetHandle = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(HitActor);
+				if (InstigatorInterface && HitInterface && InstigatorInterface->GetHitActorTeam() != HitInterface->GetHitActorTeam())
+				{
+					ApplyGESpecHandleToTargetData(CannonGEHandle, TargetHandle);
+
+				}
+			}
+		}
+	}
+	HitActors.Empty();
+}
+
+void ACannon::ApplyGESpecHandleToTargetData(const FGameplayEffectSpecHandle& GESpecHandle, const FGameplayAbilityTargetDataHandle& TargetDataHandle)
+{
+	for (TSharedPtr<FGameplayAbilityTargetData> Data : TargetDataHandle.Data)
+	{
+		Data->ApplyGameplayEffectSpec(*GESpecHandle.Data.Get());
+	}
+}
+
 
 void ACannon::CannonFireEffects()
 {
@@ -109,12 +164,12 @@ void ACannon::MulticastCannonFireEffects_Implementation(FTransform TransformToSp
 
 	if (CannonFireSystem)
 	{
-		UNiagaraFunctionLibrary::SpawnSystemAttached(CannonFireSystem, CannonMesh, FName("MuzzleSocket"), FVector::ZeroVector, -1 * GetActorRightVector().Rotation(), EAttachLocation::KeepRelativeOffset, true, true);
+		UNiagaraFunctionLibrary::SpawnSystemAttached(CannonFireSystem, CannonMesh, FName(), FVector(100.0, 0.f, 0.f), FRotator(-90.f,0.f,0.f), EAttachLocation::KeepRelativeOffset, true, true);
 	}
 
 	if (CannonSmokeSystem)
 	{
-		UNiagaraFunctionLibrary::SpawnSystemAttached(CannonSmokeSystem, CannonMesh, FName("MuzzleSocket"), FVector::ZeroVector, -1 * GetActorRightVector().Rotation(), EAttachLocation::KeepRelativeOffset, true, true);
+		UNiagaraFunctionLibrary::SpawnSystemAttached(CannonSmokeSystem, CannonMesh, FName(), FVector(125.0, 0.f, 0.f), FRotator(-90.f, 0.f, 0.f), EAttachLocation::KeepRelativeOffset, true, true);
 	}
 
 	if (CannonFireSound)
@@ -123,3 +178,4 @@ void ACannon::MulticastCannonFireEffects_Implementation(FTransform TransformToSp
 	}
 
 }
+

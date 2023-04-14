@@ -24,12 +24,8 @@ void ACaptainHUD::BeginPlay()
 
 void ACaptainHUD::SetAbilitySlot(FGameplayAbilityInfo AbilityInfo, EAbilitySlot SlotAssigned)
 {
-	UE_LOG(LogTemp, Warning, TEXT("abilityslot ...."))
-
 	if (CaptainOverlay)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("cap overlay valid ...."))
-
 		CaptainOverlay->UpdateSlot(AbilityInfo, SlotAssigned);
 	}
 }

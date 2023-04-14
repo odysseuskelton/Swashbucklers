@@ -115,7 +115,7 @@ void ABuilding::SpawnDamageSystem(uint16 NumberOfSystemsToSpawn)
 	{
 		FVector BuildingMeshLocation = BuildingMesh->GetRelativeLocation();
 
-		FVector LocationToSpawn = UKismetMathLibrary::RandomPointInBoundingBox(BuildingMeshLocation, FVector(1000.f, 1000.f, 1000.f));
+		FVector LocationToSpawn = UKismetMathLibrary::RandomPointInBoundingBox(BuildingMeshLocation, FVector(250.f, 250.f, 250.f));
 
 		if (BuildingDamageSystem)
 		{

@@ -9,7 +9,7 @@ public class Swashbucklers : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "InputCore", "EnhancedInput", "Niagara", "GameplayAbilities", "GameplayTags", "GameplayTasks", "OnlineSubsystem", "OnlineSubsystemSteam", "Water"});
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "InputCore", "EnhancedInput", "Niagara", "GameplayAbilities", "GameplayTags", "AIModule", "SmoothSyncPlugin", "GameplayTasks", "OnlineSubsystem", "OnlineSubsystemSteam", "Water"});
 
 		PublicAdditionalLibraries.Add(Path.Combine(ModuleDirectory, "steam", "lib", "steam_api64.lib"));
 

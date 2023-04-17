@@ -37,12 +37,10 @@ void USBGameplayAbility::ApplyHealEffectToActorsInAOE(FGameplayEffectSpecHandle 
 
 	TArray<AActor*> ActorsToApplyGameplayEffectTo;
 
-	UE_LOG(LogTemp, Warning, TEXT("Sphere trace"))
-	UKismetSystemLibrary::SphereTraceMulti(OwnerActor, Origin, Origin, Radius, ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::ForDuration, Hits, false);
+	UKismetSystemLibrary::SphereTraceMulti(OwnerActor, Origin, Origin, Radius, ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::None, Hits, false);
 
 	for (FHitResult Hit : Hits)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Actor to hit... %s"), *Hit.GetActor()->GetName())
 
 		IHitInterface* HitInterface = Cast<IHitInterface>(Hit.GetActor());
 		IHitInterface* InstigatorInterface = Cast<IHitInterface>(OwnerActor);
@@ -56,7 +54,6 @@ void USBGameplayAbility::ApplyHealEffectToActorsInAOE(FGameplayEffectSpecHandle 
 			{
 				if (InstigatorInterface && HitInterface && InstigatorInterface->GetHitActorTeam() == HitInterface->GetHitActorTeam())
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Actor to heal... %s"), *HitActor->GetName())
 					ActorsToApplyGameplayEffectTo.Add(HitActor);
 				}
 			}

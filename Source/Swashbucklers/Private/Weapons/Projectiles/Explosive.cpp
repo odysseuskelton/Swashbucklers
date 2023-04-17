@@ -42,7 +42,6 @@ void AExplosive::ExplosiveOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 	AProjectile* ProjectileHit = Cast<AProjectile>(OtherActor);
 	if (ProjectileHit)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Hit cannonball"))
 		GetWorldTimerManager().ClearAllTimersForObject(this);
 		Activate();
 		return;
@@ -72,7 +71,6 @@ void AExplosive::ExplosiveHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 
 	if(InstigatorInterface && HitInterface && InstigatorInterface->GetHitActorTeam() != HitInterface->GetHitActorTeam())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Hit player.."))
 
 		GetWorldTimerManager().ClearAllTimersForObject(this);
 		Activate();
@@ -149,7 +147,7 @@ void AExplosive::SearchTimerPulse()
 	}
 
 	++NumberOfPulsesSearching;
-	if (NumberOfPulsesSearching >= 15)
+	if (NumberOfPulsesSearching >= 40)
 	{
 		Activate();
 	}
@@ -196,7 +194,7 @@ void AExplosive::ExplosiveActivated()
 	}
 
 	++NumberOfPulsesActivated;
-	if (NumberOfPulsesActivated <= 15)
+	if (NumberOfPulsesActivated <= 7)
 	{
 		GetWorldTimerManager().SetTimer(ActivatedTimerHandle, this, &AExplosive::ExplosiveActivated, 0.1);
 	}
@@ -215,7 +213,7 @@ void AExplosive::Detonate()
 	{
 		ActorsToIgnore.Add(GetOwner());
 	}
-	UKismetSystemLibrary::SphereTraceMulti(this, GetActorLocation(), GetActorLocation(), 3500, ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitActors, true);
+	UKismetSystemLibrary::SphereTraceMulti(this, GetActorLocation(), GetActorLocation(), 3500, ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::None, HitActors, true);
 
 	if (ExplosiveGEHandle.IsValid())
 	{

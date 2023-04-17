@@ -168,7 +168,7 @@ void USBGameInstance::Host(FString ServerNameFromUser)
 		{
 			FOnlineSessionSettings SessionSettings;
 			SessionSettings.bIsLANMatch = false;
-			SessionSettings.NumPublicConnections = 10;
+			SessionSettings.NumPublicConnections = 20;
 			SessionSettings.bShouldAdvertise = true;
 			SessionSettings.bUsesPresence = true;
 			SessionSettings.bUseLobbiesIfAvailable = true;

@@ -40,9 +40,7 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerResetHealth();
-
-	void SetSailColors(ETeam PlayerTeam);
-	bool bSailColorSet = false;
+	bool bPlayerInputSet = false;
 
 protected:
 
@@ -140,6 +138,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float DefaultAcceleration = 900.f;
 
+	UPROPERTY(EditAnywhere)
+	float RotationMultiplier = 70.f;
+
 	//
 
 	void OnRep_PlayerState() override;
@@ -149,7 +150,7 @@ protected:
 	void PossessedBy(AController* NewController) override;
 
 	void GetInputSubsytem();
-	virtual void BindAbilityComponentDelegates() override;
+	virtual void BindAbilityComponentDelegates();
 
 	void BindInteractionDelegates();
 
@@ -202,24 +203,7 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void ServerActivateSlotAction(EAbilitySlot AbilitySlot);
-	
-	UPROPERTY(EditAnywhere)
-	UMaterialInterface* PirateMaterial;
 
-	UPROPERTY(EditAnywhere)
-	UMaterialInterface* PrivateerMaterial;
-
-	UPROPERTY(EditAnywhere)
-	UMaterialInterface* PirateMaterialSecondary;
-
-	UPROPERTY(EditAnywhere)
-	UMaterialInterface* PrivateerMaterialSecondary;
-
-	UPROPERTY(EditAnywhere)
-	UMaterialInterface* PirateFlag;
-
-	UPROPERTY(EditAnywhere)
-	UMaterialInterface* PrivateerFlag;
 
 
 	//Playerstate
@@ -263,6 +247,7 @@ private:
 	//HitInterface Override
 	AActor* GetActorWithAbilityComponent() override;
 	ETeam GetHitActorTeam() override;
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	//UFUNCTION(Server, Reliable)
 	//void ServerGetCaptainState();

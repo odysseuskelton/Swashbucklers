@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "PlayerStates/Teams.h"
 #include "GameplayAbilities/AbilityTypes.h"
 #include "CaptainOverlay.generated.h"
 
@@ -33,7 +34,18 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void StartCooldown(EAbilitySlot AbilitySlotToActivate);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayCountdownAnimation();
+
+	void WaitingForTreasureToSpawn();
+
+	void TreasureHasSpawned();
+
+	void TreasureHasBeenCaptured(ETeam TeamCapturingTreasure, ETeam PlayerTeam);
+
 	void UpdateSlot(FGameplayAbilityInfo AbilityInfo, EAbilitySlot SlotAssigned);
+
+	void SetCountdownText(float CountdownTime);
 
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayAbilityInfo Slot1Info;
@@ -81,7 +93,10 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Slot4Text;
 
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget, AllowPrivateAccess))
+	UTextBlock* CountdownText;
 
-
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* AnnouncementText;
 
 };

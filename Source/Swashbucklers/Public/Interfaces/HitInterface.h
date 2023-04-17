@@ -8,6 +8,7 @@
 #include "HitInterface.generated.h"
 
 class ACaptainState;
+class UAbilitySystemComponent;
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UHitInterface : public UInterface
@@ -25,6 +26,9 @@ class SWASHBUCKLERS_API IHitInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	virtual AActor* GetActorWithAbilityComponent() = 0;
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const = 0;
 	virtual ETeam GetHitActorTeam() = 0;
 	virtual bool IsHitActorDead() = 0;
+	virtual bool CanBeKnocked() = 0;
+	virtual bool IsLocallyControlledInterface() = 0;
 };

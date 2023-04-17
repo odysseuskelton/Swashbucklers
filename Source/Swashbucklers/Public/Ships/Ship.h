@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Interfaces/HitInterface.h"
+#include "Interfaces/ExecutionInterface.h"
+#include "GameplayEffect.h"
 #include "InputActionValue.h"
 #include "Ship.generated.h"
 
@@ -21,9 +23,10 @@ class USBGameplayAbility;
 class USBAbilitySystemComponent;
 class UNiagaraSystem;
 class UBuoyancyComponent;
+class USmoothSync;
 
 UCLASS()
-class SWASHBUCKLERS_API AShip : public APawn, public IHitInterface
+class SWASHBUCKLERS_API AShip : public APawn, public IHitInterface, public IExecutionInterface
 {
 	GENERATED_BODY()
 
@@ -34,7 +37,17 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void BindAbilityComponentDelegates();
+	UFUNCTION()
+	void ShipCollision(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION(Server, Reliable)
+	void ServerShipCollision(AActor* OtherActor, const FHitResult& Hit, float SpeedOfImpact);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastShipCollision(AActor* OtherActor, const FHitResult& Hit, float SpeedOfImpact, FVector ForceOfImpact);
+
+	FTimerHandle ShipCollisionTimer;
+	void ShipCollisionTimerFinished();
 
 	UFUNCTION()
 	void OnHealthChanged(float Health, float MaxHealth, AActor* InstigatorActor);
@@ -49,6 +62,8 @@ public:
 	void CleanupCannons(float CannonDespawnTime);
 
 	void AcquireCannonAbilities();
+
+	FVector ForceToApply;
 
 	//Store Info
 	UPROPERTY(EditAnywhere, Category = "Store Info")
@@ -75,8 +90,34 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Store Info")
 	int32 StoreCost;
 
+
+	void SetSailColors(ETeam PlayerTeam);
+	bool bSailColorSet = false;
+
+
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* PirateMaterial;
+
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* PrivateerMaterial;
+
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* PirateMaterialSecondary;
+
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* PrivateerMaterialSecondary;
+
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* PirateFlag;
+
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* PrivateerFlag;
+
+
 protected:
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UGameplayEffect> RamDamageEffectClass;
 	//Components
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess))
 	UStaticMeshComponent* ShipMesh;
@@ -95,6 +136,12 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	UAudioComponent* CruisingSoundComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	USmoothSync* SmoothSyncComp;
+
+	AActor* RammedShip;
+	float ImpactSpeed = 0.f;
 
 	//Healthbar Functionality
 	FTimerHandle HealthbarTimer;
@@ -175,8 +222,11 @@ protected:
 
 	void HandleCannonSpawning(int32 CannonSlots, FString CannonAttachString);
 
+
 	//Ability System Reference
 	TWeakObjectPtr<class USBAbilitySystemComponent> AbilitySystemComponent;
+
+	FORCEINLINE virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return nullptr; };
 
 public:	
 	FORCEINLINE UFloatingPawnMovement* GetPawnMovement() { return PawnMovement; }
@@ -193,7 +243,13 @@ public:
 	float SinkingRate = 1.f;
 
 	//HitInterface Override
-	AActor* GetActorWithAbilityComponent() override;
+	virtual AActor* GetActorWithAbilityComponent() override;
 	ETeam GetHitActorTeam() override;
 	FORCEINLINE bool IsHitActorDead() { return bIsDead; }
+	FORCEINLINE bool CanBeKnocked() { return true; }
+	FORCEINLINE virtual bool IsLocallyControlledInterface() override { return IsLocallyControlled(); }
+
+	//Execution Interface Overrides
+	virtual float GetShipSpeed();
 };
+

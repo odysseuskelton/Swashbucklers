@@ -5,7 +5,9 @@
 #include "GameplayEffectExtension.h"
 #include "GameplayEffect.h"
 #include "Net/UnrealNetwork.h"
-#include "PlayerStates//CaptainState.h"
+#include "PlayerStates/CaptainState.h"
+#include "Kismet/GameplayStatics.h"
+#include "Interfaces/CaptainStateInterface.h"
 #include "GameplayEffect.h"
 
 USBAttributeSet::USBAttributeSet() :
@@ -53,8 +55,6 @@ void USBAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 		Mana.SetBaseValue(FMath::Clamp(Mana.GetBaseValue(), 0.f, MaxMana.GetCurrentValue()));
 		OnManaChange.Broadcast(Mana.GetCurrentValue(), MaxMana.GetCurrentValue());
 	}
-
-
 }
 
 void USBAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
@@ -78,6 +78,22 @@ void USBAttributeSet::CollectBounty(AActor* BountiedActor, float BountyToCollect
 
 	PiecesOfEight.SetCurrentValue(FMath::CeilToInt(PiecesOfEight.GetCurrentValue() + BountyToCollect));
 	OnPiecesOfEightChange.Broadcast(FMath::CeilToInt(PiecesOfEight.GetCurrentValue()), DestroyedActor, BountyToCollect);
+}
+
+void USBAttributeSet::SendPOEToTeam(ETeam Team, int32 Amount)
+{
+	TArray<AActor*> OutActors;
+	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UCaptainStateInterface::StaticClass(), OutActors);
+
+	for (AActor* Actor : OutActors)
+	{
+		ICaptainStateInterface* CSInterface = Cast<ICaptainStateInterface>(Actor);
+		if(CSInterface && CSInterface->GetPlayerTeam() == Team)
+		{
+			CSInterface->SendPlayerPOE(Amount);
+		}
+	}
+
 }
 
 void USBAttributeSet::Buy(int32 Cost)

@@ -81,6 +81,7 @@ void APlayerShip::GetInputSubsytem()
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(PlayerContext, 0);
+			bPlayerInputSet = true;
 		}
 	}
 }
@@ -95,7 +96,7 @@ void APlayerShip::Move(const FInputActionValue& Value)
 	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
 
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	AddMovementInput(ForwardDirection, MovementVector.Y);
+	AddMovementInput(ForwardDirection, MovementVector.Y, true);
 
 }
 
@@ -106,7 +107,7 @@ void APlayerShip::Turn(const FInputActionValue& Value)
 	const FRotator Rotation = GetActorRotation();
 	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
 
-	float RotationAngle = 70.f * DeltaSeconds * MovementVector.X / 2;
+	float RotationAngle = RotationMultiplier * DeltaSeconds * MovementVector.X / 2;
 	FQuat RotationDelta(GetActorUpVector(), FMath::DegreesToRadians(RotationAngle));
 
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
@@ -174,10 +175,8 @@ void APlayerShip::FireStarboardCannons()
 
 void APlayerShip::ReleasePortCannons()
 {
-	UE_LOG(LogTemp, Warning, TEXT("RElease!~"))
 	if (CaptainState)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Cap state valid, release!~"))
 		CaptainState->SendLocalInputToASC(false, 1);
 	}
 }
@@ -360,8 +359,10 @@ void APlayerShip::ResetHealth()
 		CS->GetAttributeSet()->MaxHealth.SetBaseValue(ShipHealth);
 		CS->GetAttributeSet()->Health.SetCurrentValue(ShipHealth);
 		CS->GetAttributeSet()->Health.SetBaseValue(ShipHealth);
-		CS->GetAttributeSet()->Mana.SetCurrentValue(100.f);
 		CS->GetAttributeSet()->MaxMana.SetBaseValue(100.f);
+		CS->GetAttributeSet()->MaxMana.SetCurrentValue(100.f);
+		CS->GetAttributeSet()->Mana.SetBaseValue(100.f);
+		CS->GetAttributeSet()->Mana.SetCurrentValue(100.f);
 		InitializeOverlays();
 	}
 }
@@ -375,8 +376,10 @@ void APlayerShip::ServerResetHealth_Implementation()
 		CS->GetAttributeSet()->MaxHealth.SetBaseValue(ShipHealth);
 		CS->GetAttributeSet()->Health.SetCurrentValue(ShipHealth);
 		CS->GetAttributeSet()->Health.SetBaseValue(ShipHealth);
-		CS->GetAttributeSet()->Mana.SetCurrentValue(100.f);
 		CS->GetAttributeSet()->MaxMana.SetBaseValue(100.f);
+		CS->GetAttributeSet()->MaxMana.SetCurrentValue(100.f);
+		CS->GetAttributeSet()->Mana.SetBaseValue(100.f);
+		CS->GetAttributeSet()->Mana.SetCurrentValue(100.f);
 	}
 }
 
@@ -391,7 +394,6 @@ void APlayerShip::BeginPlay()
 	InitializeOverlays();
 	DefaultSpeed = PawnMovement->MaxSpeed;
 	DefaultAcceleration = PawnMovement->Acceleration;
-
 
 }
 
@@ -467,6 +469,11 @@ void APlayerShip::PollInit()
 			PlayerNameplateComponent->SetPlayerNameTeamColor(CaptainState->GetPlayerTeam());
 		}
 	}
+
+	if (!bPlayerInputSet)
+	{
+		GetInputSubsytem();
+	}
 }
 
 void APlayerShip::NormalizeCannonRotation(float DeltaTime)
@@ -509,10 +516,13 @@ void APlayerShip::StarboardCannonRotationCalc(float DeltaTime)
 	{
 		for (ACannon* Cannon : StarboardCannons)
 		{
-			FRotator TargetRotation = ShipMesh->GetSocketRotation(Cannon->SocketName);
+			if (ShipMesh && Cannon)
+			{
+				FRotator TargetRotation = ShipMesh->GetSocketRotation(Cannon->SocketName);
 			//TargetRotation.Pitch = ShipMesh->GetSocketRotation(Cannon->SocketName).Pitch;
-			Cannon->SetActorRotation(FMath::RInterpTo(Cannon->GetActorRotation(), TargetRotation, DeltaTime, CannonCorrectionSpeed));
-			StarboardCannonRotation = Cannon->GetActorRotation();
+				Cannon->SetActorRotation(FMath::RInterpTo(Cannon->GetActorRotation(), TargetRotation, DeltaTime, CannonCorrectionSpeed));
+				StarboardCannonRotation = Cannon->GetActorRotation();
+			}
 		}
 	}
 }
@@ -534,10 +544,13 @@ void APlayerShip::PortCannonRotationCalc(float DeltaTime)
 	{
 		for (ACannon* Cannon : PortCannons)
 		{
-			FRotator TargetRotation = ShipMesh->GetSocketRotation(Cannon->SocketName);
-			//TargetRotation.Pitch = ShipMesh->GetSocketRotation(Cannon->SocketName).Pitch;
-			Cannon->SetActorRotation(FMath::RInterpTo(Cannon->GetActorRotation(), TargetRotation, DeltaTime, CannonCorrectionSpeed));
-			PortCannonRotation = Cannon->GetActorRotation();
+			if (ShipMesh && Cannon)
+			{
+				FRotator TargetRotation = ShipMesh->GetSocketRotation(Cannon->SocketName);
+				//TargetRotation.Pitch = ShipMesh->GetSocketRotation(Cannon->SocketName).Pitch;
+				Cannon->SetActorRotation(FMath::RInterpTo(Cannon->GetActorRotation(), TargetRotation, DeltaTime, CannonCorrectionSpeed));
+				PortCannonRotation = Cannon->GetActorRotation();
+			}
 		}
 	}
 }
@@ -564,58 +577,6 @@ void APlayerShip::OnRep_PortCannonRotationCalc()
 		{
 			Cannon->SetActorRotation(FMath::RInterpTo(Cannon->GetActorRotation(), PortCannonRotation, DeltaSeconds, CannonCorrectionSpeed));
 		}
-	}
-}
-
-
-void APlayerShip::SetSailColors(ETeam PlayerTeam)
-{
-	TArray<UActorComponent*> Sails = GetComponentsByTag(UActorComponent::StaticClass(), "Sail");
-	TArray<UActorComponent*> Flags = GetComponentsByTag(UActorComponent::StaticClass(), "Flag");
-
-	if (PlayerTeam == ETeam::ET_Pirate)
-	{
-		ShipMesh->SetMaterial(4, PirateMaterialSecondary);
-		for (UActorComponent* Sail : Sails)
-		{
-			USkeletalMeshComponent* MeshComponent = Cast<USkeletalMeshComponent>(Sail);
-			if (MeshComponent)
-			{
-				MeshComponent->SetMaterial(0, PirateMaterial);
-			}
-		}
-
-		for (UActorComponent* Flag : Flags)
-		{
-			USkeletalMeshComponent* MeshComponent = Cast<USkeletalMeshComponent>(Flag);
-			if (MeshComponent)
-			{
-				MeshComponent->SetMaterial(0, PirateFlag);
-			}
-		}
-		bSailColorSet = true;
-	}
-	else if (PlayerTeam == ETeam::ET_Privateer)
-	{
-		ShipMesh->SetMaterial(4, PrivateerMaterialSecondary);
-		for (UActorComponent* Sail : Sails)
-		{
-			USkeletalMeshComponent* MeshComponent = Cast<USkeletalMeshComponent>(Sail);
-			if (MeshComponent)
-			{
-				MeshComponent->SetMaterial(0, PrivateerMaterial);
-			}
-		}
-
-		for (UActorComponent* Flag : Flags)
-		{
-			USkeletalMeshComponent* MeshComponent = Cast<USkeletalMeshComponent>(Flag);
-			if (MeshComponent)
-			{
-				MeshComponent->SetMaterial(0, PrivateerFlag);
-			}
-		}
-		bSailColorSet = true;
 	}
 }
 
@@ -669,6 +630,7 @@ void APlayerShip::PossessedBy(AController* NewController)
 		BindInteractionDelegates();
 		AbilitySystemComponent = Cast<USBAbilitySystemComponent>(CaptainState->GetAbilitySystemComponent());
 		CaptainState->GetAttributeSet()->Health.SetCurrentValue(ShipHealth);
+		CaptainState->GetAttributeSet()->Mana.SetCurrentValue(100);
 		InitializeOverlays();
 		if (!HasAuthority())
 		{
@@ -691,8 +653,6 @@ void APlayerShip::PossessedBy(AController* NewController)
 
 void APlayerShip::BindAbilityComponentDelegates()
 {
-	Super::BindAbilityComponentDelegates();
-
 	if (CaptainState)
 	{
 		CaptainState->GetAttributeSet()->OnHealthChange.AddUniqueDynamic(this, &AShip::OnHealthChanged);
@@ -913,6 +873,16 @@ ETeam APlayerShip::GetHitActorTeam()
 		return ETeam();
 	}
 }
+
+UAbilitySystemComponent* APlayerShip::GetAbilitySystemComponent() const
+{
+	if (CaptainState)
+	{
+		return CaptainState->GetAbilitySystemComponent();
+	}
+	return nullptr;
+}
+
 
 
 

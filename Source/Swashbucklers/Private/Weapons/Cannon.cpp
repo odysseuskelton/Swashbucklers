@@ -105,12 +105,11 @@ void ACannon::FireDragonsBreath()
 	{
 		ActorsToIgnore.Add(GetOwner());
 	}
-	UKismetSystemLibrary::SphereTraceMulti(this, MuzzleTransform.GetLocation(), End, 150, ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::ForOneFrame, HitActors, true);
+	UKismetSystemLibrary::SphereTraceMulti(this, MuzzleTransform.GetLocation(), End, 150, ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::None, HitActors, true);
 	//DrawDebugSphere(GetWorld(), MuzzleTransform.GetLocation(), 130, 12, FColor::Red);
 
 	for (FHitResult Hit : HitActors)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("HitActor: %s"), *Hit.GetActor()->GetName())
 		IHitInterface* HitInterface = Cast<IHitInterface>(Hit.GetActor());
 		IHitInterface* InstigatorInterface = Cast<IHitInterface>(GetOwner());
 		if (HitInterface)

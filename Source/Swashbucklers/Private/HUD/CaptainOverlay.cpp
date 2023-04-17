@@ -72,3 +72,73 @@ void UCaptainOverlay::UpdateSlot(FGameplayAbilityInfo AbilityInfo, EAbilitySlot 
 		}
 	}
 }
+
+void UCaptainOverlay::SetCountdownText(float CountdownTime)
+{
+	if (CountdownText && AnnouncementText)
+	{
+		if (CountdownText->GetRenderOpacity() == 0.f)
+		{
+			CountdownText->SetRenderOpacity(100.f);
+		}
+
+		if (AnnouncementText->GetRenderOpacity() == 0.f)
+		{
+			AnnouncementText->SetRenderOpacity(100.f);
+		}
+
+		if (CountdownTime <= 10.f)
+		{
+			PlayCountdownAnimation();
+		}
+
+		int32 Minutes = FMath::FloorToInt(CountdownTime / 60);
+		int32 Seconds = CountdownTime - Minutes * 60; 
+
+		FString CountdownTextString = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+		CountdownText->SetText(FText::FromString(CountdownTextString));
+	}
+}
+
+void UCaptainOverlay::WaitingForTreasureToSpawn()
+{
+	if (CountdownText->GetRenderOpacity() == 0.f)
+	{
+		CountdownText->SetRenderOpacity(100.f);
+	}
+
+	if (AnnouncementText)
+	{
+		AnnouncementText->SetText(FText::FromString(TEXT("Searching for treasure...")));
+	}
+}
+
+void UCaptainOverlay::TreasureHasSpawned()
+{
+	if (CountdownText && AnnouncementText)
+	{
+		if (CountdownText->GetRenderOpacity() == 100.f)
+		{
+			CountdownText->SetRenderOpacity(0.f);
+		}
+
+		AnnouncementText->SetText(FText::FromString(TEXT("Treasure has been revealed! Find and capture it before the enemy!")));
+	}
+}
+
+void UCaptainOverlay::TreasureHasBeenCaptured(ETeam TeamCapturingTreasure, ETeam PlayerTeam)
+{
+
+	if(TeamCapturingTreasure == PlayerTeam)
+	{
+		AnnouncementText->SetText(FText::FromString(TEXT("Your team has captured the treasure, escort the merchant ship to base!")));
+	}
+	else if (TeamCapturingTreasure == ETeam::ET_Pirate)
+	{
+		AnnouncementText->SetText(FText::FromString(TEXT("The pirates have captured the treasure! Sink the merchant ship before it reaches their hideout!")));
+	}
+	else if (TeamCapturingTreasure == ETeam::ET_Privateer)
+	{
+		AnnouncementText->SetText(FText::FromString(TEXT("The privateers have captured the treasure! Sink the merchant ship before it reaches their HQ!")));
+	}
+}

@@ -2,10 +2,13 @@
 
 
 #include "Ships/Ship.h"
+#include "X:/Epic/UE_5.1/Engine/Plugins/Marketplace/SmoothSync/Source/SmoothSyncPlugin/Public/SmoothSync.h"
+#include "X:/Epic/UE_5.1/Engine/Plugins/Marketplace/SmoothSync/Source/SmoothSyncPlugin/Public/State.h"
 
 #include "GameplayAbilities/SBGameplayAbility.h"
 #include "Components/SBAbilitySystemComponent.h"
 #include "GameplayAbilities/SBAttributeSet.h"
+#include "Interfaces/HitInterface.h"
 
 #include "GameFramework/GameStateBase.h"
 #include "PlayerStates/CaptainState.h"
@@ -19,6 +22,7 @@
 #include "Weapons/Cannon.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
@@ -40,6 +44,8 @@ AShip::AShip()
 	CruisingSoundComponent->Stop();
 
 	BuoyancyComponent = CreateDefaultSubobject<UBuoyancyComponent>(TEXT("BuoyancyComp"));
+
+	SmoothSyncComp = CreateDefaultSubobject<USmoothSync>(TEXT("SmoothSyncComp"));
 
 	PawnMovement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("PawnMovement"));
 }
@@ -65,15 +71,87 @@ void AShip::BeginPlay()
 	}
 	SpawnCannons();
 	AcquireCannonAbilities();
-	BindAbilityComponentDelegates();
 	bIsDead = false;
 	//BuoyancyComponent->BuoyancyData.MaxBuoyantForce = StealthBuoyancy;
+	if (PlayerController)
+	{
+		SetOwner(PlayerController);
+	}
+
+	if (ShipMesh)
+	{
+		ShipMesh->OnComponentHit.AddDynamic(this, &AShip::ShipCollision);
+	}
 
 }
 
-void AShip::BindAbilityComponentDelegates()
+void AShip::ShipCollision(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (!OtherActor || !IsLocallyControlled()) return;
+	ServerShipCollision(OtherActor, Hit, PawnMovement->Velocity.Size());
+
+}
+
+void AShip::ServerShipCollision_Implementation(AActor* OtherActor, const FHitResult& Hit, float SpeedOfImpact)
+{
+	ImpactSpeed = SpeedOfImpact;
+	IHitInterface* HitInterface = Cast<IHitInterface>(OtherActor);
+	IHitInterface* InstigatorInterface = Cast<IHitInterface>(this);
+	if (PlayerController && PlayerController->GetPawn() != OtherActor)
+	{
+		const FVector Forward = GetActorForwardVector();
+		const FVector ImpactLowered(Hit.ImpactPoint.X, Hit.ImpactPoint.Y, GetActorLocation().Z);
+		const FVector ToHit = (ImpactLowered - GetActorLocation()).GetSafeNormal();
+
+		//Forward * tohit = |forward| |tohit| = cos(theta)
+		const double CosTheta = FVector::DotProduct(Forward, ToHit);
+		//Take inverse cosine to find angle
+		double Theta = FMath::Acos(CosTheta);
+		//convert from radians to degrees
+		Theta = FMath::RadiansToDegrees(Theta);
+
+		ForceToApply = Forward * 0.001f * ShipMesh->GetMass() * (SpeedOfImpact * 0.005);
+
+		if (Theta <= 20 && Theta >= -20)
+		{
+			if (HitInterface && OtherActor != RammedShip)
+			{
+				RammedShip = OtherActor;
+				MulticastShipCollision(OtherActor, Hit, ImpactSpeed, ForceToApply);
+
+				FGameplayEffectContextHandle ContextHandle;
+				ContextHandle.AddInstigator(this, this);
+
+				if (RamDamageEffectClass && InstigatorInterface && InstigatorInterface->GetAbilitySystemComponent() && HitInterface->GetAbilitySystemComponent())
+				{
+					FGameplayEffectSpecHandle RamDamageEffect = InstigatorInterface->GetAbilitySystemComponent()->MakeOutgoingSpec(RamDamageEffectClass, 0, ContextHandle);
+					InstigatorInterface->GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*RamDamageEffect.Data.Get(), HitInterface->GetAbilitySystemComponent());
+				}
+				GetWorldTimerManager().SetTimer(ShipCollisionTimer, this, &AShip::ShipCollisionTimerFinished, 3.f);
+			}
+
+		}
+	}
+}
+
+void AShip::MulticastShipCollision_Implementation(AActor* OtherActor, const FHitResult& Hit, float SpeedOfImpact, FVector ForceOfImpact)
 {
 
+	IHitInterface* HitInterface = Cast<IHitInterface>(OtherActor);
+	UStaticMeshComponent* MeshComponent = Cast<UStaticMeshComponent>(OtherActor->GetRootComponent());
+	if (MeshComponent && HitInterface && HitInterface->CanBeKnocked() && HitInterface->IsLocallyControlledInterface())
+	{
+		MeshComponent->AddImpulse(ForceOfImpact, FName(), true);
+	}
+	
+}
+
+void AShip::ShipCollisionTimerFinished()
+{
+	if (RammedShip)
+	{
+		RammedShip = nullptr;
+	}
 }
 
 void AShip::OnHealthChanged(float Health, float MaxHealth, AActor* InstigatorActor)
@@ -89,7 +167,8 @@ void AShip::HealthbarTimerFinished()
 
 void AShip::MulticastOnHealthChanged_Implementation(float Health, float MaxHealth, AActor* InstigatorActor)
 {
-	if (!IsLocallyControlled() && HealthbarComponent && HealthbarComponent->GetHealthPercent() > Health/MaxHealth)
+
+	if (InstigatorActor != this && !IsLocallyControlled() && HealthbarComponent && HealthbarComponent->GetHealthPercent() > Health / MaxHealth)
 	{
 		HealthbarComponent->SetRenderOpacity(100.f);
 		GetWorldTimerManager().SetTimer(HealthbarTimer, this, &AShip::HealthbarTimerFinished, 4.f);
@@ -242,9 +321,66 @@ void AShip::HandleCannonSpawning(int32 CannonSlots, FString CannonAttachString)
 	}
 }
 
+void AShip::SetSailColors(ETeam PlayerTeam)
+{
+	TArray<UActorComponent*> Sails = GetComponentsByTag(UActorComponent::StaticClass(), "Sail");
+	TArray<UActorComponent*> Flags = GetComponentsByTag(UActorComponent::StaticClass(), "Flag");
+
+	if (PlayerTeam == ETeam::ET_Pirate)
+	{
+		ShipMesh->SetMaterial(4, PirateMaterialSecondary);
+		for (UActorComponent* Sail : Sails)
+		{
+			USkeletalMeshComponent* MeshComponent = Cast<USkeletalMeshComponent>(Sail);
+			if (MeshComponent)
+			{
+				MeshComponent->SetMaterial(0, PirateMaterial);
+			}
+		}
+
+		for (UActorComponent* Flag : Flags)
+		{
+			USkeletalMeshComponent* MeshComponent = Cast<USkeletalMeshComponent>(Flag);
+			if (MeshComponent)
+			{
+				MeshComponent->SetMaterial(0, PirateFlag);
+			}
+		}
+		bSailColorSet = true;
+	}
+	else if (PlayerTeam == ETeam::ET_Privateer)
+	{
+		ShipMesh->SetMaterial(4, PrivateerMaterialSecondary);
+		for (UActorComponent* Sail : Sails)
+		{
+			USkeletalMeshComponent* MeshComponent = Cast<USkeletalMeshComponent>(Sail);
+			if (MeshComponent)
+			{
+				MeshComponent->SetMaterial(0, PrivateerMaterial);
+			}
+		}
+
+		for (UActorComponent* Flag : Flags)
+		{
+			USkeletalMeshComponent* MeshComponent = Cast<USkeletalMeshComponent>(Flag);
+			if (MeshComponent)
+			{
+				MeshComponent->SetMaterial(0, PrivateerFlag);
+			}
+		}
+		bSailColorSet = true;
+	}
+}
+
 void AShip::Tick(float DeltaTime)
 {
+	
 	Super::Tick(DeltaTime);
+	//if (SmoothSyncComp && SmoothSyncComp->stateBuffer[0] && SmoothSyncComp->stateBuffer[1] && HasAuthority() && !IsLocallyControlled())
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("Angular %f Linear %f"), SmoothSyncComp->getAngularVelocity().Size(), SmoothSyncComp->getLinearVelocity().Size())
+	//
+	//}
 	
 	if (bIsDead)
 	{
@@ -259,6 +395,8 @@ void AShip::Tick(float DeltaTime)
 		ShipMesh->SetWorldRotation(FMath::RInterpTo(GetActorRotation(), FRotator(GetActorRotation().Pitch, GetActorRotation().Yaw, 0.f), DeltaTime, 3.f));
 	}*/
 	DeltaSeconds = DeltaTime;
+
+	
 }
 
 AActor* AShip::GetActorWithAbilityComponent()
@@ -269,6 +407,11 @@ AActor* AShip::GetActorWithAbilityComponent()
 ETeam AShip::GetHitActorTeam()
 {
 	return ETeam();
+}
+
+float AShip::GetShipSpeed()
+{
+	return ImpactSpeed;
 }
 
 

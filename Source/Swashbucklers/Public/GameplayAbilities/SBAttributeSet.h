@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
+#include "PlayerStates/Teams.h"
 #include "AbilitySystemComponent.h"
 #include "SBAttributeSet.generated.h"
 
@@ -60,6 +61,8 @@ public:
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 
 	void CollectBounty(AActor* BountiedActor, float BountyToCollect);
+
+	void SendPOEToTeam(ETeam Team, int32 Amount);
 
 	void Buy(int32 Cost);
 

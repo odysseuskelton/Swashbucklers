@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
+#include "PlayerStates/Teams.h"
 #include "Buildings/BuildingTypes.h"
 #include "SBGameState.generated.h"
 
@@ -55,6 +56,25 @@ public:
 
 	UPROPERTY(Replicated)
 	bool bIsInLobby = false;
+
+	bool bGameOver = false;
+
+	UPROPERTY(ReplicatedUsing = OnRep_TeamCapturedTreasure)
+	ETeam TeamCapturingTreasure;
+
+	UPROPERTY(Replicated)
+	float TreasureActiveTime = 0.f;
+	UPROPERTY(ReplicatedUsing = OnRep_TreasureCapturesUpdate)
+	int32 TreasuresCaptured = 1;
+
+
+	void SetTreasuresCaptured(int32 NumberOfCaptures, float TimeTreasureActive);
+
+	UFUNCTION()
+	void OnRep_TreasureCapturesUpdate();
+  
+	UFUNCTION()
+	void OnRep_TeamCapturedTreasure();
 
 };
 

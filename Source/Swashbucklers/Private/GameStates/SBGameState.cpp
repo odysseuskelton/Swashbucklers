@@ -18,7 +18,9 @@ void ASBGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ASBGameState, bIsInLobby);
 	DOREPLIFETIME(ASBGameState, PirateTeam);
 	DOREPLIFETIME(ASBGameState, PrivateerTeam);
-
+	DOREPLIFETIME(ASBGameState, TeamCapturingTreasure);
+	DOREPLIFETIME(ASBGameState, TreasuresCaptured);
+	DOREPLIFETIME(ASBGameState, TreasureActiveTime);
 }
 
 void ASBGameState::UpdateTeams(TArray<FString> UpdatedPirateTeam, TArray<FString> UpdatedPrivateerTeam)
@@ -51,7 +53,7 @@ void ASBGameState::BuildingDestroyed(EBuildingType BuildingType, ABuilding* Buil
 
 		OnBuildingDestroyed.Broadcast(BuildingType);
 
-		if (BuildingType == EBuildingType::EBT_PirateHideout || BuildingType == EBuildingType::EBT_PrivateerHQ)
+		if ((BuildingType == EBuildingType::EBT_PirateHideout || BuildingType == EBuildingType::EBT_PrivateerHQ) && bGameOver == false)
 		{
 			TArray<AActor*> MusicActors;
 			UGameplayStatics::GetAllActorsWithTag(this, FName("AmbientMusic"), MusicActors);
@@ -63,6 +65,7 @@ void ASBGameState::BuildingDestroyed(EBuildingType BuildingType, ABuilding* Buil
 					AmbientSound->GetAudioComponent()->SetPaused(true);
 				}
 			}
+			bGameOver = true;
 		}
 
 		if (BuildingType == EBuildingType::EBT_Tower)
@@ -102,7 +105,6 @@ void ASBGameState::MulticastBuildingDestroyed_Implementation(EBuildingType Build
 	}
 }
 
-
 void ASBGameState::ExtraHeartPiece()
 {
 	MulticastExtraHeartPiece();
@@ -132,4 +134,40 @@ void ASBGameState::SetIsInLobby(bool bUpdateIsInLobby)
 bool ASBGameState::GetIsInLobby()
 {
 	return bIsInLobby;
+}
+
+void ASBGameState::SetTreasuresCaptured(int32 NumberOfCaptures, float TimeTreasureActive)
+{
+	TreasureActiveTime = TimeTreasureActive;
+	TreasuresCaptured = NumberOfCaptures;
+
+	ACaptainController* CapController = Cast<ACaptainController>(GetWorld()->GetFirstPlayerController());
+
+	if (CapController)
+	{
+		CapController->SetNumberOfCaptures(TreasuresCaptured);
+		CapController->SetTreasureActiveTime(TreasureActiveTime);
+	}
+
+}
+
+void ASBGameState::OnRep_TreasureCapturesUpdate()
+{
+	ACaptainController* CapController = Cast<ACaptainController>(GetWorld()->GetFirstPlayerController());
+
+	if (CapController)
+	{
+		CapController->SetNumberOfCaptures(TreasuresCaptured);
+		CapController->SetTreasureActiveTime(TreasureActiveTime);
+	}
+}
+
+
+void ASBGameState::OnRep_TeamCapturedTreasure()
+{
+	ACaptainController* CapController = Cast<ACaptainController>(GetWorld()->GetFirstPlayerController());
+	if (CapController)
+	{
+		CapController->HandleTreasureCaptured();
+	}
 }

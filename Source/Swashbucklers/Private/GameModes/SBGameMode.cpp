@@ -5,24 +5,35 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameStates/SBGameState.h"
 #include "GameFramework/PlayerStart.h"
+#include "PlayerControllers/CaptainController.h"
 #include "PlayerStates/CaptainState.h"
 #include "GameInstance/SBGameInstance.h"
 
+#include "CapturePoints/CapturePoint.h"
 #include "Buildings/Tower.h"
 #include "Ships/Ship.h"
+#include "Ships/AIShip.h"
 #include "GameFramework/FloatingPawnMovement.h"
 
 #include "TimerManager.h"
 
+namespace MatchState
+{
+	const FName WaitingForTreasureToSpawn = FName("WaitingForTreasureToSpawn");
+	const FName TreasureSpawned = FName("TreasureSpawned");
+	const FName TreasureCaptured = FName("TreasureCaptured");
+
+}
+
 ASBGameMode::ASBGameMode()
 {
-	
+	bDelayedStart = true;
+
 }
 
 void ASBGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	GetWorldTimerManager().SetTimer(TeamCheckTimer, this, &ASBGameMode::TeamCheck, 15.f);
 
 	ASBGameState* SBGameState = GetGameState<ASBGameState>();
 	if (SBGameState)
@@ -30,10 +41,167 @@ void ASBGameMode::BeginPlay()
 		SBGameState->SetIsInLobby(false);
 	}
 
+	LevelStartingTime = GetWorld()->GetTimeSeconds();
+
+	TArray<AActor*> PirateGoals;
+	UGameplayStatics::GetAllActorsWithTag(this, FName("PirateGoal"), PirateGoals);
+	if (!PirateGoals.IsEmpty())
+	{
+		PirateGoal = PirateGoals[0];
+	}
+
+	TArray<AActor*> PrivateerGoals;
+	UGameplayStatics::GetAllActorsWithTag(this, FName("PrivateerGoal"), PrivateerGoals);
+	if (!PrivateerGoals.IsEmpty())
+	{
+		PrivateerGoal = PrivateerGoals[0];
+	}
+
+}
+
+void ASBGameMode::OnMatchStateSet()
+{
+	Super::OnMatchStateSet();
+
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		ACaptainController* CaptainController = Cast<ACaptainController>(*It);
+		if (CaptainController)
+		{
+			CaptainController->OnMatchStateSet(MatchState);
+		}
+	}
+	
+	if (MatchState == MatchState::InProgress && bDelayedStart == true)
+	{
+		SetMatchState(MatchState::WaitingForTreasureToSpawn);
+	}
+	else if (MatchState == MatchState::TreasureSpawned)
+	{
+		HandleTreasureSpawned();
+	}
+	else if (MatchState == MatchState::TreasureCaptured)
+	{
+		HandleTreasureCaptured();
+	}
+
+}
+
+void ASBGameMode::HandleTreasureCaptured()
+{
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(this, ACapturePoint::StaticClass(), FoundActors);
+	ASBGameState* SBGameState = GetGameState<ASBGameState>();
+	for (AActor* FoundActor : FoundActors)
+	{
+		ACapturePoint* CapturePoint = Cast<ACapturePoint>(FoundActor);
+		if (CapturePoint)
+		{
+			CapturePoint->SetCapturePointVisibility(false);
+			FActorSpawnParameters SpawnInfo;
+			FTransform SpawnTransform = CapturePoint->GetCapturePointTransform();
+			SpawnTransform.SetScale3D(FVector(1.5f));
+			if (ActiveMerchantShip) return;
+			ActiveMerchantShip = GetWorld()->SpawnActor<AAIShip>(MerchantShipClass, SpawnTransform, SpawnInfo);
+			if (ActiveMerchantShip)
+			{
+				if (SBGameState->TeamCapturingTreasure == ETeam::ET_Pirate)
+				{
+					ActiveMerchantShip->SetTeam(ETeam::ET_Pirate);
+					if (PirateGoal)
+					{
+						ActiveMerchantShip->MoveToTarget(PirateGoal);
+					}
+				}
+				else if (SBGameState->TeamCapturingTreasure == ETeam::ET_Privateer)
+				{
+
+					ActiveMerchantShip->SetTeam(ETeam::ET_Privateer);
+					if (PrivateerGoal)
+					{
+						ActiveMerchantShip->MoveToTarget(PrivateerGoal);
+					}
+				}
+			}
+		}
+	}
+}
+
+void ASBGameMode::HandleTreasureSpawned()
+{
+	if (ActiveMerchantShip)
+	{
+		ActiveMerchantShip = nullptr;
+	}
+
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(this, ACapturePoint::StaticClass(), FoundActors);
+	for (AActor* FoundActor : FoundActors)
+	{
+		ACapturePoint* CapturePoint = Cast<ACapturePoint>(FoundActor);
+		if (CapturePoint)
+		{
+			CapturePoint->SetCapturePointVisibility(true);
+		}
+	}
+}
+
+void ASBGameMode::TreasureCaptured(ETeam CapturingTeam)
+{
+	ASBGameState* SBGameState = GetGameState<ASBGameState>();
+	
+	if (SBGameState)
+	{
+		SBGameState->TeamCapturingTreasure = CapturingTeam;		
+	}
+	SetMatchState(MatchState::TreasureCaptured);
+}
+
+void ASBGameMode::TreasureResolved()
+{
+	SetMatchState(MatchState::WaitingForTreasureToSpawn);
+	ASBGameState* SBGameState = GetGameState<ASBGameState>();
+	++NumberOfCaptures;
+	if (SBGameState)
+	{
+		SBGameState->SetTreasuresCaptured(NumberOfCaptures, TimeTreasureActive);
+	}
+}
+
+void ASBGameMode::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (MatchState == MatchState::WaitingToStart)
+	{
+		CountdownTime = WarmupTime - GetWorld()->GetTimeSeconds() + LevelStartingTime + TimeTreasureActive;
+		if (CountdownTime <= 0.f)
+		{
+			StartMatch();
+		}
+	}
+	else if (MatchState == MatchState::WaitingForTreasureToSpawn)
+	{
+		CountdownTime = WarmupTime + (TreasureSpawnTime * NumberOfCaptures) + TimeTreasureActive - GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		//UE_LOG(LogTemp, Warning, TEXT("Countdown TIme on Game Mode%f  , TimeTreasureActive %f, Warmup Time %f, TreasureSpawnTime, %f, GetWorld()->GetTimeSeconds() %f, LevelStartingTime %f"), CountdownTime, TimeTreasureActive, WarmupTime, TreasureSpawnTime, GetWorld()->GetTimeSeconds(), LevelStartingTime)
+		if (CountdownTime <= 0.f)
+		{
+			SetMatchState(MatchState::TreasureSpawned);
+		}
+	}
+	else if (MatchState == MatchState::TreasureSpawned)
+	{
+		TimeTreasureActive += DeltaTime;
+	}
+	else if (MatchState == MatchState::TreasureCaptured)
+	{
+		TimeTreasureActive += DeltaTime;
+	}
 }
 
 void ASBGameMode::PostLogin(APlayerController* NewPlayer)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Player name %s"), *NewPlayer->GetName())
 
 	USBGameInstance* SBGameInstance = GetGameInstance<USBGameInstance>();
 	if (SBGameInstance)
@@ -54,16 +222,10 @@ void ASBGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 	
 	Super::PostLogin(NewPlayer);
+
+		
 }
 
-void ASBGameMode::TeamCheck()
-{
-	USBGameInstance* SBGameInstance = GetGameInstance<USBGameInstance>();
-	if (SBGameInstance)
-	{
-		SBGameInstance->CheckTeams();
-	}
-}
 
 AActor* ASBGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
@@ -108,6 +270,8 @@ void ASBGameMode::RequestRespawn(APawn* ElimmedShip, AController* ElimmedControl
 
 void ASBGameMode::RestartPlayer(AController* NewPlayer)
 {
+	UE_LOG(LogTemp, Warning, TEXT("restart"))
+
 	if (NewPlayer == nullptr || NewPlayer->IsPendingKillPending())
 	{
 		return;

@@ -4,12 +4,14 @@
 #include "PlayerStates/CaptainState.h"
 #include "PlayerControllers/CaptainController.h"
 #include "Ships/PlayerShip.h"
-#include "Components/SBAbilitySystemComponent.h"
 #include "GameInstance/SBGameInstance.h"
 #include "GameStates/SBGameState.h"
 #include "HUD/CaptainHUD.h"
+#include "Components/SBAbilitySystemComponent.h"
 #include "GameplayAbilities/SBAttributeSet.h"
 #include "GameplayAbilities/SBGameplayAbility.h"
+#include "Buildings/Store.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "Weapons/Cannon.h"
 #include "Net/UnrealNetwork.h"
@@ -53,6 +55,7 @@ void ACaptainState::BeginPlay()
 		}
 
 	}
+
 
 }
 
@@ -363,22 +366,40 @@ void ACaptainState::SetTeam(ETeam TeamToSet)
 {
 	PlayerTeam = TeamToSet;
 
-	APlayerShip* PlayerShip = Cast<APlayerShip>(GetPawn());
+	AShip* PlayerShip = Cast<AShip>(GetPawn());
 	if (PlayerShip)
 	{
 		PlayerShip->SetSailColors(PlayerTeam);
+		HideEnemyStores();
 	}
 
 }
 
 void ACaptainState::OnRep_Team(ETeam TeamToSet)
 {
-	APlayerShip* PlayerShip = Cast<APlayerShip>(GetPawn());
+	AShip* PlayerShip = Cast<AShip>(GetPawn());
 	if (PlayerShip)
 	{
 		PlayerShip->SetSailColors(PlayerTeam);
+		HideEnemyStores();
 	}
 }
+
+
+void ACaptainState::HideEnemyStores()
+{
+	TArray<AActor*> OutActors;
+	UGameplayStatics::GetAllActorsOfClass(this, AStore::StaticClass(), OutActors);
+	for (AActor* Actor : OutActors)
+	{
+		AStore* Store = Cast<AStore>(Actor);
+		if (GetPawn() && GetPawn()->IsLocallyControlled() && Store && Store->GetBuildingTeam() != PlayerTeam)
+		{
+			Store->SetActorHiddenInGame(true);
+		}
+	}
+}
+
 
 void ACaptainState::BuyShip(TSubclassOf<AShip> ShipToBuy)
 {

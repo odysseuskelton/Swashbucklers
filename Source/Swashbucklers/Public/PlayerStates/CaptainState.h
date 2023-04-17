@@ -130,6 +130,8 @@ public:
 	UFUNCTION()
 	void OnRep_Team(ETeam TeamToSet);
 
+	void HideEnemyStores();
+
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE ETeam GetPlayerTeam() override { return PlayerTeam; }
 

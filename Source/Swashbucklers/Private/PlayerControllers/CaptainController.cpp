@@ -2,18 +2,40 @@
 
 
 #include "PlayerControllers/CaptainController.h"
+#include "HUD/CaptainHUD.h"
 #include "HUD/InGameMenu.h"
+#include "HUD/Announcement.h"
 #include "HUD/VictoryScreen.h"
 #include "HUD/ClientLobbyMenu.h"
 #include "GameInstance/SBGameInstance.h"
 #include "GameStates/SBGameState.h"
+#include "GameModes/SBGameMode.h"
 #include "Components/InputComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "PlayerStates/CaptainState.h"
+#include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
+void ACaptainController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ACaptainController, MatchState);
+}
 
 void ACaptainController::BeginPlay()
+{
+	InitializePlayerController();
+	HandleClientTransitionBetweenMaps();
+	Super::BeginPlay();
+	CaptainHUD = CaptainHUD == nullptr ? Cast<ACaptainHUD>(GetHUD()) : CaptainHUD;
+	ServerCheckMatchState();
+
+
+}
+
+void ACaptainController::InitializePlayerController()
 {
 	if (GetPawn() && GetPawn()->IsLocallyControlled())
 	{
@@ -28,7 +50,10 @@ void ACaptainController::BeginPlay()
 			Subsystem->AddMappingContext(PlayerControllerContext, 0);
 		}
 	}
+}
 
+void ACaptainController::HandleClientTransitionBetweenMaps()
+{
 	if (!HasAuthority())
 	{
 		UWorld* World = GetWorld();
@@ -113,24 +138,19 @@ void ACaptainController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	int32 SizeX; 
-	int32 SizeY;
-	GetViewportSize(SizeX, SizeY);
-	FVector WorldLocation;
-	FVector WorldDirection;
+	SetHUDTime();
+	CheckTimeSynch(DeltaTime);
+	PollInit();
 
-	bool bScreenToWorld = DeprojectScreenPositionToWorld(SizeX/2, SizeY/2, WorldLocation, WorldDirection);
 
-	if (bScreenToWorld)
+}
+
+void ACaptainController::PollInit()
+{
+	if (bControllerInputSet == false)
 	{
-		FVector Start = WorldLocation;
-		FVector End = Start + WorldDirection * 500.f;
-		/*DrawDebugLine(GetWorld(), Start, End, FColor::Red);
-		DrawDebugSphere(GetWorld(), Start, 20, 10, FColor::Green);
-		DrawDebugSphere(GetWorld(), End, 20, 10, FColor::Yellow);*/
+		SetupInputComponent();
 	}
-
-
 }
 
 void ACaptainController::SetupInputComponent()
@@ -141,6 +161,7 @@ void ACaptainController::SetupInputComponent()
 	{
 
 		EnhancedInputComponent->BindAction(InGameMenuAction, ETriggerEvent::Triggered, this, &ACaptainController::OpenInGameMenu);
+		bControllerInputSet = true;
 	}
 
 }
@@ -170,6 +191,118 @@ void ACaptainController::UpdateTeamsOnClient(TArray<FString> PirateTeamNames, TA
 		ClientLobbyMenu->UpdateClientLobbyWidget(PirateTeamNames, PrivateerTeamNames);
 	}
 }
+
+void ACaptainController::OnMatchStateSet(FName State)
+{
+	MatchState = State;
+
+	if (MatchState == MatchState::InProgress)
+	{
+		HandleMatchHasStarted();
+		CheckIfPlayerOverlayValid();
+	}
+	if (MatchState == MatchState::WaitingForTreasureToSpawn)
+	{
+		HandleWaitingForTreasureToSpawn();
+		CheckIfPlayerOverlayValid();
+
+	}
+	if (MatchState == MatchState::TreasureSpawned)
+	{
+		HandleTreasureHasSpawned();
+		CheckIfPlayerOverlayValid();
+	}
+	if (MatchState == MatchState::TreasureCaptured)
+	{
+		HandleTreasureCaptured();
+		CheckIfPlayerOverlayValid();
+	}
+
+}
+
+
+void ACaptainController::OnRep_MatchStateSet()
+{
+	if (MatchState == MatchState::InProgress)
+	{
+		HandleMatchHasStarted();
+		CheckIfPlayerOverlayValid();
+
+	}
+	if (MatchState == MatchState::WaitingForTreasureToSpawn)
+	{
+		HandleWaitingForTreasureToSpawn();
+		CheckIfPlayerOverlayValid();
+	}
+	if (MatchState == MatchState::TreasureSpawned)
+	{
+		HandleTreasureHasSpawned();
+		CheckIfPlayerOverlayValid();
+	}
+	if (MatchState == MatchState::TreasureCaptured)
+	{
+		HandleTreasureCaptured();
+		CheckIfPlayerOverlayValid();
+	}
+}
+
+void ACaptainController::CheckIfPlayerOverlayValid()
+{
+	CaptainHUD = CaptainHUD == nullptr ? Cast<ACaptainHUD>(GetHUD()) : CaptainHUD;
+	if (CaptainHUD && !CaptainHUD->IsCaptainOverlayValid())
+	{
+		HandleMatchHasStarted();
+	}
+}
+
+
+void ACaptainController::HandleMatchHasStarted()
+{
+
+	CaptainHUD = CaptainHUD == nullptr ? Cast<ACaptainHUD>(GetHUD()) : CaptainHUD;
+	if (CaptainHUD)
+	{
+		CaptainHUD->AddCaptainOverlayToViewport();
+		if (CaptainHUD->Announcement)
+		{
+			CaptainHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+}
+
+void ACaptainController::HandleWaitingForTreasureToSpawn()
+{
+	CaptainHUD = CaptainHUD == nullptr ? Cast<ACaptainHUD>(GetHUD()) : CaptainHUD;
+	if (CaptainHUD)
+	{
+		CaptainHUD->UpdateHUDTreasureWaitingToSpawn();
+	}
+}
+
+void ACaptainController::HandleTreasureHasSpawned()
+{
+	CaptainHUD = CaptainHUD == nullptr ? Cast<ACaptainHUD>(GetHUD()) : CaptainHUD;
+	if (CaptainHUD)
+	{
+		CaptainHUD->UpdateHUDTreasureHasSpawned();
+	}
+}
+
+void ACaptainController::HandleTreasureCaptured()
+{
+	CaptainHUD = CaptainHUD == nullptr ? Cast<ACaptainHUD>(GetHUD()) : CaptainHUD;
+	if (CaptainHUD)
+	{
+		ASBGameState* SBGameState = GetWorld()->GetGameState<ASBGameState>();
+		ACaptainState* CaptainState = GetPlayerState<ACaptainState>();
+		if (SBGameState)
+		{
+			CaptainHUD->UpdateHUDTreasureHasBeenCaptured(SBGameState->TeamCapturingTreasure, CaptainState->GetPlayerTeam());			
+		}
+	}
+}
+
+
 
 void ACaptainController::ReturnToMainMenu()
 {
@@ -213,7 +346,7 @@ void ACaptainController::ServerRequestSwitchTeam_Implementation(ACaptainState* C
 
 void ACaptainController::DisplayVictoryScreen(EBuildingType BuildingType)
 {
-	if (!GetPawn()->IsLocallyControlled()) return;
+	if (!GetPawn()->IsLocallyControlled() && bGameOver == true) return;
 
 	if (BuildingType == EBuildingType::EBT_PirateHideout)
 	{
@@ -233,7 +366,136 @@ void ACaptainController::DisplayVictoryScreen(EBuildingType BuildingType)
 			PirateVictoryScreen->PlayVictoryAnimation();
 		}
 	}
+	bGameOver = true;
 
 	GetWorldTimerManager().SetTimer(ReturnToMainMenuTimer, this, &ACaptainController::ReturnToMainMenu, ReturnToMainMenuDelay);
 }
 
+void ACaptainController::SetHUDCountdown(float CountdownTime)
+{
+	CaptainHUD = CaptainHUD == nullptr ? Cast<ACaptainHUD>(GetHUD()) : CaptainHUD;
+
+	if (CaptainHUD)
+	{
+		CaptainHUD->UpdateCountdown(CountdownTime);
+	}
+}
+
+void ACaptainController::SetHUDAnnouncementCountdown(float CountdownTime)
+{
+	CaptainHUD = CaptainHUD == nullptr ? Cast<ACaptainHUD>(GetHUD()) : CaptainHUD;
+	if (CaptainHUD)
+	{
+		CaptainHUD->UpdateAnnouncement(CountdownTime);
+	}
+}
+
+void ACaptainController::SetHUDTime()
+{
+	float TimeLeft = 0.f;
+	if (MatchState == MatchState::WaitingToStart) TimeLeft = WarmupTime - GetServerTime() + LevelStartingTime;
+	else if (MatchState == MatchState::WaitingForTreasureToSpawn) TimeLeft = WarmupTime + (TreasureSpawnTime * NumberOfCaptures) + TimeTreasureActive - GetServerTime() + LevelStartingTime;
+	//UE_LOG(LogTemp, Warning, TEXT("Time left....: %f"), TimeLeft)
+
+
+	uint32 SecondsLeft = FMath::CeilToInt(TimeLeft);
+	if (CountdownInt != SecondsLeft)
+	{
+		if (MatchState == MatchState::WaitingToStart)
+		{
+			SetHUDAnnouncementCountdown(SecondsLeft);
+		}
+		if (MatchState == MatchState::WaitingForTreasureToSpawn)
+		{
+			SetHUDCountdown(SecondsLeft);
+		}
+	}
+
+	CountdownInt = SecondsLeft;
+}
+
+void ACaptainController::CheckTimeSynch(float DeltaTime)
+{
+	TimeSyncRunningTime += DeltaTime;
+
+	if (IsLocalController() && TimeSyncRunningTime > TimeSyncFrequency)
+	{
+		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+		TimeSyncRunningTime = 0.f;
+	}
+}
+
+float ACaptainController::GetServerTime()
+{
+	if (HasAuthority())
+	{
+		return GetWorld()->GetTimeSeconds();
+	}
+	else
+	{
+		return GetWorld()->GetTimeSeconds() + ClientServerDelta;
+	}
+}
+
+void ACaptainController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+	if (IsLocalController())
+	{
+		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+	}
+}
+
+
+void ACaptainController::ServerCheckMatchState_Implementation()
+{
+	ASBGameMode* SBGameMode = Cast<ASBGameMode>(UGameplayStatics::GetGameMode(this));
+	if (SBGameMode)
+	{
+		WarmupTime = SBGameMode->WarmupTime;
+		TreasureSpawnTime = SBGameMode->TreasureSpawnTime;
+		LevelStartingTime = SBGameMode->LevelStartingTime;
+		TimeTreasureActive = SBGameMode->TimeTreasureActive;
+		MatchState = SBGameMode->GetMatchState();
+		NumberOfCaptures = SBGameMode->NumberOfCaptures;
+		ClientJoinMidgame(MatchState, WarmupTime, TreasureSpawnTime, LevelStartingTime, TimeTreasureActive, NumberOfCaptures);
+
+		CaptainHUD = CaptainHUD == nullptr ? Cast<ACaptainHUD>(GetHUD()) : CaptainHUD;
+		if (CaptainHUD && MatchState == MatchState::WaitingToStart)
+		{
+			CaptainHUD->AddAnnouncementToViewport();
+		}
+	}
+}
+
+void ACaptainController::ClientJoinMidgame_Implementation(FName StateOfMatch, float Warmup, float TimeToSpawnTreasure, float StartingTime, float ActiveTreasureTime, int32 NumCaps)
+{
+	MatchState = StateOfMatch;
+	WarmupTime = Warmup;
+	TreasureSpawnTime = TimeToSpawnTreasure;
+	LevelStartingTime = StartingTime;
+	TimeTreasureActive = ActiveTreasureTime;
+	NumberOfCaptures = NumCaps;
+	OnMatchStateSet(MatchState);
+
+	if (!GetHUD()) return;
+	CaptainHUD = CaptainHUD == nullptr ? Cast<ACaptainHUD>(GetHUD()) : CaptainHUD;
+	if (CaptainHUD && MatchState == MatchState::WaitingToStart)
+	{
+		CaptainHUD->AddAnnouncementToViewport();
+	}
+
+}
+
+void ACaptainController::ServerRequestServerTime_Implementation(float TimeOfClientRequest)
+{
+	float ServerTimeOfReceipt = GetWorld()->GetTimeSeconds();
+	ClientReportServerTime(TimeOfClientRequest, ServerTimeOfReceipt);
+}
+
+void ACaptainController::ClientReportServerTime_Implementation(float TimeOfClientRequest, float TimeServerReceivedClientRequest)
+{
+	float RoundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
+	float CurrentServerTime = TimeServerReceivedClientRequest + (0.5f * RoundTripTime);
+	ClientServerDelta = CurrentServerTime - GetWorld()->GetTimeSeconds();
+}

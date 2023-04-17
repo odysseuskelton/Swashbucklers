@@ -134,13 +134,13 @@ void AProjectile::MulticastShipHitEffects_Implementation(FHitResult ShipHit)
 	if (!ShipHit.GetActor()) return;
 
 	UStaticMeshComponent* MeshComponent = Cast<UStaticMeshComponent>(ShipHit.GetActor()->GetRootComponent());
-	if (MeshComponent)
+	IHitInterface* HitInterface = Cast<IHitInterface>(ShipHit.GetActor());
+	if (MeshComponent && HitInterface->IsLocallyControlledInterface())
 	{
-		if (!MeshComponent->IsSimulatingPhysics()) return;
+		if (!MeshComponent->IsSimulatingPhysics() || !HitInterface->CanBeKnocked()) return;
 		FVector Forward = this->GetActorForwardVector();
 		FVector ForceToApply = Forward * CannonballForce * MeshComponent->GetMass();
 		MeshComponent->AddImpulse(ForceToApply, FName(), true);
-
 	}
 }
 

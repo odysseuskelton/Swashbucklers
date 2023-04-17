@@ -102,10 +102,12 @@ public:
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	//IHitInterface Override
+	FORCEINLINE virtual bool IsLocallyControlledInterface() override { return true; }
 	virtual AActor* GetActorWithAbilityComponent() override;
 	virtual ETeam GetHitActorTeam() override;
 	FORCEINLINE bool IsHitActorDead() { return bIsDead; }
 	FORCEINLINE int32 GetBuildingBounty() { return BuildingBounty; }
 	FORCEINLINE ETeam GetBuildingTeam() { return Team; }
+	FORCEINLINE bool CanBeKnocked() { return false; }
 
 };

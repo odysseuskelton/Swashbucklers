@@ -3,15 +3,20 @@
 
 #include "HUD/CaptainHUD.h"
 #include "HUD/CaptainOverlay.h"
+#include "HUD/Announcement.h"
 
 void ACaptainHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
+}
+
+void ACaptainHUD::AddCaptainOverlayToViewport()
+{
 	UWorld* World = GetWorld();
 	if (World)
 	{
-		Controller = World->GetFirstPlayerController();
+		Controller = Controller == nullptr ? GetOwningPlayerController() : Controller;
 		if (!Controller) return;
 
 		if (CaptainOverlayClass)
@@ -21,6 +26,24 @@ void ACaptainHUD::BeginPlay()
 		}
 	}
 }
+
+void ACaptainHUD::AddAnnouncementToViewport()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		Controller = Controller == nullptr ? GetOwningPlayerController() : Controller;
+		if (!Controller) return;
+
+		if (AnnouncementClass && !Announcement)
+		{
+			Announcement = CreateWidget<UAnnouncement>(Controller, AnnouncementClass);
+			Announcement->AddToViewport();
+		}
+	}
+}
+
+
 
 void ACaptainHUD::SetAbilitySlot(FGameplayAbilityInfo AbilityInfo, EAbilitySlot SlotAssigned)
 {
@@ -48,7 +71,7 @@ void ACaptainHUD::SetHUDMana(float CurrentMana, float MaxMana)
 
 void ACaptainHUD::SetHUDPoE(int32 PoEToSet)
 {
-	if (CaptainOverlay && GetOwningPawn()->IsLocallyControlled())
+	if (CaptainOverlay)
 	{
 		CaptainOverlay->SetPoEText(PoEToSet);
 		CaptainOverlay->PlayPoEAnimation();
@@ -57,8 +80,49 @@ void ACaptainHUD::SetHUDPoE(int32 PoEToSet)
 
 void ACaptainHUD::ActivateSlotCooldownOnOverlay(EAbilitySlot AbilitySlotToActivate)
 {
-	if (CaptainOverlay && GetOwningPawn()->IsLocallyControlled())
+	if (CaptainOverlay)
 	{
 		CaptainOverlay->StartCooldown(AbilitySlotToActivate);
+	}
+}
+
+void ACaptainHUD::UpdateCountdown(float CountdownTime)
+{
+	if (CaptainOverlay)
+	{
+		CaptainOverlay->SetCountdownText(CountdownTime);
+	}
+}
+
+void ACaptainHUD::UpdateAnnouncement(float CountdownTime)
+{
+	if (Announcement)
+	{
+		Announcement->SetCountdownText(CountdownTime);
+	}
+}
+
+void ACaptainHUD::UpdateHUDTreasureWaitingToSpawn()
+{
+	if (CaptainOverlay)
+	{
+		CaptainOverlay->WaitingForTreasureToSpawn();
+	}
+}
+
+void ACaptainHUD::UpdateHUDTreasureHasSpawned()
+{
+	if (CaptainOverlay)
+	{
+		CaptainOverlay->TreasureHasSpawned();
+	}
+}
+
+void ACaptainHUD::UpdateHUDTreasureHasBeenCaptured(ETeam TeamCapturingTreasure, ETeam PlayerTeam)
+{
+
+	if (CaptainOverlay)
+	{
+		CaptainOverlay->TreasureHasBeenCaptured(TeamCapturingTreasure, PlayerTeam);
 	}
 }

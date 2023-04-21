@@ -47,12 +47,15 @@ public:
 	float Cost;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AbilityInfo")
+	int32 StoreCost;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AbilityInfo")
 	UMaterialInstance* UIMat;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AbilityInfo")
 	TSubclassOf<USBGameplayAbility> AbilityClass;
 
 	FGameplayAbilityInfo();
-	FGameplayAbilityInfo(FString Name, FString Description, EAbilityType Type, float InCooldownDuration, float InCost, UMaterialInstance* InUIMat, TSubclassOf<USBGameplayAbility> InAbilityClass);
+	FGameplayAbilityInfo(FString Name, FString Description, EAbilityType Type, float InCooldownDuration, float InCost, UMaterialInstance* InUIMat, int32 InStoreCost, TSubclassOf<USBGameplayAbility> InAbilityClass);
 
 };

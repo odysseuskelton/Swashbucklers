@@ -41,6 +41,26 @@ void ACaptainState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME(ACaptainState, Slot4);
 }
 
+void ACaptainState::OnRep_Slot1Change()
+{
+	SendAbilityToHUD(Slot1, EAbilitySlot::EAS_Slot1);
+}
+
+void ACaptainState::OnRep_Slot2Change()
+{
+	SendAbilityToHUD(Slot2, EAbilitySlot::EAS_Slot2);
+}
+
+void ACaptainState::OnRep_Slot3Change()
+{
+	SendAbilityToHUD(Slot3, EAbilitySlot::EAS_Slot3);
+}
+
+void ACaptainState::OnRep_Slot4Change()
+{
+	SendAbilityToHUD(Slot4, EAbilitySlot::EAS_Slot4);
+}
+
 void ACaptainState::BeginPlay()
 {
 	Super::BeginPlay();
@@ -343,9 +363,28 @@ EAbilitySlot ACaptainState::AssignAbilityToSlot(TSubclassOf<USBGameplayAbility> 
 	}
 	else
 	{
-		//TODO: This will need to be changed when more than 4 abilities.
-		Slot1 = AbilityToAcquire;
-		return EAbilitySlot::EAS_Slot1;
+		switch (AbilitySlotRequested)
+		{
+			case EAbilitySlot::EAS_Slot1:
+				Slot1 = AbilityToAcquire;
+				return EAbilitySlot::EAS_Slot1;
+				break;
+			case EAbilitySlot::EAS_Slot2:
+				Slot2 = AbilityToAcquire;
+				return EAbilitySlot::EAS_Slot2;
+				break;
+
+			case EAbilitySlot::EAS_Slot3:
+				Slot3 = AbilityToAcquire;
+				return EAbilitySlot::EAS_Slot3;
+				break;
+
+			case EAbilitySlot::EAS_Slot4:
+				Slot4 = AbilityToAcquire;
+				return EAbilitySlot::EAS_Slot4;
+				break;
+		}
+
 	}
 
 	return EAbilitySlot::EAS_Slot1;
@@ -406,6 +445,11 @@ void ACaptainState::BuyShip(TSubclassOf<AShip> ShipToBuy)
 	ServerBuyShip(ShipToBuy);
 }
 
+void ACaptainState::BuyAbility(TSubclassOf<USBGameplayAbility> AbilityToBuy, EAbilitySlot SlotSelected)
+{
+	ServerBuyAbility(AbilityToBuy, SlotSelected);
+}
+
 
 void ACaptainState::ServerBuyShip_Implementation(TSubclassOf<AShip> ShipToBuy)
 {
@@ -418,6 +462,23 @@ void ACaptainState::ServerBuyShip_Implementation(TSubclassOf<AShip> ShipToBuy)
 	OwnedShips.Add(ShipToBuy);
 	AttributeSet->Buy(ShipToBuy.GetDefaultObject()->StoreCost);
 	ServerSwitchShips(ShipToBuy);
+}
+
+void ACaptainState::ServerBuyAbility_Implementation(TSubclassOf<USBGameplayAbility> AbilityToBuy, EAbilitySlot SlotSelected)
+{
+	if (!AttributeSet || !AbilityToBuy) return;
+
+	if (OwnedAbilities.Contains(AbilityToBuy))
+	{
+		AcquireAbility(AbilityToBuy, SlotSelected);
+		return;
+	}
+	else
+	{
+		OwnedAbilities.Add(AbilityToBuy);
+		AttributeSet->Buy(AbilityToBuy.GetDefaultObject()->StoreCost);
+		AcquireAbility(AbilityToBuy, SlotSelected);
+	}
 }
 
 void ACaptainState::ServerSwitchShips_Implementation(TSubclassOf<AShip> ShipToSwitchTo)

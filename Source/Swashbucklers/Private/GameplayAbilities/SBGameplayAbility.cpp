@@ -2,9 +2,12 @@
 
 
 #include "GameplayAbilities/SBGameplayAbility.h"
+#include "GameplayAbilities/TickingTask.h"
 #include "Interfaces/HitInterface.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+
+
 
 FGameplayAbilityInfo USBGameplayAbility::GetAbilityInfo()
 {
@@ -23,7 +26,7 @@ FGameplayAbilityInfo USBGameplayAbility::GetAbilityInfo()
 			FGameplayAttribute CostAttr = EffectInfo.Attribute;
 			FString AttributeName = CostAttr.AttributeName;
 
-			return FGameplayAbilityInfo(AbilityName, AbilityDescription, AbilityType, CoolDownDuration, Cost, UIMaterial, GetClass());
+			return FGameplayAbilityInfo(AbilityName, AbilityDescription, AbilityType, CoolDownDuration, Cost, UIMaterial, StoreCost, GetClass());
 		}
 
 	}
@@ -52,7 +55,7 @@ void USBGameplayAbility::ApplyHealEffectToActorsInAOE(FGameplayEffectSpecHandle 
 
 			if (HitActor)
 			{
-				if (InstigatorInterface && HitInterface && InstigatorInterface->GetHitActorTeam() == HitInterface->GetHitActorTeam())
+				if (InstigatorInterface && HitInterface && InstigatorInterface->GetHitActorTeam() == HitInterface->GetHitActorTeam() && !ActorsToApplyGameplayEffectTo.Contains(HitActor))
 				{
 					ActorsToApplyGameplayEffectTo.Add(HitActor);
 				}
@@ -62,6 +65,7 @@ void USBGameplayAbility::ApplyHealEffectToActorsInAOE(FGameplayEffectSpecHandle 
 
 	FGameplayAbilityTargetDataHandle TargetData = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActorArray(ActorsToApplyGameplayEffectTo, true);
 	ApplyGESpecHandleToTargetData(Spec, TargetData);
+	ActorsToApplyGameplayEffectTo.Empty();
 }
 
 void USBGameplayAbility::ApplyGESpecHandleToTargetData(const FGameplayEffectSpecHandle& GESpecHandle, const FGameplayAbilityTargetDataHandle& TargetDataHandle)

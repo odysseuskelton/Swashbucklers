@@ -132,6 +132,7 @@ void APlayerShip::Turn(const FInputActionValue& Value)
 void APlayerShip::RightShip(const FInputActionValue& Value)
 {
 	FRotator RotationToSet = GetActorRotation();
+	RotationToSet.Pitch = FMath::Clamp(GetActorRotation().Pitch, -15.f, 15.f);
 	RotationToSet.Roll = 0.f;
 	SetActorRotation(FMath::RInterpTo(GetActorRotation(), RotationToSet, DeltaSeconds, StrafeSpeed / 2));
 }
@@ -394,6 +395,7 @@ void APlayerShip::BeginPlay()
 	InitializeOverlays();
 	DefaultSpeed = PawnMovement->MaxSpeed;
 	DefaultAcceleration = PawnMovement->Acceleration;
+	AcquireCannonAbilities();
 
 }
 
@@ -417,9 +419,10 @@ void APlayerShip::InitializeOverlays()
 void APlayerShip::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	PollInit();
-	NormalizeCannonRotation(DeltaTime);
 	TraceForPlayerNameplates();
+	PollInit();
+	if (bIsDead) return;
+	NormalizeCannonRotation(DeltaTime);
 
 }
 

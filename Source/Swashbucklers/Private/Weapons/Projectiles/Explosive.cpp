@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
 #include "TimerManager.h"
+#include "Net/UnrealNetwork.h"
 
 
 AExplosive::AExplosive()
@@ -24,6 +25,13 @@ AExplosive::AExplosive()
 
 }
 
+void AExplosive::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AExplosive, bActivated);
+}
+
 void AExplosive::BeginPlay()
 {
 	Super::BeginPlay();
@@ -34,15 +42,15 @@ void AExplosive::BeginPlay()
 
 	ExplosiveMesh->OnComponentBeginOverlap.AddDynamic(this, &AExplosive::ExplosiveOverlap);
 	ExplosiveMesh->OnComponentHit.AddDynamic(this, &AExplosive::ExplosiveHit);
+
+	ExplosiveMesh->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Block);
 }
 
 void AExplosive::ExplosiveOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (bActivated) return;
 	AProjectile* ProjectileHit = Cast<AProjectile>(OtherActor);
 	if (ProjectileHit)
 	{
-		GetWorldTimerManager().ClearAllTimersForObject(this);
 		Activate();
 		return;
 	}
@@ -64,18 +72,20 @@ void AExplosive::MulticastWaterSplash_Implementation()
 
 void AExplosive::ExplosiveHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (bActivated) return;
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(0, 10, FColor::Red, TEXT("Sa"));
+	}
 
 	IHitInterface* HitInterface = Cast<IHitInterface>(OtherActor);
 	IHitInterface* InstigatorInterface = Cast<IHitInterface>(GetOwner());
 
-	if(InstigatorInterface && HitInterface && InstigatorInterface->GetHitActorTeam() != HitInterface->GetHitActorTeam())
+	if (InstigatorInterface && HitInterface && InstigatorInterface->GetHitActorTeam() != HitInterface->GetHitActorTeam())
 	{
-
-		GetWorldTimerManager().ClearAllTimersForObject(this);
 		Activate();
 		return;
 	}
+
 }
 
 void AExplosive::SetMaterial()
@@ -206,39 +216,47 @@ void AExplosive::ExplosiveActivated()
 
 void AExplosive::Detonate()
 {
+	ServerDetonate();
+}
+
+void AExplosive::ServerDetonate_Implementation()
+{
 	TArray<AActor*>ActorsToIgnore;
 	TArray<FHitResult> HitActors;
 	ActorsToIgnore.Add(this);
+
+	TArray<AActor*> ActorsToApplyGameplayEffectTo;
+
 	if (GetOwner())
 	{
 		ActorsToIgnore.Add(GetOwner());
 	}
-	UKismetSystemLibrary::SphereTraceMulti(this, GetActorLocation(), GetActorLocation(), 3500, ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::None, HitActors, true);
+	UKismetSystemLibrary::SphereTraceMulti(this, GetActorLocation(), GetActorLocation(), 3500, ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitActors, true);
 
-	if (ExplosiveGEHandle.IsValid())
+	for (FHitResult Hit : HitActors)
 	{
-		for (FHitResult Hit : HitActors)
+
+		IHitInterface* HitInterface = Cast<IHitInterface>(Hit.GetActor());
+		IHitInterface* InstigatorInterface = Cast<IHitInterface>(GetOwner());
+		if (HitInterface)
 		{
-			IHitInterface* HitInterface = Cast<IHitInterface>(Hit.GetActor());
-			IHitInterface* InstigatorInterface = Cast<IHitInterface>(GetOwner());
+			if (HitInterface->IsHitActorDead()) return;
 
-			if (HitInterface)
+			AActor* HitActor = HitInterface->GetActorWithAbilityComponent();
+
+			if (HitActor)
 			{
-				if (HitInterface->IsHitActorDead()) return;
-
-				AActor* HitActor = HitInterface->GetActorWithAbilityComponent();
-
-				if (HitActor)
+				if (InstigatorInterface && HitInterface && InstigatorInterface->GetHitActorTeam() == HitInterface->GetHitActorTeam() && !ActorsToApplyGameplayEffectTo.Contains(HitActor))
 				{
-					FGameplayAbilityTargetDataHandle TargetHandle = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(HitActor);
-					if (InstigatorInterface && HitInterface && InstigatorInterface->GetHitActorTeam() != HitInterface->GetHitActorTeam())
-					{
-						ApplyGESpecHandleToTargetData(ExplosiveGEHandle, TargetHandle);
-					}
+					ActorsToApplyGameplayEffectTo.Add(HitActor);
 				}
 			}
 		}
 	}
+
+	FGameplayAbilityTargetDataHandle TargetData = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActorArray(ActorsToApplyGameplayEffectTo, true);
+	ApplyGESpecHandleToTargetData(ExplosiveGEHandle, TargetData);
+	ActorsToApplyGameplayEffectTo.Empty();
 
 	MulticastExplosion();
 	Destroy();
@@ -270,6 +288,5 @@ void AExplosive::MulticastExplosion_Implementation()
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, DetonatedSound, ExplosiveMesh->GetComponentLocation());
 	}
-
 }
 

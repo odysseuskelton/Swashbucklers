@@ -10,6 +10,7 @@
 #include "Components/GridPanel.h"
 #include "Components/GridSlot.h"
 #include "HUD/ShipwrightWidget.h"
+#include "HUD/StoreAbilitySlot.h"
 #include "HUD/StoreShipSlot.h"
 
 AStore::AStore()
@@ -76,6 +77,7 @@ void AStore::BeginInteraction(APlayerController* InteractingController)
 	ShipwrightWidget = CreateWidget<UShipwrightWidget>(InteractingController, ShipwrightWidgetClass);
 	if (ShipwrightWidget)
 	{
+		ShipwrightWidget->InitializeStoreWidget();
 		ShipwrightWidget->AddToViewport();
 
 		FInputModeUIOnly InputModeData;
@@ -90,6 +92,7 @@ void AStore::BeginInteraction(APlayerController* InteractingController)
 		if (CSInterface)
 		{
 			RefreshShipSlots(CSInterface, InteractingController);
+			RefreshAbilitySlots(CSInterface, InteractingController);
 		}
 	}
 
@@ -127,8 +130,41 @@ void AStore::RefreshShipSlots(ICaptainStateInterface* OwningCSInterface, APlayer
 				++RowIndex;
 			}
 		}
+	}
+}
 
+void AStore::RefreshAbilitySlots(ICaptainStateInterface* OwningCSInterface, APlayerController* OwningPlayerController)
+{
+	if (OwningCSInterface)
+	{
+		ShipwrightWidget->AbilitySlotGridPanel->ClearChildren();
 
+		int32 RowIndex = 0;
+		int32 ColumnIndex = 0;
+
+		if (!ShipwrightWidget->AbilitySlotGridPanel) return;
+
+		for (TSubclassOf<USBGameplayAbility> AbilityInStock : AbilitiesInStock)
+		{
+			UStoreAbilitySlot* AbilitySlot = CreateWidget<UStoreAbilitySlot>(OwningPlayerController, StoreAbilitySlotClass);
+			if (AbilitySlot)
+			{
+				AbilitySlot->InitializeAbilitySlot(AbilityInStock, OwningCSInterface);
+				ShipwrightWidget->AbilitySlotGridPanel->AddChild(AbilitySlot);
+				UGridSlot* GridSlot = Cast<UGridSlot>(AbilitySlot->Slot);
+				if (GridSlot)
+				{
+					GridSlot->SetColumn(ColumnIndex);
+					GridSlot->SetRow(RowIndex);
+				}
+			}
+			++ColumnIndex;
+			if (ColumnIndex > 1)
+			{
+				ColumnIndex = 0;
+				++RowIndex;
+			}
+		}
 	}
 }
 

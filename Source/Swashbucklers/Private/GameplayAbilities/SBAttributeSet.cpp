@@ -17,7 +17,7 @@ USBAttributeSet::USBAttributeSet() :
 	MaxMana(100.f),
 	Speed(0.f),
 	Bounty(50.f),
-	PiecesOfEight(0.f)
+	PiecesOfEight(250.f)
 {
 }
 

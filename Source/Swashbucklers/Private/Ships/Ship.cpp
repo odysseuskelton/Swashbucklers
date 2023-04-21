@@ -81,15 +81,21 @@ void AShip::BeginPlay()
 	if (ShipMesh)
 	{
 		ShipMesh->OnComponentHit.AddDynamic(this, &AShip::ShipCollision);
+		ShipMesh->OnComponentBeginOverlap.AddDynamic(this, &AShip::ShipBeginOverlap);
 	}
 
 }
 
 void AShip::ShipCollision(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+
 	if (!OtherActor || !IsLocallyControlled()) return;
 	ServerShipCollision(OtherActor, Hit, PawnMovement->Velocity.Size());
 
+}
+
+void AShip::ShipBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
 }
 
 void AShip::ServerShipCollision_Implementation(AActor* OtherActor, const FHitResult& Hit, float SpeedOfImpact)
@@ -136,7 +142,7 @@ void AShip::ServerShipCollision_Implementation(AActor* OtherActor, const FHitRes
 
 void AShip::MulticastShipCollision_Implementation(AActor* OtherActor, const FHitResult& Hit, float SpeedOfImpact, FVector ForceOfImpact)
 {
-
+	if (!OtherActor) return;
 	IHitInterface* HitInterface = Cast<IHitInterface>(OtherActor);
 	UStaticMeshComponent* MeshComponent = Cast<UStaticMeshComponent>(OtherActor->GetRootComponent());
 	if (MeshComponent && HitInterface && HitInterface->CanBeKnocked() && HitInterface->IsLocallyControlledInterface())
@@ -216,6 +222,9 @@ void AShip::SpawnShipDamageSystems(uint16 NumberOfSystemsToSpawn)
 
 void AShip::Die(AActor* InstigatorActor)
 {
+	if (!HasAuthority()) UE_LOG(LogTemp, Warning, TEXT("Die on client"));
+	if (bIsDead == true) return;
+
 	bIsDead = true;
 
 	if (BuoyancyComponent)

@@ -25,8 +25,6 @@ public:
 	UFUNCTION()
 	void BuyShip();
 
-	bool bShipBought = false;
-
 private:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	UImage* ShipImage;

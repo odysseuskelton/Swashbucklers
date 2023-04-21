@@ -19,6 +19,8 @@ class SWASHBUCKLERS_API AExplosive : public AActor
 public:	
 	AExplosive();
 
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -80,6 +82,10 @@ private:
 	void ExplosiveActivated();
 	void Detonate();
 
+	UFUNCTION(Server, Reliable)
+	void ServerDetonate();
+
+	UPROPERTY(Replicated)
 	bool bActivated = false;
 
 	UFUNCTION(NetMulticast, Reliable)

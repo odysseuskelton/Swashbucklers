@@ -68,6 +68,9 @@ private:
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite,meta = (AllowPrivateAccess))
 	TArray<TSubclassOf<AShip>> OwnedShips;
 
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess))
+	TArray<TSubclassOf<USBGameplayAbility>> OwnedAbilities;
+
 	UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_Team)
 	ETeam PlayerTeam;
 
@@ -80,18 +83,33 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerSwitchShips(TSubclassOf<AShip> ShipToSwitchTo);
 
+	UFUNCTION(Server, Reliable)
+		void ServerBuyAbility(TSubclassOf<USBGameplayAbility> AbilityToBuy, EAbilitySlot SlotSelected);
+
 	//Ability Slots
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_Slot1Change)
 	TSubclassOf<USBGameplayAbility> Slot1;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_Slot2Change)
 	TSubclassOf<USBGameplayAbility> Slot2;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_Slot3Change)
 	TSubclassOf<USBGameplayAbility> Slot3;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_Slot4Change)
 	TSubclassOf<USBGameplayAbility> Slot4;
+
+	UFUNCTION()
+	void OnRep_Slot1Change();
+
+	UFUNCTION()
+	void OnRep_Slot2Change();
+
+	UFUNCTION()
+	void OnRep_Slot3Change();
+
+	UFUNCTION()
+	void OnRep_Slot4Change();
 
 protected:
 	virtual void BeginPlay() override;
@@ -112,8 +130,6 @@ public:
 	void ActivateSlotAbility(EAbilitySlot AbilitySlotToActivate);
 
 	void AcquireAbility(TSubclassOf<USBGameplayAbility> AbilityToAcquire, EAbilitySlot AbilitySlotRequested = EAbilitySlot::EAS_NoSlot);
-
-	void SendCurrentAbilitiesToHUD();
 
 	void SendAbilityToHUD(TSubclassOf<USBGameplayAbility>& AbilityToAcquire, EAbilitySlot SlotAssigned);
 
@@ -139,6 +155,7 @@ public:
 	FORCEINLINE TArray<TSubclassOf<AShip>> GetPlayerShips() override { return OwnedShips; }
 	FORCEINLINE virtual void SetDefaultShip(TSubclassOf<AShip> NewDefaultShip) { DefaultShip = NewDefaultShip; }
 	void BuyShip(TSubclassOf<AShip> ShipToBuy) override;
+	void BuyAbility(TSubclassOf<USBGameplayAbility> AbilityToBuy, EAbilitySlot SlotSelected) override;
 	int32 GetPlayerPOE() override; 
 	void SendPlayerPOE(int32 POEToSend) override;
 

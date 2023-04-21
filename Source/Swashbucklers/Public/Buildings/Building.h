@@ -109,5 +109,6 @@ public:
 	FORCEINLINE int32 GetBuildingBounty() { return BuildingBounty; }
 	FORCEINLINE ETeam GetBuildingTeam() { return Team; }
 	FORCEINLINE bool CanBeKnocked() { return false; }
+	FORCEINLINE bool AITargetable() override { return true; }
 
 };

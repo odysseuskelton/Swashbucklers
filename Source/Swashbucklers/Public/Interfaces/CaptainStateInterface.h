@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "PlayerStates/Teams.h"
+#include "GameplayAbilities/AbilityTypes.h"
 #include "CaptainStateInterface.generated.h"
 
 class AShip;
@@ -25,12 +26,13 @@ class SWASHBUCKLERS_API ICaptainStateInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-
 	virtual TArray<TSubclassOf<AShip>> GetPlayerShips() = 0; 
 	virtual void BuyShip(TSubclassOf<AShip> ShipToAdd) = 0;
+	virtual void BuyAbility(TSubclassOf<USBGameplayAbility> AbilityToAdd, EAbilitySlot SlotSelected) = 0;
 	virtual int32 GetPlayerPOE() = 0;
 	virtual void SetDefaultShip(TSubclassOf<AShip> NewDefaultShip) = 0;
 	virtual ETeam GetPlayerTeam() = 0;
 	virtual void SendPlayerPOE(int32 POEToSend) = 0;
+	virtual TArray<TSubclassOf<USBGameplayAbility>> GetCurrentAbilities() = 0;
 
 };

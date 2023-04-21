@@ -34,6 +34,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	FString AbilityDescription;
 
+	UPROPERTY(EditAnywhere)
+	int32 StoreCost = 50;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AbilityBase")
 	UMaterialInstance* UIMaterial;
 

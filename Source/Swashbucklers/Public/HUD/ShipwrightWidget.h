@@ -7,6 +7,8 @@
 #include "ShipwrightWidget.generated.h"
 
 class UGridPanel;
+class UButton;
+class UWidgetSwitcher;
 /**
  * 
  */
@@ -19,5 +21,21 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UGridPanel* ShipSlotGridPanel;
 
-	
+	UPROPERTY(meta = (BindWidget))
+	UGridPanel* AbilitySlotGridPanel;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* ShipwrightButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* CircleOfStormsButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UWidgetSwitcher* StoreSwitcher;
+
+	void InitializeStoreWidget();
+	UFUNCTION()
+	void SwitchToShipwright();
+	UFUNCTION()
+	void SwitchToCircleOfStorms();
 };

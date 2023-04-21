@@ -97,7 +97,6 @@ void UStoreShipSlot::InitializeShipSlot(TSubclassOf<AShip> ShipToSet, ICaptainSt
 
 	if (CaptainStateInterface->GetPlayerPOE() < ShipToSet.GetDefaultObject()->StoreCost && !CaptainStateInterface->GetPlayerShips().Contains(ShipToSet))
 	{
-		bShipBought = true;
 		if (BuyButton)
 		{
 			BuyButton->SetIsEnabled(false);

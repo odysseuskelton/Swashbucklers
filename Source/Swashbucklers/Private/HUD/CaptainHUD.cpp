@@ -19,7 +19,7 @@ void ACaptainHUD::AddCaptainOverlayToViewport()
 		Controller = Controller == nullptr ? GetOwningPlayerController() : Controller;
 		if (!Controller) return;
 
-		if (CaptainOverlayClass)
+		if (CaptainOverlayClass && !CaptainOverlay)
 		{
 			CaptainOverlay = CreateWidget<UCaptainOverlay>(Controller, CaptainOverlayClass);
 			CaptainOverlay->AddToViewport();

@@ -6,9 +6,7 @@
 #include "AITypes.h"
 #include "AIController.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
-#include "GameModes/SBGameMode.h"
 
 #include "Components/SBAbilitySystemComponent.h"
 #include "GameplayAbilities/SBAttributeSet.h"
@@ -23,6 +21,8 @@ AAIShip::AAIShip()
 	AbilityComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	AttributeSet = CreateDefaultSubobject<USBAttributeSet>("AttributeSetBaseComp");
+
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AAIShip::BeginPlay()
@@ -30,14 +30,15 @@ void AAIShip::BeginPlay()
 	Super::BeginPlay();
 	InitializeEnemy();
 
-	ShipMesh->OnComponentBeginOverlap.AddDynamic(this, &AAIShip::ShipBeginOverlap);
+	if (AttributeSet)
+	{
+		AttributeSet->OnHealthChange.AddUniqueDynamic(this, &AShip::OnHealthChanged);
+		AttributeSet->MaxHealth.SetCurrentValue(ShipHealth);
+		AttributeSet->MaxHealth.SetBaseValue(ShipHealth);
+		AttributeSet->Health.SetCurrentValue(ShipHealth);
+		AttributeSet->Health.SetBaseValue(ShipHealth);
 
-	AttributeSet->OnHealthChange.AddUniqueDynamic(this, &AShip::OnHealthChanged);
-	AttributeSet->MaxHealth.SetCurrentValue(ShipHealth);
-	AttributeSet->MaxHealth.SetBaseValue(ShipHealth);
-	AttributeSet->Health.SetCurrentValue(ShipHealth);
-	AttributeSet->Health.SetBaseValue(ShipHealth);
-
+	}
 	
 }
 
@@ -55,66 +56,6 @@ void AAIShip::MulticastOnHealthChanged_Implementation(float Health, float MaxHea
 
 }
 
-void AAIShip::ShipBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherActor->Tags.Contains("PrivateerGoal"))
-	{
-		if (AITeam == ETeam::ET_Privateer)
-		{
-			AttributeSet->SendPOEToTeam(ETeam::ET_Privateer, ReturnToBaseBounty);
-		}
-		Destroy();
-		TreasureResolved();
-	}
-
-	if (OtherActor->Tags.Contains("PirateGoal"))
-	{
-		if (AITeam == ETeam::ET_Pirate)
-		{
-			AttributeSet->SendPOEToTeam(ETeam::ET_Pirate, ReturnToBaseBounty);
-		}
-		Destroy();
-		TreasureResolved();
-	}
-}
-
-void AAIShip::TreasureResolved()
-{
-	ASBGameMode* GameMode = Cast<ASBGameMode>(UGameplayStatics::GetGameMode(this));
-	UE_LOG(LogTemp, Warning, TEXT("Treasure Resolved"))
-
-	if (GameMode)
-	{
-		GameMode->TreasureResolved();
-	}
-}
-
-void AAIShip::Die(AActor* InstigatorActor)
-{
-
-	if (AITeam == ETeam::ET_Pirate)
-	{
-		AttributeSet->SendPOEToTeam(ETeam::ET_Privateer, MerchantShipBounty);
-	}
-
-	if (AITeam == ETeam::ET_Privateer)
-	{
-		AttributeSet->SendPOEToTeam(ETeam::ET_Pirate, MerchantShipBounty);
-	}
-
-	Super::Die(InstigatorActor);
-
-	GetWorldTimerManager().SetTimer(DestroyTimer, this, &AAIShip::DestroyTimerFinished, 5.f);
-}
-
-void AAIShip::DestroyTimerFinished()
-{
-	TreasureResolved();
-
-	Destroy();
-}
-
-
 void AAIShip::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -124,6 +65,7 @@ void AAIShip::Tick(float DeltaTime)
 	ClampedRotation.Pitch = FMath::Clamp(ClampedRotation.Pitch, -10.f, 10.f);
 	SetActorRotation(ClampedRotation);
 
+
 	//if (CurrentTarget)
 	//{
 	//	FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), CurrentTarget->GetActorLocation());
@@ -131,6 +73,8 @@ void AAIShip::Tick(float DeltaTime)
 	//}
 
 }
+
+
 
 void AAIShip::SetTeam(ETeam TeamToSet)
 {
@@ -148,6 +92,29 @@ void AAIShip::InitializeEnemy()
 	AIController = Cast<AAIController>(GetController());
 }
 
+void AAIShip::CorrectActorRotationTowardTarget()
+{
+	if (CurrentTarget)
+	{
+		FRotator RotationToSet = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), CurrentTarget->GetActorLocation());
+		RotationToSet.Pitch = GetActorRotation().Pitch;
+		RotationToSet.Roll = GetActorRotation().Roll;
+		SetActorRotation(RotationToSet);
+		GetWorldTimerManager().SetTimer(CorrectRotationTimer, this, &AAIShip::CorrectActorRotationTowardTarget, 2.f);
+		FVector NewLocation = CurrentTarget->GetActorLocation();
+		NewLocation.Z = GetActorLocation().Z;
+		TargetLocation = NewLocation;
+		MoveToLocation(TargetLocation);
+	}
+	else
+	{
+		if (AIController)
+		{
+			AIController->StopMovement();
+		}
+	}
+}
+
 
 void AAIShip::MoveToTarget(AActor* Target)
 {
@@ -161,7 +128,32 @@ void AAIShip::MoveToTarget(AActor* Target)
 	FAIMoveRequest MoveRequest;
 	MoveRequest.SetUsePathfinding(false);
 	MoveRequest.SetGoalActor(Target);
-	MoveRequest.SetAcceptanceRadius(10.f);
+	MoveRequest.SetAcceptanceRadius(0.f);
+	AIController->MoveTo(MoveRequest);
+}
+
+void AAIShip::MoveToLocation(FVector LocationToMoveTo)
+{
+	UE_LOG(LogTemp, Warning, TEXT("MoveTOLocation %s"), *LocationToMoveTo.ToString())
+	if (!HasAuthority()) return;
+
+	ServerMoveToLocation(LocationToMoveTo);
+}
+
+void AAIShip::ServerMoveToLocation_Implementation(FVector LocationToMoveTo)
+{
+	if (AIController == nullptr) return;
+
+	FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), LocationToMoveTo);
+	SetActorRotation(LookAtRotation);
+
+	FAIMoveRequest MoveRequest;
+	MoveRequest.SetAllowPartialPath(true);
+	MoveRequest.SetUsePathfinding(false);
+	MoveRequest.SetProjectGoalLocation(false);
+	MoveRequest.SetReachTestIncludesAgentRadius(false);
+	MoveRequest.SetGoalLocation(LocationToMoveTo);
+	MoveRequest.SetAcceptanceRadius(0.f);
 	AIController->MoveTo(MoveRequest);
 }
 

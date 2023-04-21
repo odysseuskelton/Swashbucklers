@@ -38,7 +38,10 @@ public:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void ShipCollision(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	virtual void ShipCollision(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+	virtual void ShipBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION(Server, Reliable)
 	void ServerShipCollision(AActor* OtherActor, const FHitResult& Hit, float SpeedOfImpact);
@@ -248,6 +251,7 @@ public:
 	FORCEINLINE bool IsHitActorDead() { return bIsDead; }
 	FORCEINLINE bool CanBeKnocked() { return true; }
 	FORCEINLINE virtual bool IsLocallyControlledInterface() override { return IsLocallyControlled(); }
+	FORCEINLINE bool AITargetable() override { return true; }
 
 	//Execution Interface Overrides
 	virtual float GetShipSpeed();

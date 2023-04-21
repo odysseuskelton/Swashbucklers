@@ -13,6 +13,7 @@ class UWidgetComponent;
 class AShip;
 class UShipwrightWidget;
 class UStoreShipSlot;
+class UStoreAbilitySlot;
 class ICaptainStateInterface;
 class IPlayerInterface;
 
@@ -49,10 +50,16 @@ private:
 	TArray<TSubclassOf<AShip>> ShipsInStock;
 
 	UPROPERTY(EditAnywhere)
+	TArray<TSubclassOf<USBGameplayAbility>> AbilitiesInStock;
+
+	UPROPERTY(EditAnywhere)
 	TSubclassOf<UShipwrightWidget> ShipwrightWidgetClass;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UStoreShipSlot> StoreShipSlotClass;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UStoreAbilitySlot> StoreAbilitySlotClass;
 
 	UShipwrightWidget* ShipwrightWidget;
 	
@@ -63,7 +70,11 @@ private:
 
 public:
 	void RefreshShipSlots(ICaptainStateInterface* OwningCSInterface, APlayerController* OwningPlayerController);
+	void RefreshAbilitySlots(ICaptainStateInterface* OwningCSInterface, APlayerController* OwningPlayerController);
 	//Interactable Overrides
 	virtual void BeginInteraction(APlayerController* InteractingController) override;
 	virtual void EndInteraction(APlayerController* PlayerToStopInteractingWith) override;
+
+	//IHitOverride
+	FORCEINLINE bool AITargetable() override { return false; }
 };

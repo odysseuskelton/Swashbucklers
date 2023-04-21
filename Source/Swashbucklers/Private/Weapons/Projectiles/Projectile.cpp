@@ -15,7 +15,7 @@
 
 AProjectile::AProjectile()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh"));
 	SetRootComponent(ProjectileMesh);
@@ -65,6 +65,7 @@ void AProjectile::Tick(float DeltaTime)
 
 void AProjectile::CollisionSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Collisionsphere %s"), *OtherActor->GetName())
 	if (!GetOwner() || !GetOwner()->HasAuthority()) return;
 
 	FHitResult SphereHit;
@@ -73,6 +74,7 @@ void AProjectile::CollisionSphereOverlap(UPrimitiveComponent* OverlappedComponen
 
 	if (SphereHit.GetActor())
 	{
+
 		IHitInterface* HitInterface = Cast<IHitInterface>(SphereHit.GetActor());
 		IHitInterface* InstigatorInterface = Cast<IHitInterface>(PlayerPawn);
 		if (HitInterface)
@@ -92,6 +94,7 @@ void AProjectile::CollisionSphereOverlap(UPrimitiveComponent* OverlappedComponen
 				MulticastShipHitEffects(SphereHit);
 				
 				Destroy();
+				return;
 			}
 		}
 	}
@@ -99,6 +102,12 @@ void AProjectile::CollisionSphereOverlap(UPrimitiveComponent* OverlappedComponen
 	if (OtherActor->GetName().Contains("WaterBodyOcean") && SplashSystem)
 	{
 		MulticastWaterSplash();
+	}
+	
+
+	if(OtherActor->GetName().Contains("Landscape"))
+	{
+		Destroy();
 	}
 	
 }

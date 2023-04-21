@@ -31,12 +31,13 @@ AbilityClass(nullptr)
 {
 }
 
-FGameplayAbilityInfo::FGameplayAbilityInfo(FString Name, FString Description, EAbilityType InType, float InCooldownDuration, float InCost, UMaterialInstance* InUIMat, TSubclassOf<USBGameplayAbility> InAbilityClass) : 
+FGameplayAbilityInfo::FGameplayAbilityInfo(FString Name, FString Description, EAbilityType InType, float InCooldownDuration, float InCost, UMaterialInstance* InUIMat, int32 InStoreCost, TSubclassOf<USBGameplayAbility> InAbilityClass) :
 AbilityName(Name),
 AbilityDescription(Description),
 AbilityType(InType),
 CooldownDuration(InCooldownDuration),
 Cost(InCost),
+StoreCost(InStoreCost),
 UIMat(InUIMat),
 AbilityClass(InAbilityClass)
 {

@@ -29,11 +29,13 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
+	AActor* PlayerPawn;
+
 	UFUNCTION()
-	void CollisionSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	virtual void CollisionSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastWaterSplash();
+	void MulticastWaterSplash(const FHitResult SphereHit);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastShipHitEffects(FHitResult ShipHit);
@@ -70,16 +72,16 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UNiagaraComponent* ProjectileTrail;
 
-	UPROPERTY(VisibleAnywhere)
-	UProjectileMovementComponent* ProjectileMovement;
-
 	UPROPERTY(EditAnywhere)
 	float ProjectileLifeSpan = 5.f;
 
 	UPROPERTY(EditAnywhere)
 	float CannonballForce = 15.f;
 
-	AActor* PlayerPawn;
+protected:
+
+	UPROPERTY(VisibleAnywhere)
+	UProjectileMovementComponent* ProjectileMovement;
 
 	TArray<AActor*> IgnoreActors;
 

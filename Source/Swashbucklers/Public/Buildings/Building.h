@@ -110,5 +110,6 @@ public:
 	FORCEINLINE ETeam GetBuildingTeam() { return Team; }
 	FORCEINLINE bool CanBeKnocked() { return false; }
 	FORCEINLINE bool AITargetable() override { return true; }
+	FORCEINLINE virtual bool IsAI() override { return true; }
 
 };

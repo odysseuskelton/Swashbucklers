@@ -35,7 +35,7 @@ public:
 	void RequestTeamSwitch();
 
 	UFUNCTION(Server, Reliable)
-	void ServerRequestSwitchTeam(ACaptainState* CaptainState);
+	void ServerRequestSwitchTeam(ACaptainState* StateRequesting);
 
 	void OnMatchStateSet(FName State);
 
@@ -51,6 +51,11 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	void BindLeaderboardDelegates();
+
+	UFUNCTION()
+	void OnBountyChange(int32 Bounty, AActor* DestroyedActor);
+
 	void InitializePlayerController();
 
 	void HandleClientTransitionBetweenMaps();
@@ -65,6 +70,8 @@ protected:
 
 	UFUNCTION()
 	void OpenInGameMenu();
+
+	void ToggleLeaderboard();
 
 	void SetHUDCountdown(float CountdownTime);
 
@@ -109,6 +116,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* InGameMenuAction;
 
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* LeaderboardAction;
+
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UInGameMenu> InGameMenuClass;
 
@@ -129,6 +139,8 @@ private:
 
 	FTimerHandle ReturnToMainMenuTimer;
 
+	ACaptainState* CaptainState;
+
 	UPROPERTY(EditAnywhere)
 	float ReturnToMainMenuDelay= 15.f;
 
@@ -147,7 +159,7 @@ private:
 	bool bGameOver = false;
 	bool bControllerInputSet = false;
 
-	void ServerRequestSwitchTeam_Implementation(ACaptainState* CaptainState);
+	void ServerRequestSwitchTeam_Implementation(ACaptainState* StateRequesting);
 
 public:
 	FORCEINLINE void SetNumberOfCaptures(int32 NewTotal) { NumberOfCaptures = NewTotal; }

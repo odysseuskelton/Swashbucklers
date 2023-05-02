@@ -284,7 +284,8 @@ S_API void SteamAPI_ISteamMatchmakingPingResponse_ServerResponded( ISteamMatchma
 S_API void SteamAPI_ISteamMatchmakingPingResponse_ServerFailedToRespond( ISteamMatchmakingPingResponse* self );
 
 // ISteamMatchmakingPlayersResponse
-S_API void SteamAPI_ISteamMatchmakingPlayersResponse_AddPlayerToList( ISteamMatchmakingPlayersResponse* self, const char * pchName, int nScore, float flTimePlayed );
+S_API void SteamAPI_ISteamMatchmakingPlayersResponse_
+ToList( ISteamMatchmakingPlayersResponse* self, const char * pchName, int nScore, float flTimePlayed );
 S_API void SteamAPI_ISteamMatchmakingPlayersResponse_PlayersFailedToRespond( ISteamMatchmakingPlayersResponse* self );
 S_API void SteamAPI_ISteamMatchmakingPlayersResponse_PlayersRefreshComplete( ISteamMatchmakingPlayersResponse* self );
 

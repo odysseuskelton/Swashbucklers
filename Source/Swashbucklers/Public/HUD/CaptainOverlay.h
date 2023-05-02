@@ -11,6 +11,8 @@
 class UTextBlock;
 class UImage;
 class USBGameplayAbility;
+class UGridPanel;
+class UPlayerKillAnnouncementSlot;
 /**
  * 
  */
@@ -47,6 +49,10 @@ public:
 
 	void SetCountdownText(float CountdownTime);
 
+	void CreateDeathAnnouncement(FString SunkCapName,FString SinkingCapName,ETeam SunkCapTeam,ETeam SinkingCapTeam);
+
+	void UpdateKillAnnouncementGrid();
+
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayAbilityInfo Slot1Info;
 
@@ -70,6 +76,12 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	UMaterialInstanceDynamic* Slot4DynamicMat;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UPlayerKillAnnouncementSlot> PlayerKillAnnouncementClass;
+
+	UPROPERTY()
+	TArray<UPlayerKillAnnouncementSlot*> CurrentKillAnnouncements;
 
 private:
 	UPROPERTY(meta = (BindWidget))
@@ -98,5 +110,8 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* AnnouncementText;
+	
+	UPROPERTY(meta = (BindWidget))
+	UGridPanel* KillAnnouncementPanel;
 
 };

@@ -6,6 +6,7 @@
 #include "Ships/Ship.h"
 #include "Interfaces/PlayerInterface.h"
 #include "PlayerStates/Teams.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "PlayerShip.generated.h"
 
 
@@ -31,6 +32,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	virtual void Die(AActor* InstigatorActor) override;
+
 	FTimerHandle RespawnTimer;
 	void RequestRespawnFromServer();
 
@@ -41,6 +43,14 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerResetHealth();
 	bool bPlayerInputSet = false;
+
+	bool bAuxiliaryCannonsActive = false;
+
+
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess))
+	FGameplayEffectSpecHandle AuxilaryCannonGEHandle;
+
+	FTimerHandle AuxCannonTimer;
 
 protected:
 
@@ -71,6 +81,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* FireAuxiliaryCannonsAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* AuxiliaryCannonsReleasedAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* PortCannonsReleasedAction;
@@ -107,6 +120,10 @@ protected:
 
 	//Make sure cannons are at a reasonable rotation regardless of ship rotation
 	void NormalizeCannonRotation(float DeltaTime);
+
+	void AuxiliaryCannonActive();
+
+	void ApplyGESpecHandleToTargetData(const FGameplayEffectSpecHandle& GESpecHandle, const FGameplayAbilityTargetDataHandle& TargetDataHandle);
 
 	void StarboardCannonRotationCalc(float DeltaTime);
 	void PortCannonRotationCalc(float DeltaTime);
@@ -170,6 +187,9 @@ protected:
 	UFUNCTION()
 	void EndInteract(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	UFUNCTION(BlueprintCallable)
+	void HandleEndInteract();
+
 	virtual void Look(const FInputActionValue& Value);
 
 	void Move(const FInputActionValue& Value);
@@ -194,7 +214,13 @@ protected:
 	virtual void ReleasePortCannons();
 	virtual void ReleaseStarboardCannons();
 	virtual void FireAuxiliaryCannons();
+	void ReleaseAuxiliaryCannons();
+	UFUNCTION(Server, Reliable)
+	void ServerReleaseAuxiliarycannons();
 	void ServerFireCannons_Implementation(TSubclassOf<USBGameplayAbility> CannonAbilityToActivate) override;
+	
+	UFUNCTION(Server, Reliable)
+	void ServerFireAuxiliary(TSubclassOf<USBGameplayAbility> AuxAbilityToActivate);
 
 	void ActivateSlot1Action();
 	void ActivateSlot2Action();
@@ -265,4 +291,6 @@ public:
 	FORCEINLINE virtual UStaticMeshComponent* GetPlayerShipMesh() override { return ShipMesh; };
 	FORCEINLINE virtual float GetCannonRecoilMultiplierFromShip() override { return CannonRecoilMultiplier; }
 	FORCEINLINE virtual bool LocallyControlledPlayer() override { return IsLocallyControlled(); }
+
+	FORCEINLINE virtual void SetInteractableInterface(IInteractableInterface* InterfaceToSet) { InteractableInterface = InterfaceToSet; }
 };

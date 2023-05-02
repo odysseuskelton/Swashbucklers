@@ -6,11 +6,14 @@
 #include "Blueprint/UserWidget.h"
 #include "StoreShipSlot.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnShipPurchaseDelegate);
+
 class UImage;
 class UTextBlock;
 class UButton;
 class AShip;
 class ICaptainStateInterface;
+class UShipwrightWidget;
 /**
  * 
  */
@@ -24,6 +27,11 @@ public:
 
 	UFUNCTION()
 	void BuyShip();
+
+	UShipwrightWidget* OwningShipwrightWidget;
+
+	FOnShipPurchaseDelegate ShipBought;
+
 
 private:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
@@ -61,7 +69,7 @@ private:
 
 	TSubclassOf<AShip> ShipInSlot;
 
-	ICaptainStateInterface* OwningCaptainStateInterface;
+	ICaptainStateInterface* OwningInterface;
 
 	APlayerController* OwningPlayerController;
 

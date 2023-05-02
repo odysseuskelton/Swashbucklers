@@ -42,11 +42,11 @@ protected:
 	void Tick(float DeltaTime);
 	void InitializeEnemy();
 
+	UPROPERTY(EditAnywhere)
 	AActor* CurrentTarget;
 	FVector TargetLocation;
 
-
-	UPROPERTY(ReplicatedUsing= OnRep_SetTeam)
+	UPROPERTY(EditAnywhere, ReplicatedUsing= OnRep_SetTeam)
 	ETeam AITeam;
 
 	UFUNCTION()
@@ -61,7 +61,7 @@ protected:
 
 	AAIController* AIController;
 
-private:
+public:
 
 
 	//Hit interface override
@@ -69,6 +69,8 @@ private:
 	FORCEINLINE virtual AActor* GetActorWithAbilityComponent() override { return this; }
 	FORCEINLINE bool CanBeKnocked() { return false; }
 	FORCEINLINE virtual ETeam GetHitActorTeam() { return AITeam; }
+	FORCEINLINE virtual void SetCurrentTarget(AActor* TargetToSet) { CurrentTarget = TargetToSet; }
+	FORCEINLINE virtual bool IsAI() override { return true; }
 
 	//IAbilitySystemInterface Override
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;

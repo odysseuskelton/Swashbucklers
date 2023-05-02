@@ -79,7 +79,7 @@ void UStoreAbilitySlot::SetNewBuyButtonText()
 
 void UStoreAbilitySlot::BuyButtonPressed()
 {
-	if (!OwningInterface || SlotSelectionWidget) return;
+	if (!OwningInterface || SlotSelectionWidget || OwningInterface->GetPlayerPOE() < AbilityInfo.StoreCost) return;
 
 	SlotSelectionWidget = CreateWidget<USlotSelectionWidget>(GetOwningPlayer(), SlotSelectionClass);
 	if (SlotSelectionWidget)
@@ -97,8 +97,11 @@ void UStoreAbilitySlot::Slot1Selected()
 {
 	SetNewBuyButtonText();
 	OwningInterface->BuyAbility(AbilityInSlot, EAbilitySlot::EAS_Slot1);
+	AbilityBought.Broadcast();
+
 	SlotSelectionWidget->RemoveFromParent();
 	SlotSelectionWidget = nullptr;
+
 }
 
 
@@ -106,6 +109,8 @@ void UStoreAbilitySlot::Slot2Selected()
 {
 	SetNewBuyButtonText();
 	OwningInterface->BuyAbility(AbilityInSlot, EAbilitySlot::EAS_Slot2);
+	AbilityBought.Broadcast();
+
 	SlotSelectionWidget->RemoveFromParent();
 	SlotSelectionWidget = nullptr;
 }
@@ -115,6 +120,8 @@ void UStoreAbilitySlot::Slot3Selected()
 {
 	SetNewBuyButtonText();
 	OwningInterface->BuyAbility(AbilityInSlot, EAbilitySlot::EAS_Slot3);
+	AbilityBought.Broadcast();
+
 	SlotSelectionWidget->RemoveFromParent();
 	SlotSelectionWidget = nullptr;
 }
@@ -124,6 +131,8 @@ void UStoreAbilitySlot::Slot4Selected()
 {
 	SetNewBuyButtonText();
 	OwningInterface->BuyAbility(AbilityInSlot, EAbilitySlot::EAS_Slot4);
+	AbilityBought.Broadcast();
+
 	SlotSelectionWidget->RemoveFromParent();
 	SlotSelectionWidget = nullptr;
 }

@@ -23,6 +23,6 @@ class SWASHBUCKLERS_API IInteractableInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	virtual void BeginInteraction(APlayerController* InteractingController) = 0;
-	virtual void EndInteraction(APlayerController* ControllerToStopInteracting) = 0;
+	virtual void EndInteraction(AController* ControllerToStopInteracting) = 0;
 
 };

@@ -12,7 +12,7 @@
 #include "CapturePoints/CapturePoint.h"
 #include "Buildings/Tower.h"
 #include "Ships/Ship.h"
-#include "Ships/AIShip.h"
+#include "Ships/MerchantShip.h"
 #include "GameFramework/FloatingPawnMovement.h"
 
 #include "TimerManager.h"
@@ -35,7 +35,7 @@ void ASBGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ASBGameState* SBGameState = GetGameState<ASBGameState>();
+	SBGameState = SBGameState == nullptr ? GetGameState<ASBGameState>() : SBGameState;
 	if (SBGameState)
 	{
 		SBGameState->SetIsInLobby(false);
@@ -57,7 +57,28 @@ void ASBGameMode::BeginPlay()
 		PrivateerGoal = PrivateerGoals[0];
 	}
 
+	GetWorldTimerManager().SetTimer(KrakenSpawnTimer, this, &ASBGameMode::SpawnKraken, KrakenSpawnTime);
+
 }
+
+void ASBGameMode::SpawnKraken()
+{
+	TArray<AActor*> OutActors;
+	UGameplayStatics::GetAllActorsOfClass(this, AShip::StaticClass(), OutActors);
+
+	if (OutActors.IsEmpty()) return;
+
+	int32 Selection = FMath::RandRange(0, OutActors.Num() -1);
+
+	if (OutActors.IsValidIndex(Selection))
+	{
+		FActorSpawnParameters SpawnInfo;
+		 GetWorld()->SpawnActor<AActor>(KrakenToSpawn, OutActors[Selection]->GetActorLocation(), FRotator::ZeroRotator, SpawnInfo);
+	}
+
+	GetWorldTimerManager().SetTimer(KrakenSpawnTimer, this, &ASBGameMode::SpawnKraken, KrakenSpawnTime);
+}
+
 
 void ASBGameMode::OnMatchStateSet()
 {
@@ -87,46 +108,6 @@ void ASBGameMode::OnMatchStateSet()
 
 }
 
-void ASBGameMode::HandleTreasureCaptured()
-{
-	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsOfClass(this, ACapturePoint::StaticClass(), FoundActors);
-	ASBGameState* SBGameState = GetGameState<ASBGameState>();
-	for (AActor* FoundActor : FoundActors)
-	{
-		ACapturePoint* CapturePoint = Cast<ACapturePoint>(FoundActor);
-		if (CapturePoint)
-		{
-			CapturePoint->SetCapturePointVisibility(false);
-			FActorSpawnParameters SpawnInfo;
-			FTransform SpawnTransform = CapturePoint->GetCapturePointTransform();
-			SpawnTransform.SetScale3D(FVector(1.5f));
-			if (ActiveMerchantShip) return;
-			ActiveMerchantShip = GetWorld()->SpawnActor<AAIShip>(MerchantShipClass, SpawnTransform, SpawnInfo);
-			if (ActiveMerchantShip)
-			{
-				if (SBGameState->TeamCapturingTreasure == ETeam::ET_Pirate)
-				{
-					ActiveMerchantShip->SetTeam(ETeam::ET_Pirate);
-					if (PirateGoal)
-					{
-						ActiveMerchantShip->MoveToTarget(PirateGoal);
-					}
-				}
-				else if (SBGameState->TeamCapturingTreasure == ETeam::ET_Privateer)
-				{
-
-					ActiveMerchantShip->SetTeam(ETeam::ET_Privateer);
-					if (PrivateerGoal)
-					{
-						ActiveMerchantShip->MoveToTarget(PrivateerGoal);
-					}
-				}
-			}
-		}
-	}
-}
-
 void ASBGameMode::HandleTreasureSpawned()
 {
 	if (ActiveMerchantShip)
@@ -135,20 +116,69 @@ void ASBGameMode::HandleTreasureSpawned()
 	}
 
 	TArray<AActor*> FoundActors;
+	AActor* RandomCapturePointSelection;
 	UGameplayStatics::GetAllActorsOfClass(this, ACapturePoint::StaticClass(), FoundActors);
-	for (AActor* FoundActor : FoundActors)
+	uint32 RandomSelection = FMath::RandRange(0, FoundActors.Num() - 1);
+
+	if (FoundActors.IsValidIndex(RandomSelection))
 	{
-		ACapturePoint* CapturePoint = Cast<ACapturePoint>(FoundActor);
-		if (CapturePoint)
+		RandomCapturePointSelection = FoundActors[RandomSelection];
+		if (RandomCapturePointSelection)
 		{
-			CapturePoint->SetCapturePointVisibility(true);
+			ACapturePoint* CapturePoint = Cast<ACapturePoint>(RandomCapturePointSelection);
+			if (CapturePoint)
+			{
+				CapturePoint->SetCapturePointVisibility(true);
+				ActiveCapturePoint = CapturePoint;
+			}
+		}
+	}
+	
+}
+
+void ASBGameMode::HandleTreasureCaptured()
+{
+	SBGameState = SBGameState == nullptr ? GetGameState<ASBGameState>() : SBGameState;
+
+	if (ActiveCapturePoint && SBGameState)
+	{
+		ActiveCapturePoint->SetCapturePointVisibility(false);
+		FActorSpawnParameters SpawnInfo;
+		FTransform SpawnTransform = ActiveCapturePoint->GetCapturePointTransform();
+		SpawnTransform.SetScale3D(FVector(1.5f));
+		if (ActiveMerchantShip) return;
+		ActiveMerchantShip = GetWorld()->SpawnActor<AMerchantShip>(MerchantShipClass, SpawnTransform, SpawnInfo);
+		if (ActiveMerchantShip)
+		{
+			if (SBGameState->TeamCapturingTreasure == ETeam::ET_Pirate)
+			{
+				ActiveMerchantShip->SetTeam(ETeam::ET_Pirate);
+				if (PirateGoal)
+				{
+					ActiveMerchantShip->SetCurrentTarget(PirateGoal);
+					ActiveMerchantShip->FindNextCheckpoint();
+
+				}
+			}
+			else if (SBGameState->TeamCapturingTreasure == ETeam::ET_Privateer)
+			{
+
+				ActiveMerchantShip->SetTeam(ETeam::ET_Privateer);
+				if (PrivateerGoal)
+				{
+					ActiveMerchantShip->SetCurrentTarget(PrivateerGoal);
+					ActiveMerchantShip->FindNextCheckpoint();
+				}
+			}
+			ActiveCapturePoint = nullptr;
 		}
 	}
 }
 
+
 void ASBGameMode::TreasureCaptured(ETeam CapturingTeam)
 {
-	ASBGameState* SBGameState = GetGameState<ASBGameState>();
+	SBGameState = SBGameState == nullptr ? GetGameState<ASBGameState>() : SBGameState;
 	
 	if (SBGameState)
 	{
@@ -160,7 +190,7 @@ void ASBGameMode::TreasureCaptured(ETeam CapturingTeam)
 void ASBGameMode::TreasureResolved()
 {
 	SetMatchState(MatchState::WaitingForTreasureToSpawn);
-	ASBGameState* SBGameState = GetGameState<ASBGameState>();
+	SBGameState = SBGameState == nullptr ? GetGameState<ASBGameState>() : SBGameState;
 	++NumberOfCaptures;
 	if (SBGameState)
 	{
@@ -438,5 +468,19 @@ void ASBGameMode::DrRockso()
 	}
 }
 
+void ASBGameMode::MegaJarOfDirt()
+{
+
+	TArray<AActor*> OutActors;
+	UGameplayStatics::GetAllActorsOfClass(this, AShip::StaticClass(), OutActors);
+
+	if (OutActors.IsEmpty()) return;
+
+	for(AActor* Actor : OutActors)
+	{
+		FActorSpawnParameters SpawnInfo;
+		GetWorld()->SpawnActor<AActor>(KrakenToSpawn, Actor->GetActorLocation(), FRotator::ZeroRotator, SpawnInfo);
+	}
+}
 
 

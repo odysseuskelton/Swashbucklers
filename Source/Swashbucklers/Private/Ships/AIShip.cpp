@@ -3,6 +3,7 @@
 
 #include "Ships/AIShip.h"
 #include "Engine/EngineTypes.h"
+#include "HUD/HealthbarComponent.h"
 #include "AITypes.h"
 #include "AIController.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -37,7 +38,6 @@ void AAIShip::BeginPlay()
 		AttributeSet->MaxHealth.SetBaseValue(ShipHealth);
 		AttributeSet->Health.SetCurrentValue(ShipHealth);
 		AttributeSet->Health.SetBaseValue(ShipHealth);
-
 	}
 	
 }
@@ -52,8 +52,34 @@ void AAIShip::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 
 void AAIShip::MulticastOnHealthChanged_Implementation(float Health, float MaxHealth, AActor* InstigatorActor)
 {
-	Super::MulticastOnHealthChanged_Implementation(Health, MaxHealth, InstigatorActor);
+	if (HealthbarComponent && HealthbarComponent->GetHealthPercent() > Health / MaxHealth)
+	{
+		HealthbarComponent->SetRenderOpacity(100.f);
+		GetWorldTimerManager().SetTimer(HealthbarTimer, this, &AShip::HealthbarTimerFinished, 4.f);
+	}
 
+	if (HealthbarComponent)
+	{
+		HealthbarComponent->SetHealthPercent(Health / MaxHealth);
+	}
+
+	if (Health / MaxHealth < .5f && bMinorDamage == false)
+	{
+		SpawnShipDamageSystems(2);
+		bMinorDamage = true;
+	}
+
+	if (Health / MaxHealth < .25f && bMajorDamage == false)
+	{
+		SpawnShipDamageSystems(2);
+		bMajorDamage = true;
+	}
+
+	if (Health <= 0 && !bIsDead)
+	{
+
+		Die(InstigatorActor);
+	}
 }
 
 void AAIShip::Tick(float DeltaTime)
@@ -134,7 +160,6 @@ void AAIShip::MoveToTarget(AActor* Target)
 
 void AAIShip::MoveToLocation(FVector LocationToMoveTo)
 {
-	UE_LOG(LogTemp, Warning, TEXT("MoveTOLocation %s"), *LocationToMoveTo.ToString())
 	if (!HasAuthority()) return;
 
 	ServerMoveToLocation(LocationToMoveTo);

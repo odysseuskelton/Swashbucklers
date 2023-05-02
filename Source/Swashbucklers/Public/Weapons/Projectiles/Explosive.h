@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "PlayerStates/Teams.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Explosive.generated.h"
 
@@ -31,9 +32,6 @@ protected:
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastWaterSplash();
 
-	UFUNCTION()
-	void ExplosiveHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
 	UFUNCTION(BlueprintCallable)
 	void SetMaterial();
 
@@ -41,6 +39,12 @@ protected:
 	void MulticastSetMaterial(ETeam TeamOfOwner);
 
 private:
+	UPROPERTY(Replicated)
+	ETeam ExplosiveTeam = ETeam::ET_NoTeam;
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void ServerSetTeam(ETeam TeamToSet);
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
 	UStaticMeshComponent* ExplosiveMesh;
 
@@ -78,7 +82,10 @@ private:
 	void SearchTimerPulse();
 
 	FTimerHandle ActivatedTimerHandle;
-	void Activate();
+
+	UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
+	void MulticastActivate();
+
 	void ExplosiveActivated();
 	void Detonate();
 

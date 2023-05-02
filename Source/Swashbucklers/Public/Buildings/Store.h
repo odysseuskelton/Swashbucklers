@@ -64,16 +64,22 @@ private:
 	UShipwrightWidget* ShipwrightWidget;
 	
 	APlayerController* OwningController;
+	ICaptainStateInterface* OwningInterface;
 
 	TArray<IPlayerInterface*> InteractingPlayers;
+
+	FTimerHandle StoreTextTimer;
+	void StoreTextTimerFinished();
 
 
 public:
 	void RefreshShipSlots(ICaptainStateInterface* OwningCSInterface, APlayerController* OwningPlayerController);
 	void RefreshAbilitySlots(ICaptainStateInterface* OwningCSInterface, APlayerController* OwningPlayerController);
+	UFUNCTION()
+	void ItemPurchased();
 	//Interactable Overrides
 	virtual void BeginInteraction(APlayerController* InteractingController) override;
-	virtual void EndInteraction(APlayerController* PlayerToStopInteractingWith) override;
+	virtual void EndInteraction(AController* PlayerToStopInteractingWith) override;
 
 	//IHitOverride
 	FORCEINLINE bool AITargetable() override { return false; }

@@ -26,6 +26,7 @@ class SWASHBUCKLERS_API ICaptainStateInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
+	virtual APawn* GetPossessedPawn() = 0;
 	virtual TArray<TSubclassOf<AShip>> GetPlayerShips() = 0; 
 	virtual void BuyShip(TSubclassOf<AShip> ShipToAdd) = 0;
 	virtual void BuyAbility(TSubclassOf<USBGameplayAbility> AbilityToAdd, EAbilitySlot SlotSelected) = 0;

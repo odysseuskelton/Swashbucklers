@@ -128,7 +128,7 @@ void AShip::ServerShipCollision_Implementation(AActor* OtherActor, const FHitRes
 				FGameplayEffectContextHandle ContextHandle;
 				ContextHandle.AddInstigator(this, this);
 
-				if (RamDamageEffectClass && InstigatorInterface && InstigatorInterface->GetAbilitySystemComponent() && HitInterface->GetAbilitySystemComponent())
+				if (RamDamageEffectClass && InstigatorInterface && InstigatorInterface->GetAbilitySystemComponent() && HitInterface->GetAbilitySystemComponent() && InstigatorInterface->GetHitActorTeam() != HitInterface->GetHitActorTeam())
 				{
 					FGameplayEffectSpecHandle RamDamageEffect = InstigatorInterface->GetAbilitySystemComponent()->MakeOutgoingSpec(RamDamageEffectClass, 0, ContextHandle);
 					InstigatorInterface->GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*RamDamageEffect.Data.Get(), HitInterface->GetAbilitySystemComponent());
@@ -149,6 +149,9 @@ void AShip::MulticastShipCollision_Implementation(AActor* OtherActor, const FHit
 	{
 		MeshComponent->AddImpulse(ForceOfImpact, FName(), true);
 	}
+
+	UGameplayStatics::PlaySoundAtLocation(this, ShipCollisionSound, Hit.ImpactPoint);
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ShipCollisionSystem, Hit.ImpactPoint);
 	
 }
 
@@ -173,9 +176,10 @@ void AShip::HealthbarTimerFinished()
 
 void AShip::MulticastOnHealthChanged_Implementation(float Health, float MaxHealth, AActor* InstigatorActor)
 {
-
-	if (InstigatorActor != this && !IsLocallyControlled() && HealthbarComponent && HealthbarComponent->GetHealthPercent() > Health / MaxHealth)
+	if (!IsLocallyControlled() && HealthbarComponent && HealthbarComponent->GetHealthPercent() > Health / MaxHealth)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("render opac"))
+
 		HealthbarComponent->SetRenderOpacity(100.f);
 		GetWorldTimerManager().SetTimer(HealthbarTimer, this, &AShip::HealthbarTimerFinished, 4.f);
 	}
@@ -199,6 +203,7 @@ void AShip::MulticastOnHealthChanged_Implementation(float Health, float MaxHealt
 
 	if (Health <= 0 && !bIsDead)
 	{
+
 		Die(InstigatorActor);
 	}
 }
@@ -222,7 +227,6 @@ void AShip::SpawnShipDamageSystems(uint16 NumberOfSystemsToSpawn)
 
 void AShip::Die(AActor* InstigatorActor)
 {
-	if (!HasAuthority()) UE_LOG(LogTemp, Warning, TEXT("Die on client"));
 	if (bIsDead == true) return;
 
 	bIsDead = true;
@@ -259,31 +263,26 @@ void AShip::CleanupCannons(float CannonDespawnTime)
 void AShip::AcquireCannonAbilities()
 {
 	// Grant abilities, but only on the server	
-	if (bAcquiredCannonAbilities == false)
+
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid())
 	{
-		if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || AbilitySystemComponent->bCharacterAbilitiesGiven)
-		{
-			return;
-		}
+		return;
+	}
 
-		if (PortCannonAbility)
-		{
-			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(PortCannonAbility, 1, 1, this));
-		}
-		if (StarboardCannonAbility)
-		{
-			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(StarboardCannonAbility, 1, 1, this));
-		}
-		if (AuxiliaryCannonAbility)
-		{
-			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(AuxiliaryCannonAbility, 1, static_cast<int32>(AuxiliaryCannonAbility.GetDefaultObject()->AbilityInputID), this));
-		}
-
-		AbilitySystemComponent->bCharacterAbilitiesGiven = true;
-
-		bAcquiredCannonAbilities = true;
+	if (PortCannonAbility)
+	{
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(PortCannonAbility, 1, 1, this));
+	}
+	if (StarboardCannonAbility)
+	{
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(StarboardCannonAbility, 1, 1, this));
+	}
+	if (AuxiliaryCannonAbility)
+	{
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(AuxiliaryCannonAbility, 1, static_cast<int32>(AuxiliaryCannonAbility.GetDefaultObject()->AbilityInputID), this));
 	}
 }
+		
 
 void AShip::SwitchCannonAbilities(TSubclassOf<USBGameplayAbility> NewPortCannonAbility, TSubclassOf<USBGameplayAbility> NewStarboardCannonAbility)
 {
@@ -337,7 +336,10 @@ void AShip::SetSailColors(ETeam PlayerTeam)
 
 	if (PlayerTeam == ETeam::ET_Pirate)
 	{
-		ShipMesh->SetMaterial(4, PirateMaterialSecondary);
+		if (StoreShipName == FName("Longship") || StoreShipName == FName("Trireme") || StoreShipName == FName("Sloop"))
+		{
+			ShipMesh->SetMaterial(4, PirateMaterialSecondary);
+		}
 		for (UActorComponent* Sail : Sails)
 		{
 			USkeletalMeshComponent* MeshComponent = Cast<USkeletalMeshComponent>(Sail);
@@ -379,6 +381,7 @@ void AShip::SetSailColors(ETeam PlayerTeam)
 		}
 		bSailColorSet = true;
 	}
+
 }
 
 void AShip::Tick(float DeltaTime)

@@ -100,7 +100,7 @@ void ACapturePoint::Tick(float DeltaTime)
 
 	GameMode = GameMode == nullptr ? Cast<ASBGameMode>(UGameplayStatics::GetGameMode(this)) : GameMode;
 
-	if (!CaptureProgressComponent || !HasAuthority() || !GameMode || GameMode->GetMatchState() != MatchState::TreasureSpawned) return;
+	if (!CaptureProgressComponent || !HasAuthority() || !GameMode || GameMode->ActiveCapturePoint != this) return;
 
 	if (CaptureProgress == 100.f)
 	{
@@ -207,6 +207,8 @@ void ACapturePoint::Captured()
 	TreasureChestSand->SetMorphTarget(FName("Key 1"), 0);
 	CaptureProgressComponent->SetMaterialOnProgressBar(ETeam::ET_NoTeam);
 	CaptureProgressComponent->SetProgress(CaptureProgress / 100.f);
+	CaptureProgressComponent->SetVisibility(false);
+	GetWorldTimerManager().ClearAllTimersForObject(this);
 }
 
 void ACapturePoint::SetCapturePointVisibility(bool bVisibility)
@@ -227,14 +229,24 @@ void ACapturePoint::OnRep_CaptureProgress()
 	CaptureProgressComponent->SetProgress(CaptureProgress / 100.f);
 }
 
+void ACapturePoint::SetProgressBarVisibility(bool bVisibility)
+{
+	ASBGameMode* SBGameMode = Cast<ASBGameMode>(UGameplayStatics::GetGameMode(this));
+	if (bCaptured) return;
+
+	CaptureProgressComponent->SetVisibility(bVisibility);
+	GetWorldTimerManager().SetTimer(ProgressbarVisibilityTimer, this, &ACapturePoint::ProgressbarVisibilityTimerFinished, 4.f);
+}
+
+void ACapturePoint::ProgressbarVisibilityTimerFinished()
+{
+	CaptureProgressComponent->SetVisibility(false);
+}
+
 void ACapturePoint::MulticastSetCapturePointVisibility_Implementation(bool bVisibility)
 {
 	if (CapturePoint)
 	{
 		CapturePoint->SetVisibility(bVisibility);
-	}
-	if (CaptureProgressComponent)
-	{
-		CaptureProgressComponent->SetVisibility(bVisibility);
 	}
 }

@@ -246,7 +246,7 @@ ETeam USBGameInstance::AssignTeam(ACaptainState* PlayerToAssignTeamTo)
 			PirateTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
 			if (SBGameState)
 			{
-				SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames);
+				SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames, PlayerToAssignTeamTo);
 			}
 			return ETeam::ET_Pirate;
 		}
@@ -258,7 +258,7 @@ ETeam USBGameInstance::AssignTeam(ACaptainState* PlayerToAssignTeamTo)
 
 			if (SBGameState)
 			{
-				SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames);
+				SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames, PlayerToAssignTeamTo);
 			}
 			return ETeam::ET_Privateer;
 		}
@@ -267,7 +267,7 @@ ETeam USBGameInstance::AssignTeam(ACaptainState* PlayerToAssignTeamTo)
 			PirateTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
 			if (SBGameState)
 			{
-				SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames);
+				SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames, PlayerToAssignTeamTo);
 			}
 			return ETeam::ET_Pirate;
 		}
@@ -276,7 +276,7 @@ ETeam USBGameInstance::AssignTeam(ACaptainState* PlayerToAssignTeamTo)
 			PirateTeamNames.Add(PlayerToAssignTeamTo->GetPlayerName());
 			if (SBGameState)
 			{
-				SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames);
+				SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames, PlayerToAssignTeamTo);
 			}
 			return ETeam::ET_Pirate;
 		}
@@ -302,7 +302,7 @@ void USBGameInstance::SwitchTeams(ACaptainState* CaptainStateTeamToSwitch)
 		}
 		if (SBGameState)
 		{
-			SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames);
+			SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames, CaptainStateTeamToSwitch);
 		}
 	}
 	else if (PrivateerTeamNames.Contains(CaptainName))
@@ -317,7 +317,7 @@ void USBGameInstance::SwitchTeams(ACaptainState* CaptainStateTeamToSwitch)
 		}
 		if (SBGameState)
 		{
-			SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames);
+			SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames, CaptainStateTeamToSwitch);
 		}
 	}
 }

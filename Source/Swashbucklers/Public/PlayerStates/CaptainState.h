@@ -32,6 +32,7 @@ class SWASHBUCKLERS_API ACaptainState : public APlayerState, public IAbilitySyst
 
 public:
 	ACaptainState();
+
 	void ApplyRegenEffects();
 
 	void RemoveActiveEffects();
@@ -41,6 +42,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess))
 	TSubclassOf<AShip> DefaultShip;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess))
+	TSubclassOf<AShip> CurrentShip;
 
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "AbilitySystem", meta = (AllowPrivateAccess))
 	TArray<TSubclassOf<USBGameplayAbility>> StartingAbilities;
@@ -54,6 +58,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UGameplayEffect> HealthRegenEffectClass;
 
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess))
+	TArray<TSubclassOf<AShip>> OwnedShips;
+
 private:
 
 	ACaptainController* CaptainController;
@@ -64,9 +71,6 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AbilitySystem", meta = (AllowPrivateAccess))
 	USBAttributeSet* AttributeSet;
-
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite,meta = (AllowPrivateAccess))
-	TArray<TSubclassOf<AShip>> OwnedShips;
 
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess))
 	TArray<TSubclassOf<USBGameplayAbility>> OwnedAbilities;
@@ -84,7 +88,7 @@ private:
 	void ServerSwitchShips(TSubclassOf<AShip> ShipToSwitchTo);
 
 	UFUNCTION(Server, Reliable)
-		void ServerBuyAbility(TSubclassOf<USBGameplayAbility> AbilityToBuy, EAbilitySlot SlotSelected);
+	void ServerBuyAbility(TSubclassOf<USBGameplayAbility> AbilityToBuy, EAbilitySlot SlotSelected);
 
 	//Ability Slots
 	UPROPERTY(ReplicatedUsing = OnRep_Slot1Change)
@@ -113,6 +117,9 @@ private:
 
 protected:
 	virtual void BeginPlay() override;
+
+	UFUNCTION(Server, Reliable)
+	void ServerRegisterCaptainState(ACaptainState* CaptainState);
 
 	void Tick(float DeltaTime);
 
@@ -154,10 +161,12 @@ public:
 	//CaptainState Interface
 	FORCEINLINE TArray<TSubclassOf<AShip>> GetPlayerShips() override { return OwnedShips; }
 	FORCEINLINE virtual void SetDefaultShip(TSubclassOf<AShip> NewDefaultShip) { DefaultShip = NewDefaultShip; }
+	FORCEINLINE virtual void SetCurrentShip(TSubclassOf<AShip> NewDefaultShip) { CurrentShip = NewDefaultShip; }
 	void BuyShip(TSubclassOf<AShip> ShipToBuy) override;
 	void BuyAbility(TSubclassOf<USBGameplayAbility> AbilityToBuy, EAbilitySlot SlotSelected) override;
 	int32 GetPlayerPOE() override; 
 	void SendPlayerPOE(int32 POEToSend) override;
+	FORCEINLINE virtual APawn* GetPossessedPawn() { return GetPawn(); }
 
 
 	//Slot Interface

@@ -434,7 +434,8 @@ public:
 	/// A "priority" message is one that would generate some sort of toast or
 	/// notification, and depends on user settings.
 	///
-	/// You can register for UnreadChatMessagesChanged_t callbacks to know when this
+	/// You can 
+	///  for UnreadChatMessagesChanged_t callbacks to know when this
 	/// has potentially changed.
 	virtual int GetNumChatsWithUnreadPriorityMessages() = 0;
 

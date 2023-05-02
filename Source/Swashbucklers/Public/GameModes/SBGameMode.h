@@ -16,7 +16,9 @@ namespace MatchState
 }
 
 class ACaptainState;
-class AAIShip;
+class AMerchantShip;
+class ACapturePoint;
+class ASBGameState;
 /**
  * 
  */
@@ -28,6 +30,14 @@ class SWASHBUCKLERS_API ASBGameMode : public AGameMode
 protected:
 	ASBGameMode();
 	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere)
+	float KrakenSpawnTime = 30.f;
+	FTimerHandle KrakenSpawnTimer;
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor> KrakenToSpawn;
+
+	void SpawnKraken();
 	virtual void OnMatchStateSet() override;
 	void HandleTreasureCaptured();
 	void HandleTreasureSpawned();
@@ -35,7 +45,7 @@ protected:
 	void PostLogin(APlayerController* NewPlayer) override;
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<AAIShip> MerchantShipClass;
+	TSubclassOf<AMerchantShip> MerchantShipClass;
 
 	AActor* PirateGoal;
 
@@ -69,8 +79,12 @@ public:
 	void TakeTheirLadderPoints();
 	UFUNCTION(Exec, Category = "Commands")
 	void DrRockso();
+	UFUNCTION(Exec, Category = "Commands")
+	void MegaJarOfDirt();
 
-	AAIShip* ActiveMerchantShip;
+	AMerchantShip* ActiveMerchantShip;
+	ACapturePoint* ActiveCapturePoint;
+	ASBGameState* SBGameState;
 
 private:
 	float CountdownTime = 0.f; 

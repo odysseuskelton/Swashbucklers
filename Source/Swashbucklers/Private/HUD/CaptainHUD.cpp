@@ -4,11 +4,26 @@
 #include "HUD/CaptainHUD.h"
 #include "HUD/CaptainOverlay.h"
 #include "HUD/Announcement.h"
+#include "HUD/Leaderboard.h"
+
+#include "PlayerStates/CaptainState.h"
 
 void ACaptainHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
+}
+
+void ACaptainHUD::AddPlayerToLeaderboard(ACaptainState* CaptainState)
+{
+
+	LeaderboardOverlay = LeaderboardOverlay == nullptr ? InitializeLeaderboardOverlay() : LeaderboardOverlay;
+	if (LeaderboardOverlay)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Addplayertoleadboard onserver"))
+
+		LeaderboardOverlay->AddPlayer(CaptainState);
+	}
 }
 
 void ACaptainHUD::AddCaptainOverlayToViewport()
@@ -24,6 +39,35 @@ void ACaptainHUD::AddCaptainOverlayToViewport()
 			CaptainOverlay = CreateWidget<UCaptainOverlay>(Controller, CaptainOverlayClass);
 			CaptainOverlay->AddToViewport();
 		}
+
+		if (LeaderboardOverlayClass && !LeaderboardOverlay)
+		{
+			InitializeLeaderboardOverlay();
+		}
+	}
+}
+
+ULeaderboard* ACaptainHUD::InitializeLeaderboardOverlay()
+{
+	LeaderboardOverlay = CreateWidget<ULeaderboard>(Controller, LeaderboardOverlayClass);
+	if (LeaderboardOverlay)
+	{
+		LeaderboardOverlay->InitializeOverlay(Controller);
+		LeaderboardOverlay->AddToViewport();
+		LeaderboardOverlay->SetRenderOpacity(0.f);
+	}
+	return LeaderboardOverlay;
+}
+
+void ACaptainHUD::ToggleLeaderboardOverlay()
+{
+	if (LeaderboardOverlay->GetRenderOpacity() == 0.f)
+	{
+		LeaderboardOverlay->SetRenderOpacity(1.f);
+	}
+	else
+	{
+		LeaderboardOverlay->SetRenderOpacity(0.f);
 	}
 }
 
@@ -42,8 +86,6 @@ void ACaptainHUD::AddAnnouncementToViewport()
 		}
 	}
 }
-
-
 
 void ACaptainHUD::SetAbilitySlot(FGameplayAbilityInfo AbilityInfo, EAbilitySlot SlotAssigned)
 {
@@ -124,5 +166,15 @@ void ACaptainHUD::UpdateHUDTreasureHasBeenCaptured(ETeam TeamCapturingTreasure, 
 	if (CaptainOverlay)
 	{
 		CaptainOverlay->TreasureHasBeenCaptured(TeamCapturingTreasure, PlayerTeam);
+	}
+}
+
+void ACaptainHUD::SendDeathAnnouncementToHUD(FString SunkCapName, FString SinkingCapName, ETeam SunkCapTeam, ETeam SinkingCapTeam)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Send Announcment"))
+	if (!SunkCapName.IsEmpty() && !SinkingCapName.IsEmpty() && CaptainOverlay)
+	{
+		CaptainOverlay->CreateDeathAnnouncement(SunkCapName, SinkingCapName, SunkCapTeam, SinkingCapTeam);
+
 	}
 }

@@ -6,11 +6,12 @@
 #include "PlayerStates/CaptainState.h"
 #include "Weapons/Cannon.h"
 #include "Interfaces/InteractableInterface.h"
+#include "CapturePoints/CapturePoint.h"
 
 #include "Components/SBAbilitySystemComponent.h"
 #include "GameplayAbilities/SBGameplayAbility.h"
 #include "GameplayAbilities/SBAttributeSet.h"
-#include "GameFramework/GameStateBase.h"
+#include "GameStates/SBGameState.h"
 
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
@@ -56,6 +57,7 @@ void APlayerShip::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		EnhancedInputComponent->BindAction(FirePortCannonsAction, ETriggerEvent::Triggered, this, &APlayerShip::FirePortCannons);
 		EnhancedInputComponent->BindAction(FireStarboardCannonsAction, ETriggerEvent::Triggered, this, &APlayerShip::FireStarboardCannons);
 		EnhancedInputComponent->BindAction(FireAuxiliaryCannonsAction, ETriggerEvent::Triggered, this, &APlayerShip::FireAuxiliaryCannons);
+		EnhancedInputComponent->BindAction(AuxiliaryCannonsReleasedAction, ETriggerEvent::Triggered, this, &APlayerShip::ReleaseAuxiliaryCannons);
 		EnhancedInputComponent->BindAction(PortCannonsReleasedAction, ETriggerEvent::Triggered, this, &APlayerShip::ReleasePortCannons);
 		EnhancedInputComponent->BindAction(StarboardCannonsReleasedAction, ETriggerEvent::Triggered, this, &APlayerShip::ReleaseStarboardCannons);
 
@@ -72,6 +74,7 @@ void APlayerShip::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 	DOREPLIFETIME(APlayerShip, StarboardCannonRotation);
 	DOREPLIFETIME(APlayerShip, PortCannonRotation);
+
 }
 
 void APlayerShip::GetInputSubsytem()
@@ -160,6 +163,7 @@ void APlayerShip::FireStarboardCannons()
 {
 	Super::FireStarboardCannons();
 
+	UE_LOG(LogTemp, Warning, TEXT("Ability to activate %s"), *StarboardCannonAbility.GetDefaultObject()->GetName())
 	if (bIsDead) return;
 	if (HasAuthority())
 	{
@@ -192,6 +196,68 @@ void APlayerShip::ReleaseStarboardCannons()
 
 void APlayerShip::FireAuxiliaryCannons()
 {
+	if (CaptainState && AuxiliaryCannonAbility)
+	{
+		if (HasAuthority())
+		{
+			if (bIsDead) return;
+			CaptainState = CaptainState == nullptr ? CaptainState = GetPlayerState<ACaptainState>() : CaptainState;
+
+			if (CaptainState)
+			{
+				CaptainState->ActivateAbility(AuxiliaryCannonAbility);
+			}
+			if (StoreShipName == FName("Turtle Ship"))
+			{
+				bAuxiliaryCannonsActive = true;
+				GetWorldTimerManager().SetTimer(AuxCannonTimer, this, &APlayerShip::AuxiliaryCannonActive, .5f);
+			}
+		}
+		else
+		{
+			ServerFireAuxiliary(PortCannonAbility);
+		}
+	}
+
+}
+
+void APlayerShip::ServerFireAuxiliary_Implementation(TSubclassOf<USBGameplayAbility> AuxAbilityToActivate)
+{
+	if (bIsDead) return;
+	CaptainState = CaptainState == nullptr ? CaptainState = GetPlayerState<ACaptainState>() : CaptainState;
+
+	if (CaptainState)
+	{
+		CaptainState->ActivateAbility(AuxiliaryCannonAbility);
+	}
+	if (StoreShipName == FName("Turtle Ship"))
+	{
+		bAuxiliaryCannonsActive = true;
+		GetWorldTimerManager().SetTimer(AuxCannonTimer, this, &APlayerShip::AuxiliaryCannonActive, .5f);
+	}
+
+}
+
+void APlayerShip::ReleaseAuxiliaryCannons()
+{
+	if (CaptainState && HasAuthority())
+	{
+		CaptainState->SendLocalInputToASC(false, 3);
+		bAuxiliaryCannonsActive = false;
+		GetWorldTimerManager().ClearTimer(AuxCannonTimer);
+	}
+	else
+	{
+		ServerReleaseAuxiliarycannons();
+	}
+}
+
+void APlayerShip::ServerReleaseAuxiliarycannons_Implementation()
+{
+	CaptainState->SendLocalInputToASC(false, 3);
+	bAuxiliaryCannonsActive = false;
+	GetWorldTimerManager().ClearTimer(AuxCannonTimer);
+
 }
 
 void APlayerShip::ServerFireCannons_Implementation(TSubclassOf<USBGameplayAbility> CannonAbilityToActivate)
@@ -323,21 +389,35 @@ void APlayerShip::Die(AActor* InstigatorActor)
 {
 	Super::Die(InstigatorActor);
 
+
 	GetWorldTimerManager().SetTimer(RespawnTimer, this, &APlayerShip::RequestRespawnFromServer, RespawnTime);
 	FDetachmentTransformRules TransformRules(EDetachmentRule::KeepWorld, true);
 	SpringArm->DetachFromComponent(TransformRules);
 
 	ACaptainState* InstigatorCS = Cast<ACaptainState>(InstigatorActor);
-	if (InstigatorCS)
-	{
-		InstigatorCS->GetAttributeSet()->CollectBounty(this, CaptainState->GetAttributeSet()->Bounty.GetCurrentValue());
-	}
 
 	if (CaptainState)
 	{
 		CaptainState->RemoveActiveEffects();
 	}
 
+
+	if (InstigatorCS && CaptainState)
+	{
+		InstigatorCS->GetAttributeSet()->CollectBounty(this, CaptainState->GetAttributeSet()->Bounty.GetCurrentValue());
+
+		ASBGameState* GameState = GetWorld()->GetGameState<ASBGameState>();
+		if (GameState)
+		{
+			GameState->PlayerKilled(CaptainState, InstigatorCS);
+		}
+	}
+
+	if (CaptainState && CaptainState->CurrentShip != CaptainState->DefaultShip)
+	{
+		CaptainState->OwnedShips.Remove(CaptainState->CurrentShip);
+		CaptainState->CurrentShip = CaptainState->DefaultShip;
+	}
 }
 
 void APlayerShip::RequestRespawnFromServer()
@@ -393,8 +473,11 @@ void APlayerShip::BeginPlay()
 	CaptainState = GetCaptainState();
 	SetPlayerNameplate(CaptainState);
 	InitializeOverlays();
-	DefaultSpeed = PawnMovement->MaxSpeed;
-	DefaultAcceleration = PawnMovement->Acceleration;
+	if (PawnMovement)
+	{
+		DefaultSpeed = PawnMovement->MaxSpeed;
+		DefaultAcceleration = PawnMovement->Acceleration;
+	}
 	AcquireCannonAbilities();
 
 }
@@ -424,6 +507,7 @@ void APlayerShip::Tick(float DeltaTime)
 	if (bIsDead) return;
 	NormalizeCannonRotation(DeltaTime);
 
+
 }
 
 void APlayerShip::TraceForPlayerNameplates()
@@ -446,7 +530,14 @@ void APlayerShip::TraceForPlayerNameplates()
 				if (PlayerHit && PlayerHit != this)
 				{
 					PlayerHit->GetPlayerNameplate()->SetNameplateVisibility(true);
+					return;
 				}
+				ACapturePoint* CapturePoint = Cast<ACapturePoint>(Hit.GetActor());
+				if (CapturePoint)
+				{
+					CapturePoint->SetProgressBarVisibility(true);
+				}
+
 			}
 		}
 	}
@@ -485,6 +576,59 @@ void APlayerShip::NormalizeCannonRotation(float DeltaTime)
 	PortCannonRotationCalc(DeltaTime);
 	StarboardCannonRotationCalc(DeltaTime);
 }
+
+void APlayerShip::AuxiliaryCannonActive()
+{
+	if (!HasAuthority() || !bAuxiliaryCannonsActive) return;
+
+	FTransform MuzzleTransform = ShipMesh->GetSocketTransform(FName("AuxiliaryCannonSocket"));
+
+	FVector End = GetActorRotation().Vector() * 4000.f + GetActorLocation();
+	TArray<AActor*>ActorsToIgnore;
+	TArray<FHitResult> HitActors;
+	ActorsToIgnore.Add(this);
+
+	UKismetSystemLibrary::SphereTraceMulti(this, MuzzleTransform.GetLocation(), End, 450, ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::ForOneFrame, HitActors, true);
+	//DrawDebugSphere(GetWorld(), MuzzleTransform.GetLocation(), 130, 12, FColor::Red);
+	for(FHitResult Hit : HitActors)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("hit actor"))
+
+		IHitInterface* HitInterface = Cast<IHitInterface>(Hit.GetActor());
+		IHitInterface* InstigatorInterface = Cast<IHitInterface>(this);
+		if (HitInterface)
+		{
+			if (HitInterface->IsHitActorDead()) return;
+
+			AActor* HitActor = HitInterface->GetActorWithAbilityComponent();
+
+			if (HitActor && AuxilaryCannonGEHandle.IsValid())
+			{
+
+				FGameplayAbilityTargetDataHandle TargetHandle = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(HitActor);
+				if (InstigatorInterface && HitInterface && InstigatorInterface->GetHitActorTeam() != HitInterface->GetHitActorTeam())
+				{
+					ApplyGESpecHandleToTargetData(AuxilaryCannonGEHandle, TargetHandle);
+				}
+			}
+		}
+	}
+	HitActors.Empty();
+
+	if (bAuxiliaryCannonsActive)
+	{
+		GetWorldTimerManager().SetTimer(AuxCannonTimer, this, &APlayerShip::AuxiliaryCannonActive , .5f);
+	}
+}
+
+void APlayerShip::ApplyGESpecHandleToTargetData(const FGameplayEffectSpecHandle& GESpecHandle, const FGameplayAbilityTargetDataHandle& TargetDataHandle)
+{
+	for (TSharedPtr<FGameplayAbilityTargetData> Data : TargetDataHandle.Data)
+	{
+		Data->ApplyGameplayEffectSpec(*GESpecHandle.Data.Get());
+	}
+}
+
 
 UPlayerNameplateComponent* APlayerShip::GetPlayerNameplate()
 {
@@ -679,31 +823,31 @@ void APlayerShip::CanInteract(UPrimitiveComponent* OverlappedComponent, AActor* 
 	if (HasAuthority())
 	{
 		InteractableInterface = Cast<IInteractableInterface>(OtherActor);
+		if (InteractableInterface)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Found interactable interfaec"))
+
+		}
 	}
 }
 
 void APlayerShip::StartInteracting()
 {
+	if (!InteractableInterface)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Interfface invalid"))
+
+	}
+
 	if (HasAuthority())
 	{
-		/*if (!IsLocallyControlled())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Notlocally controlled!!!!..."))
-		}
-		if (!PlayerController)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Player controller invalid...!!!!..."))
-		}
-		if (!InteractableInterface)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("interactableinterface invalid...!!!!..."))
-		}*/
+		UE_LOG(LogTemp, Warning, TEXT("Begin interacting"))
 		if (InteractableInterface == nullptr || !IsLocallyControlled() || !PlayerController) return;
 		InteractableInterface->BeginInteraction(PlayerController);
 	}
 	else
 	{
-		//if (InteractableInterface == nullptr) return;
+		if (InteractableInterface == nullptr) return;
 		ServerStartInteracting(PlayerController);
 	}
 }
@@ -724,15 +868,20 @@ void APlayerShip::ClientStartInteracting_Implementation(const TScriptInterface<I
 
 void APlayerShip::EndInteract(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (InteractableInterface == nullptr || !IsLocallyControlled() || !PlayerController) return;
-
 	IInteractableInterface* InterfaceToStopInteracting = Cast<IInteractableInterface>(OtherActor);
 
 	if (InterfaceToStopInteracting == InteractableInterface)
 	{
-		InteractableInterface->EndInteraction(PlayerController);
-		InteractableInterface = nullptr;
+		HandleEndInteract();
 	}
+}
+
+void APlayerShip::HandleEndInteract()
+{
+	if (InteractableInterface == nullptr || !IsLocallyControlled() || !PlayerController) return;
+
+	InteractableInterface->EndInteraction(PlayerController);
+	
 }
 
 ACaptainState* APlayerShip::GetCaptainState()
@@ -764,10 +913,12 @@ void APlayerShip::MulticastOnHealthChanged_Implementation(float Health, float Ma
 {
 	Super::MulticastOnHealthChanged_Implementation(Health, MaxHealth, InstigatorActor);
 
+
 	if (CaptainHUD && IsLocallyControlled())
 	{
 		CaptainHUD->SetHUDHealth(Health, MaxHealth);
 	}
+
 }
 
 void APlayerShip::OnManaChanged(float Mana, float MaxMana)

@@ -4,6 +4,8 @@
 #include "GameStates/SBGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Interfaces/CaptainStateInterface.h"
+#include "PlayerStates/CaptainState.h"
+#include "HUD/CaptainHUD.h"
 #include "Buildings/Building.h"
 #include "PlayerControllers/CaptainController.h"
 #include "Sound/AmbientSound.h"
@@ -21,16 +23,25 @@ void ASBGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ASBGameState, TeamCapturingTreasure);
 	DOREPLIFETIME(ASBGameState, TreasuresCaptured);
 	DOREPLIFETIME(ASBGameState, TreasureActiveTime);
+	DOREPLIFETIME(ASBGameState, NewestCaptainState);
+	DOREPLIFETIME(ASBGameState, CaptainStates);
 }
 
-void ASBGameState::UpdateTeams(TArray<FString> UpdatedPirateTeam, TArray<FString> UpdatedPrivateerTeam)
+void ASBGameState::BeginPlay()
 {
-
-	PirateTeam = UpdatedPirateTeam;
-	PrivateerTeam = UpdatedPrivateerTeam;
+	Super::BeginPlay();
 
 }
 
+
+void ASBGameState::UpdateTeams(TArray<FString> UpdatedPirateTeam, TArray<FString> UpdatedPrivateerTeam, ACaptainState* NewCaptainState)
+{
+	PirateTeam = UpdatedPirateTeam;
+	PrivateerTeam = UpdatedPrivateerTeam;	
+
+//	RegisterCaptainState(NewCaptainState);
+
+}
 
 void ASBGameState::OnRep_UpdateTeams()
 {
@@ -45,6 +56,30 @@ void ASBGameState::OnRep_UpdateTeams()
 	}
 }
 
+void ASBGameState::RegisterCaptainState(ACaptainState* CaptainState)
+{
+	if (!CaptainState) return;
+	NewestCaptainState = CaptainState;
+
+	ACaptainHUD* CaptainHUD = GetWorld()->GetFirstPlayerController()->GetHUD<ACaptainHUD>();
+	if (CaptainHUD)
+	{
+		CaptainHUD->AddPlayerToLeaderboard(CaptainState);
+	}
+	if (!CaptainStates.Contains(CaptainState))
+	{
+		CaptainStates.Add(CaptainState);
+	}
+}
+
+void ASBGameState::OnRep_RegisterCaptainState(ACaptainState* CaptainState)
+{
+	ACaptainHUD* CaptainHUD = GetWorld()->GetFirstPlayerController()->GetHUD<ACaptainHUD>();
+	if (CaptainHUD)
+	{
+		CaptainHUD->AddPlayerToLeaderboard(CaptainState);
+	}
+}
 
 void ASBGameState::BuildingDestroyed(EBuildingType BuildingType, ABuilding* BuildingDestroyed)
 {
@@ -100,6 +135,46 @@ void ASBGameState::MulticastBuildingDestroyed_Implementation(EBuildingType Build
 			if (AmbientSound)
 			{
 				AmbientSound->GetAudioComponent()->SetPaused(true);
+			}
+		}
+	}
+}
+
+void ASBGameState::PlayerKilled(ACaptainState* SunkCaptainState, ACaptainState* InstigatorCaptainState)
+{
+	if (HasAuthority())
+	{
+
+		ACaptainController* CapController = Cast<ACaptainController>(GetWorld()->GetFirstPlayerController());
+		if (CapController)
+		{
+			ACaptainHUD* CapHUD = CapController->GetHUD<ACaptainHUD>();
+			if (CapHUD)
+			{
+				CapHUD->SendDeathAnnouncementToHUD(SunkCaptainState->GetPlayerName(), InstigatorCaptainState->GetPlayerName(), SunkCaptainState->GetPlayerTeam(), InstigatorCaptainState->GetPlayerTeam());
+			}
+		}
+	}
+	else
+	{
+		ClientPlayerKilled(SunkCaptainState, InstigatorCaptainState);
+
+	}
+
+
+}
+
+void ASBGameState::ClientPlayerKilled_Implementation(ACaptainState* SunkCaptainState, ACaptainState* InstigatorCaptainState)
+{
+	if (SunkCaptainState && InstigatorCaptainState)
+	{
+		ACaptainController* CapController = Cast<ACaptainController>(GetWorld()->GetFirstPlayerController());
+		if (CapController)
+		{
+			ACaptainHUD* CapHUD = CapController->GetHUD<ACaptainHUD>();
+			if (CapHUD)
+			{
+				CapHUD->SendDeathAnnouncementToHUD(SunkCaptainState->GetPlayerName(), InstigatorCaptainState->GetPlayerName(), SunkCaptainState->GetPlayerTeam(), InstigatorCaptainState->GetPlayerTeam());
 			}
 		}
 	}

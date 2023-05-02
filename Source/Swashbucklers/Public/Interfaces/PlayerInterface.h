@@ -7,6 +7,8 @@
 #include "PlayerInterface.generated.h"
 
 class UPlayerNameplateComponent;
+class APlayerController;
+class IInteractableInterface;
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UPlayerInterface : public UInterface
@@ -27,4 +29,5 @@ public:
 	virtual UPlayerNameplateComponent* GetPlayerNameplate() = 0;
 	virtual UStaticMeshComponent* GetPlayerShipMesh() = 0;
 	virtual float GetCannonRecoilMultiplierFromShip() = 0;
+	virtual void SetInteractableInterface(IInteractableInterface* InterfaceToSet) = 0;
 };

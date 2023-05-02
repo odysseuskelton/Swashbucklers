@@ -116,6 +116,10 @@ public:
 	UPROPERTY(EditAnywhere)
 	UMaterialInterface* PrivateerFlag;
 
+	//Healthbar Functionality
+	FTimerHandle HealthbarTimer;
+	void HealthbarTimerFinished();
+
 
 protected:
 
@@ -146,9 +150,7 @@ protected:
 	AActor* RammedShip;
 	float ImpactSpeed = 0.f;
 
-	//Healthbar Functionality
-	FTimerHandle HealthbarTimer;
-	void HealthbarTimerFinished();
+
 
 	//Ship Variables
 	float DeltaSeconds;
@@ -168,6 +170,12 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	USoundBase* ShipDeathSound;
+
+	UPROPERTY(EditAnywhere)
+	USoundBase* ShipCollisionSound;
+
+	UPROPERTY(EditAnywhere)
+	UNiagaraSystem* ShipCollisionSystem;
 
 	UPROPERTY(EditAnywhere)
 	UNiagaraSystem* ShipDamagedSystem;
@@ -212,8 +220,6 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void SwitchCannonAbilities(TSubclassOf<USBGameplayAbility> NewPortCannonAbility, TSubclassOf<USBGameplayAbility> NewStarboardCannonAbility);
 
-	bool bAcquiredCannonAbilities = false;
-
 	virtual void FirePortCannons();
 
 	virtual void FireStarboardCannons();
@@ -252,6 +258,7 @@ public:
 	FORCEINLINE bool CanBeKnocked() { return true; }
 	FORCEINLINE virtual bool IsLocallyControlledInterface() override { return IsLocallyControlled(); }
 	FORCEINLINE bool AITargetable() override { return true; }
+	FORCEINLINE virtual bool IsAI() override { return false; }
 
 	//Execution Interface Overrides
 	virtual float GetShipSpeed();

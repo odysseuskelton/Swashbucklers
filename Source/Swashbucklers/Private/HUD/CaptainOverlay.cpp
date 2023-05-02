@@ -4,8 +4,12 @@
 #include "HUD/CaptainOverlay.h"
 #include "GameplayAbilities/AbilityTypes.h"
 #include "Kismet/KismetMaterialLibrary.h"
+#include "Components/GridPanel.h"
+#include "HUD/PlayerKillAnnouncementSlot.h"
 #include "Components/Image.h"
 #include "Components/Textblock.h"
+#include "Components/GridSlot.h"
+#include "Components/GridPanel.h"
 
 void UCaptainOverlay::SetPoEText(int32 PoEToSet)
 {
@@ -97,6 +101,39 @@ void UCaptainOverlay::SetCountdownText(float CountdownTime)
 
 		FString CountdownTextString = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
 		CountdownText->SetText(FText::FromString(CountdownTextString));
+	}
+}
+
+void UCaptainOverlay::CreateDeathAnnouncement(FString SunkCapName, FString SinkingCapName, ETeam SunkCapTeam, ETeam SinkingCapTeam)
+{
+	if (PlayerKillAnnouncementClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player Kill Announcement"))
+
+		UPlayerKillAnnouncementSlot* NewKillAnnouncement  = CreateWidget<UPlayerKillAnnouncementSlot>(GetOwningPlayer(), PlayerKillAnnouncementClass);
+		if (NewKillAnnouncement && KillAnnouncementPanel)
+		{
+			NewKillAnnouncement->SetKillAnnouncementText(SunkCapName, SinkingCapName, SunkCapTeam, SinkingCapTeam);
+			NewKillAnnouncement->AddToViewport();
+			CurrentKillAnnouncements.Add(NewKillAnnouncement);
+			KillAnnouncementPanel->AddChild(NewKillAnnouncement);
+			UpdateKillAnnouncementGrid();
+		}
+	}
+}
+
+void UCaptainOverlay::UpdateKillAnnouncementGrid()
+{
+	int32 Row = 0;
+	for (UPlayerKillAnnouncementSlot* CurrentAnnouncement : CurrentKillAnnouncements)
+	{
+		UGridSlot* GridSlot = Cast<UGridSlot>(CurrentAnnouncement->Slot);
+		if (GridSlot)
+		{
+			GridSlot->SetRow(Row);
+			Row++;
+		}
+
 	}
 }
 

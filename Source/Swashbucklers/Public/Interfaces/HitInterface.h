@@ -27,6 +27,7 @@ class SWASHBUCKLERS_API IHitInterface
 public:
 	virtual AActor* GetActorWithAbilityComponent() = 0;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const = 0;
+	virtual bool IsAI() = 0;
 	virtual bool AITargetable() = 0;
 	virtual ETeam GetHitActorTeam() = 0;
 	virtual bool IsHitActorDead() = 0;

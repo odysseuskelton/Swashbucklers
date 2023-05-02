@@ -29,6 +29,7 @@ public:
 
 	virtual void Activate() override;
 	virtual void TickTask(float DeltaTime) override;
+	virtual void OnDestroy(bool bInOwnerFinished) override;
 
 private:
 	float TaskDeltaTime;

@@ -72,11 +72,26 @@ void ACaptainState::BeginPlay()
 		if (SBGameState)
 		{
 			SBGameState->OnBuildingDestroyed.AddDynamic(this, &ACaptainState::BuildingDestroyedNotification);
+			if (HasAuthority())
+			{
+				SBGameState->RegisterCaptainState(this);
+			}
+			else
+			{
+				ServerRegisterCaptainState(this);
+			}
 		}
 
 	}
+}
 
-
+void ACaptainState::ServerRegisterCaptainState_Implementation(ACaptainState* CaptainState)
+{
+	ASBGameState* SBGameState = GetWorld()->GetGameState<ASBGameState>();
+	if (SBGameState)
+	{
+		SBGameState->RegisterCaptainState(CaptainState);
+	}
 }
 
 void ACaptainState::ApplyRegenEffects()
@@ -108,6 +123,7 @@ void ACaptainState::RemoveActiveEffects()
 		FGameplayEffectQuery Query;
 		Query.ModifyingAttribute;
 		AbilityComponent->RemoveActiveEffects(Query);
+		UE_LOG(LogTemp, Warning, TEXT("RemoveActiveEffects"))
 	}
 }
 
@@ -410,6 +426,13 @@ void ACaptainState::SetTeam(ETeam TeamToSet)
 	{
 		PlayerShip->SetSailColors(PlayerTeam);
 		HideEnemyStores();
+
+	}	
+	ASBGameState* SBGameState = GetWorld()->GetGameState<ASBGameState>();
+	if (SBGameState)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Setteam register"))
+		//SBGameState->RegisterCaptainState(this);
 	}
 
 }
@@ -460,6 +483,7 @@ void ACaptainState::ServerBuyShip_Implementation(TSubclassOf<AShip> ShipToBuy)
 	}
 
 	OwnedShips.Add(ShipToBuy);
+	if (GetPlayerPOE() < ShipToBuy.GetDefaultObject()->StoreCost) return;
 	AttributeSet->Buy(ShipToBuy.GetDefaultObject()->StoreCost);
 	ServerSwitchShips(ShipToBuy);
 }
@@ -483,18 +507,17 @@ void ACaptainState::ServerBuyAbility_Implementation(TSubclassOf<USBGameplayAbili
 
 void ACaptainState::ServerSwitchShips_Implementation(TSubclassOf<AShip> ShipToSwitchTo)
 {
-	SetDefaultShip(ShipToSwitchTo);
+	SetCurrentShip(ShipToSwitchTo);
 	if (GetPlayerController()->GetPawn())
 	{
 		FTransform TransformForNewShip = GetPlayerController()->GetPawn()->GetActorTransform();
 		FActorSpawnParameters SpawnInfo;
 		SpawnInfo.ObjectFlags |= RF_Transient;
-		AShip* CurrentShip = Cast<AShip>(GetPlayerController()->GetPawn());
-		if (CurrentShip)
+		AShip* Ship = Cast<AShip>(GetPlayerController()->GetPawn());
+		if (Ship)
 		{
-
-			CurrentShip->CleanupCannons(0.1f);
-			CurrentShip->Destroy();
+			Ship->CleanupCannons(0.1f);
+			Ship->Destroy();
 		}
 		AShip* NewShip = GetWorld()->SpawnActor<AShip>(ShipToSwitchTo, TransformForNewShip, SpawnInfo);
 		GetPlayerController()->Possess(NewShip);

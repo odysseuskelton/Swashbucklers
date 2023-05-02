@@ -194,6 +194,8 @@ void ATower::BeginPlay()
 	AcquireTowerCannonAbility();
 	AggroComponent->OnComponentBeginOverlap.AddDynamic(this, &ATower::InAggroRange); 
 	AggroComponent->OnComponentEndOverlap.AddDynamic(this, &ATower::OutAggroRange);
+
+
 }
 
 
@@ -222,7 +224,8 @@ void ATower::InAggroRange(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 	if (TargetToAttack == nullptr)
 	{
 		IHitInterface* ActorImplementsInterface = Cast<IHitInterface>(OtherActor);
-		if (ActorImplementsInterface && ActorImplementsInterface->GetHitActorTeam() != GetBuildingTeam() && ActorImplementsInterface->GetHitActorTeam() != ETeam::ET_NoTeam)
+
+		if ((ActorImplementsInterface && ActorImplementsInterface->GetHitActorTeam() != GetBuildingTeam() && ActorImplementsInterface->GetHitActorTeam() != ETeam::ET_NoTeam )|| (ActorImplementsInterface && ActorImplementsInterface->IsAI() && ActorImplementsInterface->GetHitActorTeam() == ETeam::ET_NoTeam))
 		{
 			TargetToAttack = OtherActor;
 		}

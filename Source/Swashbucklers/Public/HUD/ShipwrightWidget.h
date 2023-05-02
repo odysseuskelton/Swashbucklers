@@ -9,6 +9,7 @@
 class UGridPanel;
 class UButton;
 class UWidgetSwitcher;
+class USlotSelectionWidget;
 /**
  * 
  */
@@ -32,6 +33,8 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UWidgetSwitcher* StoreSwitcher;
+
+	USlotSelectionWidget* SlotSelectionWidget;
 
 	void InitializeStoreWidget();
 	UFUNCTION()

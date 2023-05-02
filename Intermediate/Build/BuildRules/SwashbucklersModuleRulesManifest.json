@@ -1,0 +1,8 @@
+{
+	"SourceFiles": [
+		"S:\\Swashbucklers\\Source\\Swashbucklers\\Swashbucklers.Build.cs",
+		"S:\\Swashbucklers\\Source\\Swashbucklers.Target.cs",
+		"S:\\Swashbucklers\\Source\\SwashbucklersEditor.Target.cs"
+	],
+	"EngineVersion": "5.1.1"
+}

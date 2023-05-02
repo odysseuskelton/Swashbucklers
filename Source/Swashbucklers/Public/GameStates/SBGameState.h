@@ -23,7 +23,9 @@ public:
 	
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
-	void UpdateTeams(TArray<FString> UpdatedPirateTeam, TArray<FString> UpdatedPrivateerTeam);
+	virtual void BeginPlay() override;
+
+	void UpdateTeams(TArray<FString> UpdatedPirateTeam, TArray<FString> UpdatedPrivateerTeam, ACaptainState* NewCaptainState);
 
 	//UFUNCTION(NetMulticast, Reliable)
 	//void MulticastUpdateTeams();
@@ -31,11 +33,22 @@ public:
 	UFUNCTION()
 	void OnRep_UpdateTeams();
 
+	void RegisterCaptainState(ACaptainState* CaptainState);
+
+	UFUNCTION()
+	void OnRep_RegisterCaptainState(ACaptainState* CaptainState);
+
 	UPROPERTY(ReplicatedUsing=OnRep_UpdateTeams)
 	TArray<FString> PirateTeam;
 
 	UPROPERTY(ReplicatedUsing=OnRep_UpdateTeams)
 	TArray<FString> PrivateerTeam;
+
+	UPROPERTY(ReplicatedUsing = OnRep_RegisterCaptainState)
+	ACaptainState* NewestCaptainState;
+
+	UPROPERTY(Replicated)
+	TArray<ACaptainState*> CaptainStates;
 
 	void BuildingDestroyed(EBuildingType BuildingType, ABuilding* BuildingDestroyed);
 	
@@ -43,6 +56,11 @@ public:
 	void MulticastBuildingDestroyed(EBuildingType BuildingType, ABuilding* BuildingDestroyed);
 
 	FOnBuildingDestroyedDelegate OnBuildingDestroyed;
+
+	void PlayerKilled(ACaptainState* SunkCaptainState, ACaptainState* InstigatorCaptainState);
+
+	UFUNCTION(Client, Unreliable)
+	void ClientPlayerKilled(ACaptainState* SunkCaptainState, ACaptainState* InstigatorCaptainState);
 
 	UFUNCTION(Exec, Category = "Commands")
 	void ExtraHeartPiece();

@@ -56,6 +56,18 @@ public:
 	FGameplayAttributeData PiecesOfEight;
 	ATTRIBUTE_ACCESSORS(USBAttributeSet, PiecesOfEight)
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AttributeSetBase", ReplicatedUsing = OnRep_TreasureCaptures)
+	FGameplayAttributeData TreasureCaptures;
+	ATTRIBUTE_ACCESSORS(USBAttributeSet, TreasureCaptures)
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AttributeSetBase", ReplicatedUsing = OnRep_TowerKills)
+	FGameplayAttributeData TowerKills;
+	ATTRIBUTE_ACCESSORS(USBAttributeSet, TowerKills)
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AttributeSetBase", ReplicatedUsing = OnRep_PlayerKills)
+	FGameplayAttributeData PlayerKills;
+	ATTRIBUTE_ACCESSORS(USBAttributeSet, PlayerKills)
+
 	void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
@@ -104,6 +116,15 @@ protected:
 
 	UFUNCTION()
 	virtual void OnRep_PiecesOfEight(const FGameplayAttributeData& OldPiecesOfEight);
+
+	UFUNCTION()
+	virtual void OnRep_TreasureCaptures(const FGameplayAttributeData& OldTreasureCaptures);
+
+	UFUNCTION()
+	virtual void OnRep_TowerKills(const FGameplayAttributeData& OldTowerKills);
+
+	UFUNCTION()
+	virtual void OnRep_PlayerKills(const FGameplayAttributeData& OldPlayerKills);
 
 public:
 };

@@ -88,11 +88,15 @@ public:
 	void OnRep_CaptureProgress();
 
 	UPROPERTY(Replicated)
-	bool bCaptured = false;
+	bool bCaptured = true;
 
 	TArray<AActor*> PirateTeamOnPoint;
 	TArray<AActor*> PrivateerTeamOnPoint;
 
 	FORCEINLINE FTransform GetCapturePointTransform() { return CapturePoint->GetComponentTransform(); }
+	void SetProgressBarVisibility(bool bVisibility);
+
+	FTimerHandle ProgressbarVisibilityTimer;
+	void ProgressbarVisibilityTimerFinished();
 
 };

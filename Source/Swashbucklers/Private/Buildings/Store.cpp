@@ -12,6 +12,7 @@
 #include "HUD/ShipwrightWidget.h"
 #include "HUD/StoreAbilitySlot.h"
 #include "HUD/StoreShipSlot.h"
+#include "HUD/SlotSelectionWidget.h"
 
 AStore::AStore()
 {
@@ -45,7 +46,10 @@ void AStore::EnterStore(UPrimitiveComponent* OverlappedComponent, AActor* OtherA
 	{
 		StoreEntryText->SetVisibility(true);
 		InteractingPlayers.Add(InteractingPlayer);
+		GetWorldTimerManager().SetTimer(StoreTextTimer, this, &AStore::StoreTextTimerFinished, 15.f);
+		InteractingPlayer->SetInteractableInterface(this);
 	}
+
 }
 
 void AStore::ExitStore(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -57,6 +61,14 @@ void AStore::ExitStore(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, 
 	{
 		InteractingPlayers.Remove(InteractingPlayer);
 		StoreEntryText->SetVisibility(false);
+		if (ShipwrightWidget)
+		{
+			APawn* PawnActor = Cast<APawn>(OtherActor);
+			if (PawnActor)
+			{
+				EndInteraction(PawnActor->GetController());
+			}
+		}
 
 		/*if (OwningController )
 		{
@@ -66,11 +78,33 @@ void AStore::ExitStore(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, 
 			OwningController->bShowMouseCursor = false;
 		}*/
 	}
+	if (InteractingPlayer)
+	{
+		InteractingPlayer->SetInteractableInterface(nullptr);
+	}
 }
 
 void AStore::BeginInteraction(APlayerController* InteractingController)
 {
-	if (!InteractingController || !ShipwrightWidgetClass || !InteractingController->IsLocalController()) return;
+	UE_LOG(LogTemp, Warning, TEXT("Store begin interaction"))
+	if (InteractingController)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Interacting Controller valid"))
+	}
+	if (!ShipwrightWidget)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No widget"))
+
+	}
+	if (!InteractingController->IsLocalController())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("LocalController"))
+
+	}
+
+	if (!InteractingController || !ShipwrightWidgetClass || !InteractingController->IsLocalController() || ShipwrightWidget) return;
+
+	StoreEntryText->SetVisibility(false);
 
 	OwningController = InteractingController;
 
@@ -91,11 +125,20 @@ void AStore::BeginInteraction(APlayerController* InteractingController)
 		ICaptainStateInterface* CSInterface = Cast<ICaptainStateInterface>(InteractingController->GetPlayerState<APlayerState>());
 		if (CSInterface)
 		{
+			OwningInterface = CSInterface;
 			RefreshShipSlots(CSInterface, InteractingController);
 			RefreshAbilitySlots(CSInterface, InteractingController);
 		}
 	}
 
+}
+
+void AStore::StoreTextTimerFinished()
+{
+	if (StoreEntryText->IsVisible())
+	{
+		StoreEntryText->SetVisibility(false);
+	}
 }
 
 void AStore::RefreshShipSlots(ICaptainStateInterface* OwningCSInterface, APlayerController* OwningPlayerController)
@@ -114,6 +157,7 @@ void AStore::RefreshShipSlots(ICaptainStateInterface* OwningCSInterface, APlayer
 			UStoreShipSlot* ShipSlot = CreateWidget<UStoreShipSlot>(OwningPlayerController, StoreShipSlotClass);
 			if (ShipSlot)
 			{
+				ShipSlot->ShipBought.AddDynamic(this, &AStore::ItemPurchased);
 				ShipSlot->InitializeShipSlot(ShipInStock, OwningCSInterface, OwningPlayerController);
 				ShipwrightWidget->ShipSlotGridPanel->AddChild(ShipSlot);
 				UGridSlot* GridSlot = Cast<UGridSlot>(ShipSlot->Slot);
@@ -150,6 +194,7 @@ void AStore::RefreshAbilitySlots(ICaptainStateInterface* OwningCSInterface, APla
 			if (AbilitySlot)
 			{
 				AbilitySlot->InitializeAbilitySlot(AbilityInStock, OwningCSInterface);
+				AbilitySlot->AbilityBought.AddDynamic(this, &AStore::ItemPurchased);
 				ShipwrightWidget->AbilitySlotGridPanel->AddChild(AbilitySlot);
 				UGridSlot* GridSlot = Cast<UGridSlot>(AbilitySlot->Slot);
 				if (GridSlot)
@@ -168,7 +213,40 @@ void AStore::RefreshAbilitySlots(ICaptainStateInterface* OwningCSInterface, APla
 	}
 }
 
-void AStore::EndInteraction(APlayerController* PlayerToStopInteractingWith)
+void AStore::ItemPurchased()
+{
+	if (OwningController && OwningInterface)
+	{
+		RefreshAbilitySlots(OwningInterface, OwningController);
+		RefreshShipSlots(OwningInterface, OwningController);
+	}
+}
+
+void AStore::EndInteraction(AController* PlayerToStopInteractingWith)
 {
 	if (!PlayerToStopInteractingWith) return;
+
+
+	if (ShipwrightWidget)
+	{
+		ShipwrightWidget->RemoveFromParent();
+
+		for (UWidget* Widget : ShipwrightWidget->AbilitySlotGridPanel->GetAllChildren())
+		{
+			UStoreAbilitySlot* AbilitySlot = Cast<UStoreAbilitySlot>(Widget);
+			if (AbilitySlot && AbilitySlot->SlotSelectionWidget)
+			{
+				AbilitySlot->SlotSelectionWidget->RemoveFromParent();
+			}
+		}
+		ShipwrightWidget = nullptr;
+	}
+
+	APlayerController* PlayerController = Cast<APlayerController>(PlayerToStopInteractingWith);
+	if (PlayerController)
+	{
+		FInputModeGameOnly InputModeData;
+		PlayerController->bShowMouseCursor = false;
+		PlayerController->SetInputMode(InputModeData);
+	}
 }

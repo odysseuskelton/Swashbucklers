@@ -124,7 +124,8 @@ public:
 	// Exposes the ISteamUGC interface
 	virtual ISteamUGC *GetISteamUGC( HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char *pchVersion ) = 0;
 
-	// returns app list interface, only available on specially registered apps
+	// returns app list interface, only available on specially 
+	ed apps
 	virtual ISteamAppList *GetISteamAppList( HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char *pchVersion ) = 0;
 	
 	// Music Player

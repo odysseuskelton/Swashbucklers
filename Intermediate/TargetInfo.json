@@ -1,0 +1,14 @@
+{
+	"Targets": [
+		{
+			"Name": "Swashbucklers",
+			"Path": "S:\\Swashbucklers\\Source\\Swashbucklers.Target.cs",
+			"Type": "Game"
+		},
+		{
+			"Name": "SwashbucklersEditor",
+			"Path": "S:\\Swashbucklers\\Source\\SwashbucklersEditor.Target.cs",
+			"Type": "Editor"
+		}
+	]
+}

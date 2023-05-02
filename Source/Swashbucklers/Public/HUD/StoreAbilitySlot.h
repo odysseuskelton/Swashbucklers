@@ -7,6 +7,9 @@
 #include "GameplayAbilities/AbilityTypes.h"
 #include "StoreAbilitySlot.generated.h"
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPurchaseDelegate);
+
 /**
  * 
  */
@@ -16,6 +19,7 @@ class UImage;
 class USBGameplayAbility;
 class ICaptainStateInterface;
 class USlotSelectionWidget;
+class AStore;
 
 UCLASS()
 class SWASHBUCKLERS_API UStoreAbilitySlot : public UUserWidget
@@ -75,6 +79,7 @@ public:
 	TSubclassOf<USBGameplayAbility> AbilityInSlot;
 	FGameplayAbilityInfo AbilityInfo;
 
+	FOnPurchaseDelegate AbilityBought;
 	
 	ICaptainStateInterface* OwningInterface;
 };

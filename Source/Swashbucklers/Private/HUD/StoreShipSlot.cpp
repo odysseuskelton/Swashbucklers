@@ -13,7 +13,7 @@ void UStoreShipSlot::InitializeShipSlot(TSubclassOf<AShip> ShipToSet, ICaptainSt
 {
 	if (CaptainStateInterface)
 	{
-		OwningCaptainStateInterface = CaptainStateInterface;
+		OwningInterface = CaptainStateInterface;
 	}
 
 	if (PlayerController)
@@ -112,10 +112,11 @@ void UStoreShipSlot::InitializeShipSlot(TSubclassOf<AShip> ShipToSet, ICaptainSt
 
 void UStoreShipSlot::BuyShip()
 {
-	if (!OwningCaptainStateInterface || !OwningPlayerController || !ShipInSlot) return;
+	if (!OwningInterface || !OwningPlayerController || !ShipInSlot) return;
+	ShipBought.Broadcast();
 	if (BuyButton)
 	{
 		BuyButton->SetIsEnabled(false);
 	}
-	OwningCaptainStateInterface->BuyShip(ShipInSlot);
+	OwningInterface->BuyShip(ShipInSlot);
 }

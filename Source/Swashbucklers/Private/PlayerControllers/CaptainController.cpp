@@ -2,6 +2,7 @@
 
 
 #include "PlayerControllers/CaptainController.h"
+#include "GameplayAbilities/SBAttributeSet.h"
 #include "HUD/CaptainHUD.h"
 #include "HUD/InGameMenu.h"
 #include "HUD/Announcement.h"
@@ -31,25 +32,44 @@ void ACaptainController::BeginPlay()
 	Super::BeginPlay();
 	CaptainHUD = CaptainHUD == nullptr ? Cast<ACaptainHUD>(GetHUD()) : CaptainHUD;
 	ServerCheckMatchState();
+	BindLeaderboardDelegates();
 
+}
 
+void ACaptainController::BindLeaderboardDelegates()
+{
+	CaptainState = CaptainState == nullptr ? GetPlayerState<ACaptainState>() : CaptainState;
+	if (CaptainState)
+	{
+		CaptainState->GetAttributeSet()->OnBountyChange.AddUniqueDynamic(this, &ACaptainController::OnBountyChange);
+		//CaptainState->GetAttributeSet()->O.AddUniqueDynamic(this, &APlayerShip::OnManaChanged);
+	}
+}
+
+void ACaptainController::OnBountyChange(int32 Bounty, AActor* DestroyedActor)
+{
+	if (!HasAuthority()) return;
+	CaptainHUD = CaptainHUD == nullptr ? Cast<ACaptainHUD>(GetHUD()) : CaptainHUD;
+	if (CaptainHUD)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("bounty change on captain controller authoritaty"))
+	}
 }
 
 void ACaptainController::InitializePlayerController()
 {
-	if (GetPawn() && GetPawn()->IsLocallyControlled())
+	if (!IsLocalController()) return;
+	InGameMenuWidget = CreateWidget<UInGameMenu>(this, InGameMenuClass);
+	if (InGameMenuWidget)
 	{
-		InGameMenuWidget = CreateWidget<UInGameMenu>(this, InGameMenuClass);
-		if (InGameMenuWidget)
-		{
-			InGameMenuWidget->Initialize();
-		}
-
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(PlayerControllerContext, 0);
-		}
+		InGameMenuWidget->Initialize();
 	}
+
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+	{
+		Subsystem->AddMappingContext(PlayerControllerContext, 0);
+	}
+	
 }
 
 void ACaptainController::HandleClientTransitionBetweenMaps()
@@ -161,6 +181,7 @@ void ACaptainController::SetupInputComponent()
 	{
 
 		EnhancedInputComponent->BindAction(InGameMenuAction, ETriggerEvent::Triggered, this, &ACaptainController::OpenInGameMenu);
+		EnhancedInputComponent->BindAction(LeaderboardAction, ETriggerEvent::Triggered, this, &ACaptainController::ToggleLeaderboard);
 		bControllerInputSet = true;
 	}
 
@@ -172,12 +193,20 @@ void ACaptainController::OpenInGameMenu()
 	{
 		InGameMenuWidget->Setup();
 	}
+}
 
+void ACaptainController::ToggleLeaderboard()
+{
+	CaptainHUD = CaptainHUD == nullptr ? Cast<ACaptainHUD>(GetHUD()) : CaptainHUD;
+	if (CaptainHUD && CaptainHUD->LeaderboardOverlay)
+	{
+		CaptainHUD->ToggleLeaderboardOverlay();
+	}
 }
 
 void ACaptainController::CreateClientLobbyWidget()
 {
-	if (ClientLobbyMenuClass)
+	if (ClientLobbyMenuClass && IsLocalController())
 	{
 		ClientLobbyMenu = CreateWidget<UClientLobbyMenu>(this, ClientLobbyMenuClass);
 		ClientLobbyMenu->AddToViewport();
@@ -227,7 +256,6 @@ void ACaptainController::OnRep_MatchStateSet()
 	{
 		HandleMatchHasStarted();
 		CheckIfPlayerOverlayValid();
-
 	}
 	if (MatchState == MatchState::WaitingForTreasureToSpawn)
 	{
@@ -294,7 +322,7 @@ void ACaptainController::HandleTreasureCaptured()
 	if (CaptainHUD)
 	{
 		ASBGameState* SBGameState = GetWorld()->GetGameState<ASBGameState>();
-		ACaptainState* CaptainState = GetPlayerState<ACaptainState>();
+		CaptainState = CaptainState == nullptr ? GetPlayerState<ACaptainState>() : CaptainState;
 		if (SBGameState)
 		{
 			CaptainHUD->UpdateHUDTreasureHasBeenCaptured(SBGameState->TeamCapturingTreasure, CaptainState->GetPlayerTeam());			
@@ -327,7 +355,7 @@ void ACaptainController::ReturnToMainMenu()
 
 void ACaptainController::RequestTeamSwitch()
 {
-	ACaptainState* CaptainState = GetPlayerState<ACaptainState>();
+	CaptainState = CaptainState == nullptr ? GetPlayerState<ACaptainState>() : CaptainState;
 	if (CaptainState)
 	{
 		ServerRequestSwitchTeam(CaptainState);
@@ -335,12 +363,12 @@ void ACaptainController::RequestTeamSwitch()
 
 }
 
-void ACaptainController::ServerRequestSwitchTeam_Implementation(ACaptainState* CaptainState)
+void ACaptainController::ServerRequestSwitchTeam_Implementation(ACaptainState* StateRequesting)
 {
 	USBGameInstance* SBGameInstance = GetGameInstance<USBGameInstance>();
 	if (SBGameInstance)
 	{
-		SBGameInstance->SwitchTeams(CaptainState);
+		SBGameInstance->SwitchTeams(StateRequesting);
 	}
 }
 

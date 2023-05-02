@@ -8,6 +8,7 @@
 #include "PlayerStates/CaptainState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Interfaces/CaptainStateInterface.h"
+#include "Interfaces/PlayerInterface.h"
 #include "GameplayEffect.h"
 
 USBAttributeSet::USBAttributeSet() :
@@ -17,7 +18,10 @@ USBAttributeSet::USBAttributeSet() :
 	MaxMana(100.f),
 	Speed(0.f),
 	Bounty(50.f),
-	PiecesOfEight(250.f)
+	PiecesOfEight(250.f),
+	TreasureCaptures(0.f),
+	TowerKills(0.f),
+	PlayerKills(0.f)
 {
 }
 
@@ -35,6 +39,9 @@ void USBAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME_CONDITION_NOTIFY(USBAttributeSet, Speed, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(USBAttributeSet, Bounty, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(USBAttributeSet, PiecesOfEight, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(USBAttributeSet, TreasureCaptures, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(USBAttributeSet, TowerKills, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(USBAttributeSet, PlayerKills, COND_None, REPNOTIFY_Always);
 }
 
 void USBAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -73,6 +80,12 @@ void USBAttributeSet::CollectBounty(AActor* BountiedActor, float BountyToCollect
 	Bounty.SetCurrentValue(FMath::CeilToInt(Bounty.GetCurrentValue() + BountyToCollect / 2));
 	DestroyedActor = BountiedActor;
 	BountyCollected = BountyToCollect;
+
+	IPlayerInterface* PlayerInterface = Cast<IPlayerInterface>(BountiedActor);
+	if (PlayerInterface)
+	{
+		PlayerKills.SetCurrentValue(PlayerKills.GetCurrentValue() + 1);
+	}
 	OnBountyChange.Broadcast(FMath::CeilToInt(Bounty.GetCurrentValue()), DestroyedActor);
 
 
@@ -157,5 +170,20 @@ void USBAttributeSet::OnRep_PiecesOfEight(const FGameplayAttributeData& OldPiece
 
 	OnPiecesOfEightChange.Broadcast(PiecesOfEight.GetCurrentValue(), DestroyedActor, BountyCollected);
 
+}
+
+void USBAttributeSet::OnRep_TreasureCaptures(const FGameplayAttributeData& OldTreasureCaptures)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(USBAttributeSet, TreasureCaptures, OldTreasureCaptures);
+}
+
+void USBAttributeSet::OnRep_TowerKills(const FGameplayAttributeData& OldTowerKills)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(USBAttributeSet, TowerKills, OldTowerKills);
+}
+
+void USBAttributeSet::OnRep_PlayerKills(const FGameplayAttributeData& OldPlayerKills)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(USBAttributeSet, PlayerKills, OldPlayerKills);
 }
 

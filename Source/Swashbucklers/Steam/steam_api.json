@@ -6290,7 +6290,8 @@
       "fields": [],
       "methods": [
         {
-          "methodname": "AddPlayerToList",
+          "methodname": "
+            ToList",
           "methodname_flat": "SteamAPI_ISteamMatchmakingPlayersResponse_AddPlayerToList",
           "params": [
             { "paramname":"pchName", "paramtype":"const char *" },

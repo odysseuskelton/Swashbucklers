@@ -51,6 +51,7 @@ void AProjectile::BeginPlay()
 	SetLifeSpan(ProjectileLifeSpan);
 
 	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AProjectile::CollisionSphereOverlap);
+
 }
 
 void AProjectile::Tick(float DeltaTime)
@@ -65,13 +66,24 @@ void AProjectile::Tick(float DeltaTime)
 
 void AProjectile::CollisionSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Collisionsphere %s"), *OtherActor->GetName())
-	if (!GetOwner() || !GetOwner()->HasAuthority()) return;
 
 	FHitResult SphereHit;
 	SphereTrace(SphereHit);
 
+	if (OtherActor->GetName().Contains("WaterBodyOcean") && SplashSystem)
+	{
+		MulticastWaterSplash(SphereHit);
+	}
 
+
+	if (!GetOwner() || !GetOwner()->HasAuthority()) return;
+
+
+
+	//if (OtherActor)
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("Actor hit by cb %s"), *OtherActor->GetName())
+	//}
 	if (SphereHit.GetActor())
 	{
 
@@ -89,6 +101,7 @@ void AProjectile::CollisionSphereOverlap(UPrimitiveComponent* OverlappedComponen
 				FGameplayAbilityTargetDataHandle TargetHandle = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(HitActor);
 				if (InstigatorInterface && HitInterface && InstigatorInterface->GetHitActorTeam() != HitInterface->GetHitActorTeam())
 				{
+					UE_LOG(LogTemp, Warning, TEXT("Hit, apply tag"))
 					ApplyGESpecHandleToTargetData(AbilityHandle, TargetHandle);
 				}
 				MulticastShipHitEffects(SphereHit);
@@ -99,12 +112,6 @@ void AProjectile::CollisionSphereOverlap(UPrimitiveComponent* OverlappedComponen
 		}
 	}
 
-	if (OtherActor->GetName().Contains("WaterBodyOcean") && SplashSystem)
-	{
-		MulticastWaterSplash();
-	}
-	
-
 	if(OtherActor->GetName().Contains("Landscape"))
 	{
 		Destroy();
@@ -112,12 +119,12 @@ void AProjectile::CollisionSphereOverlap(UPrimitiveComponent* OverlappedComponen
 	
 }
 
-void AProjectile::MulticastWaterSplash_Implementation()
+void AProjectile::MulticastWaterSplash_Implementation(const FHitResult SphereHit)
 {
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, SplashSystem, ProjectileMesh->GetComponentLocation());
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, SplashSystem, GetActorLocation());
 	if (SplashSound)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, SplashSound, ProjectileMesh->GetComponentLocation());
+		UGameplayStatics::PlaySoundAtLocation(this, SplashSound, GetActorLocation());
 		if (EasterEggSounds == true)
 		{
 			UGameplayStatics::PlaySoundAtLocation(this, KerSplooshSound, ProjectileMesh->GetComponentLocation());
@@ -192,6 +199,7 @@ void AProjectile::SetStencilValueOfCannonball(ETeam TeamOfOwner)
 {
 	MulticastSetStencilValueOfCannonball(TeamOfOwner);
 }
+
 
 void AProjectile::MulticastSetStencilValueOfCannonball_Implementation(ETeam TeamOfOwner)
 {

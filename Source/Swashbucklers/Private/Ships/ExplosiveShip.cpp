@@ -53,7 +53,7 @@ void AExplosiveShip::ShipCollision(UPrimitiveComponent* HitComp, AActor* OtherAc
 {
 	if (!OtherActor) return;
 	IHitInterface* HitInterface = Cast<IHitInterface>(OtherActor);
-	if (HitInterface->GetHitActorTeam() != AITeam)
+	if (HitInterface && HitInterface->GetHitActorTeam() != AITeam)
 	{
 		Die(this);
 	}
@@ -174,7 +174,7 @@ void AExplosiveShip::ServerExplodeShip_Implementation()
 
 	TArray<AActor*> ActorsToApplyGameplayEffectTo;
 
-	UKismetSystemLibrary::SphereTraceMulti(this, GetActorLocation(), GetActorLocation(), 3500, ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitActors, true);
+	UKismetSystemLibrary::SphereTraceMulti(this, GetActorLocation(), GetActorLocation(), 3500, ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::None, HitActors, true);
 
 	for (FHitResult Hit : HitActors)
 	{

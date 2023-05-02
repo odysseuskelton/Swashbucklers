@@ -26,3 +26,7 @@ void UTickingTask::TickTask(float DeltaTime)
 	Super::TickTask(DeltaTime);
 	OnTick.Broadcast(DeltaTime);
 }
+
+void UTickingTask::OnDestroy(bool bInOwnerFinished)
+{
+}

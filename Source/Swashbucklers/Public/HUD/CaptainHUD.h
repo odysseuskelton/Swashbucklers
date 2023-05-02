@@ -11,6 +11,8 @@
 class UCaptainOverlay;
 class USBGameplayAbility;
 class UAnnouncement;
+class ACaptainState;
+class ULeaderboard;
 /**
  * 
  */
@@ -35,9 +37,13 @@ public:
 	void UpdateHUDTreasureHasSpawned();
 	void UpdateHUDTreasureHasBeenCaptured(ETeam TeamCapturingTreasure, ETeam PlayerTeam);
 
+	void SendDeathAnnouncementToHUD(FString SunkCapName, FString SinkingCapName, ETeam SunkCapTeam, ETeam SinkingCapTeam);
+
 	void SetAbilitySlot(FGameplayAbilityInfo AbilityInfo, EAbilitySlot SlotAssigned);
 
 	void AddCaptainOverlayToViewport();
+	ULeaderboard* InitializeLeaderboardOverlay();
+	void ToggleLeaderboardOverlay();
 	void AddAnnouncementToViewport();
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
@@ -45,6 +51,11 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
 	UAnnouncement* Announcement;
+
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
+	ULeaderboard* LeaderboardOverlay;
+
+	void AddPlayerToLeaderboard(ACaptainState* CaptainState);
 
 protected:
 	virtual void BeginPlay() override;
@@ -56,6 +67,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	TSubclassOf<UCaptainOverlay> CaptainOverlayClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	TSubclassOf<ULeaderboard> LeaderboardOverlayClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	TSubclassOf<UAnnouncement> AnnouncementClass;

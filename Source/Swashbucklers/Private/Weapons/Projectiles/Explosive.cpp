@@ -30,6 +30,7 @@ void AExplosive::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AExplosive, bActivated);
+	DOREPLIFETIME(AExplosive, ExplosiveTeam);
 }
 
 void AExplosive::BeginPlay()
@@ -40,24 +41,36 @@ void AExplosive::BeginPlay()
 	
 	GetWorldTimerManager().SetTimer(SearchTimerHandle, this, &AExplosive::SearchTimerPulse, 0.5f);
 
-	ExplosiveMesh->OnComponentBeginOverlap.AddDynamic(this, &AExplosive::ExplosiveOverlap);
-	ExplosiveMesh->OnComponentHit.AddDynamic(this, &AExplosive::ExplosiveHit);
 
-	ExplosiveMesh->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Block);
+	ExplosiveMesh->OnComponentBeginOverlap.AddDynamic(this, &AExplosive::ExplosiveOverlap);
+	
+
+	if (GetOwner())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Owner Name %s"), *GetOwner()->GetName())	
+	}
 }
 
 void AExplosive::ExplosiveOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AProjectile* ProjectileHit = Cast<AProjectile>(OtherActor);
-	if (ProjectileHit)
+	if (!bActivated && ProjectileHit)
 	{
-		Activate();
+		MulticastActivate();
 		return;
 	}
 
 	if (OtherActor->GetName().Contains("WaterBodyOcean") && SplashSystem)
 	{
 		MulticastWaterSplash();
+	}
+	if (GEngine && HasAuthority())
+	{
+		GEngine->AddOnScreenDebugMessage(0, 10, FColor::Red, TEXT("Sa overlap on server"));
+	}
+	if (GEngine && !HasAuthority())
+	{
+		GEngine->AddOnScreenDebugMessage(0, 10, FColor::Red, TEXT("Sa overlap on client"));
 	}
 }
 
@@ -70,35 +83,19 @@ void AExplosive::MulticastWaterSplash_Implementation()
 	}
 }
 
-void AExplosive::ExplosiveHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(0, 10, FColor::Red, TEXT("Sa"));
-	}
-
-	IHitInterface* HitInterface = Cast<IHitInterface>(OtherActor);
-	IHitInterface* InstigatorInterface = Cast<IHitInterface>(GetOwner());
-
-	if (InstigatorInterface && HitInterface && InstigatorInterface->GetHitActorTeam() != HitInterface->GetHitActorTeam())
-	{
-		Activate();
-		return;
-	}
-
-}
 
 void AExplosive::SetMaterial()
 {
-	if (GetOwner())
-	{
-		IHitInterface* OwnerInterface = Cast<IHitInterface>(GetOwner());
 
-		if (OwnerInterface)
-		{
-			MulticastSetMaterial(OwnerInterface->GetHitActorTeam());
-		}
-	}
+	MulticastSetMaterial(ExplosiveTeam);
+
+}
+
+void AExplosive::ServerSetTeam_Implementation(ETeam TeamToSet)
+{
+	ExplosiveTeam = TeamToSet;
+	SetMaterial();
+
 }
 
 
@@ -156,10 +153,31 @@ void AExplosive::SearchTimerPulse()
 		}
 	}
 
-	++NumberOfPulsesSearching;
-	if (NumberOfPulsesSearching >= 40)
+	TArray<FHitResult> HitActors;
+	TArray<AActor*>ActorsToIgnore;
+	TArray<IHitInterface*> HitInterfaces;
+
+	UKismetSystemLibrary::SphereTraceMulti(this, GetActorLocation(), GetActorLocation(), 3500, ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::None, HitActors, true);
+
+	if (!HitActors.IsEmpty())
 	{
-		Activate();
+		for (FHitResult Hit : HitActors)
+		{	
+			if (Hit.GetActor())
+			{
+				IHitInterface* HitInterface = Cast<IHitInterface>(Hit.GetActor());
+				if (HitInterface && ExplosiveTeam != HitInterface->GetHitActorTeam())
+				{
+					HitInterfaces.Add(HitInterface);
+				}
+			}
+		}
+	}
+
+	++NumberOfPulsesSearching;
+	if (NumberOfPulsesSearching >= 40 || !HitInterfaces.IsEmpty())
+	{
+		MulticastActivate();
 	}
 	else
 	{
@@ -167,9 +185,10 @@ void AExplosive::SearchTimerPulse()
 	}
 }
 
-void AExplosive::Activate()
+void AExplosive::MulticastActivate_Implementation()
 {
 	if (bActivated) return;
+	bActivated = true;
 
 	if (AudioComponent)
 	{
@@ -180,9 +199,13 @@ void AExplosive::Activate()
 		AudioComponent->Play();
 	}
 
-	ExplosiveActivated();
-	bActivated = true;
+
+	if (HasAuthority())
+	{
+		ExplosiveActivated();
+	}
 }
+
 
 void AExplosive::ExplosiveActivated()
 {
@@ -204,7 +227,8 @@ void AExplosive::ExplosiveActivated()
 	}
 
 	++NumberOfPulsesActivated;
-	if (NumberOfPulsesActivated <= 7)
+	UE_LOG(LogTemp, Warning, TEXT("Number of pulses %d"), NumberOfPulsesActivated)
+	if (NumberOfPulsesActivated <= 16)
 	{
 		GetWorldTimerManager().SetTimer(ActivatedTimerHandle, this, &AExplosive::ExplosiveActivated, 0.1);
 	}
@@ -227,17 +251,13 @@ void AExplosive::ServerDetonate_Implementation()
 
 	TArray<AActor*> ActorsToApplyGameplayEffectTo;
 
-	if (GetOwner())
-	{
-		ActorsToIgnore.Add(GetOwner());
-	}
-	UKismetSystemLibrary::SphereTraceMulti(this, GetActorLocation(), GetActorLocation(), 3500, ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitActors, true);
+
+	UKismetSystemLibrary::SphereTraceMulti(this, GetActorLocation(), GetActorLocation(), 3500, ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::None, HitActors, true);
 
 	for (FHitResult Hit : HitActors)
 	{
 
 		IHitInterface* HitInterface = Cast<IHitInterface>(Hit.GetActor());
-		IHitInterface* InstigatorInterface = Cast<IHitInterface>(GetOwner());
 		if (HitInterface)
 		{
 			if (HitInterface->IsHitActorDead()) return;
@@ -246,7 +266,7 @@ void AExplosive::ServerDetonate_Implementation()
 
 			if (HitActor)
 			{
-				if (InstigatorInterface && HitInterface && InstigatorInterface->GetHitActorTeam() == HitInterface->GetHitActorTeam() && !ActorsToApplyGameplayEffectTo.Contains(HitActor))
+				if (HitInterface && ExplosiveTeam != HitInterface->GetHitActorTeam() && !ActorsToApplyGameplayEffectTo.Contains(HitActor))
 				{
 					ActorsToApplyGameplayEffectTo.Add(HitActor);
 				}

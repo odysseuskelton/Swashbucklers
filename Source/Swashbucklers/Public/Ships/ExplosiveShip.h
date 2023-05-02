@@ -59,6 +59,8 @@ private:
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess))
 	FGameplayEffectSpecHandle ExplosiveGEHandle;
 
+	FORCEINLINE virtual bool IsAI() override { return true; }
+
 
 	/*UPROPERTY(EditAnywhere)
 	USphereComponent* DetectionSphere;*/

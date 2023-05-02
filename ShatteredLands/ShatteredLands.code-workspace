@@ -1,0 +1,24 @@
+{
+	"folders": [
+		{
+			"name": "ShatteredLands",
+			"path": "."
+		},
+		{
+			"name": "UE5",
+			"path": "X:\\Epic\\UE_5.1"
+		}
+	],
+	"settings": {
+		"typescript.tsc.autoDetect": "off",
+		"files.associations": {
+			"*.rh": "cpp"
+		}
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-vscode.cpptools",
+			"ms-dotnettools.csharp"
+		]
+	}
+}

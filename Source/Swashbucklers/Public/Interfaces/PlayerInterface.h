@@ -9,6 +9,7 @@
 class UPlayerNameplateComponent;
 class APlayerController;
 class IInteractableInterface;
+class ACaptainState;
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UPlayerInterface : public UInterface
@@ -30,4 +31,5 @@ public:
 	virtual UStaticMeshComponent* GetPlayerShipMesh() = 0;
 	virtual float GetCannonRecoilMultiplierFromShip() = 0;
 	virtual void SetInteractableInterface(IInteractableInterface* InterfaceToSet) = 0;
+	virtual ACaptainState* GetPlayerCaptainState() = 0;
 };

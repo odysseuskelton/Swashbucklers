@@ -1,0 +1,32 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\inc\\swashbucklers\\uht\\sbgameinstance.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "s:\\swashbucklers\\intermediate\\build\\win64\\swashbucklerseditor\\development\\engine\\sharedpch.engine.shadowerrors.h.pch",
+        "Includes": [
+            "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\development\\swashbucklers\\definitions.swashbucklers.h",
+            "s:\\swashbucklers\\source\\swashbucklers\\public\\gameinstance\\sbgameinstance.h",
+            "s:\\swashbucklers\\source\\swashbucklers\\public\\interfaces\\menuinterface.h",
+            "s:\\swashbucklers\\source\\swashbucklers\\public\\playerstates\\teams.h",
+            "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\inc\\swashbucklers\\uht\\menuinterface.generated.h",
+            "x:\\epic\\ue_5.1\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinesubsystem.h",
+            "x:\\epic\\ue_5.1\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinesubsystemmodule.h",
+            "x:\\epic\\ue_5.1\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinesubsystemtypes.h",
+            "x:\\epic\\ue_5.1\\engine\\plugins\\online\\onlinebase\\source\\public\\online\\onlinebase.h",
+            "x:\\epic\\ue_5.1\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinesubsystemnames.h",
+            "x:\\epic\\ue_5.1\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinesubsystempackage.h",
+            "x:\\epic\\ue_5.1\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinedelegatemacros.h",
+            "x:\\epic\\ue_5.1\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinesessionsettings.h",
+            "x:\\epic\\ue_5.1\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinekeyvaluepair.h",
+            "x:\\epic\\ue_5.1\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinesubsystempackage.h",
+            "x:\\epic\\ue_5.1\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\onlinesubsystempackage.h",
+            "x:\\epic\\ue_5.1\\engine\\plugins\\online\\onlinebase\\source\\public\\online\\onlinesessionnames.h",
+            "x:\\epic\\ue_5.1\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\interfaces\\onlinesessioninterface.h",
+            "x:\\epic\\ue_5.1\\engine\\plugins\\online\\onlinesubsystem\\source\\public\\interfaces\\onlinesessiondelegates.h",
+            "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\inc\\swashbucklers\\uht\\sbgameinstance.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

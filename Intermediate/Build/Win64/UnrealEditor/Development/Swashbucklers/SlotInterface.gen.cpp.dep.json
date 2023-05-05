@@ -1,0 +1,17 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\inc\\swashbucklers\\uht\\slotinterface.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "s:\\swashbucklers\\intermediate\\build\\win64\\swashbucklerseditor\\development\\engine\\sharedpch.engine.shadowerrors.h.pch",
+        "Includes": [
+            "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\development\\swashbucklers\\definitions.swashbucklers.h",
+            "s:\\swashbucklers\\source\\swashbucklers\\public\\interfaces\\slotinterface.h",
+            "s:\\swashbucklers\\source\\swashbucklers\\public\\gameplayabilities\\abilitytypes.h",
+            "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\inc\\swashbucklers\\uht\\abilitytypes.generated.h",
+            "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\inc\\swashbucklers\\uht\\slotinterface.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

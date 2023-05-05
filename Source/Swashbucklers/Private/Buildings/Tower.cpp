@@ -75,9 +75,9 @@ void ATower::TurretFireEffects()
 	}
 }
 
-void ATower::Die()
+void ATower::Die(AActor* InstigatorActor)
 {
-	Super::Die();
+	Super::Die(InstigatorActor);
 
 	BuildingMesh->SetSimulatePhysics(true);
 	TurretBaseMesh->SetSimulatePhysics(true);

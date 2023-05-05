@@ -50,16 +50,33 @@ public:
 	UPROPERTY(Replicated)
 	TArray<ACaptainState*> CaptainStates;
 
-	void BuildingDestroyed(EBuildingType BuildingType, ABuilding* BuildingDestroyed);
+	void BuildingDestroyed(EBuildingType BuildingType, ABuilding* BuildingDestroyed, AActor* InstigatorActor);
 	
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastBuildingDestroyed(EBuildingType BuildingType, ABuilding* BuildingDestroyed);
+	void MulticastBuildingDestroyed(EBuildingType BuildingType, ABuilding* BuildingDestroyed, AActor* InstigatorActor);
 
 	FOnBuildingDestroyedDelegate OnBuildingDestroyed;
 
 	void PlayerKilled(ACaptainState* SunkCaptainState, ACaptainState* InstigatorCaptainState);
 
-	UFUNCTION(Client, Unreliable)
+	void UpdatePlayerKills(ACaptainState* CaptainState, int32 PlayerKills);
+
+	UFUNCTION(Client, Reliable)
+	void ClientUpdatePlayerKills(ACaptainState* CaptainState, int32 PlayerKills);
+
+
+	void UpdateTowerKills(ACaptainState* CaptainState, int32 TowerKills);
+
+	UFUNCTION(Client, Reliable)
+	void ClientUpdateTowerKills(ACaptainState* CaptainState, int32 TowerKills);
+
+
+	void PlayerBountyChanged(ACaptainState* CapState, int32 Bounty);
+
+	UFUNCTION(Client, Reliable)
+	void ClientPlayerBountyChanged(ACaptainState* CapState, int32 Bounty);
+
+	UFUNCTION(Client, Reliable)
 	void ClientPlayerKilled(ACaptainState* SunkCaptainState, ACaptainState* InstigatorCaptainState);
 
 	UFUNCTION(Exec, Category = "Commands")
@@ -85,8 +102,18 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_TreasureCapturesUpdate)
 	int32 TreasuresCaptured = 1;
 
+	UPROPERTY(Replicated)
+	FVector TreasureLocation = FVector::ZeroVector;
+
 
 	void SetTreasuresCaptured(int32 NumberOfCaptures, float TimeTreasureActive);
+
+	void TreasureCaptureCredit(TArray<AActor*> ActorsOnPoint);
+
+	void UpdateCaptures(ACaptainState* CaptainState, int32 Captures);
+
+	UFUNCTION(Client, Reliable)
+	void ClientUpdateHUDCaptures(ACaptainState* CaptainState, int32 Captures);
 
 	UFUNCTION()
 	void OnRep_TreasureCapturesUpdate();

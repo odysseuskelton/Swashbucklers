@@ -1,0 +1,772 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="..\..\Swashbucklers.uproject" />
+    <Filter Include="Source">
+      <UniqueIdentifier>{F31BBDD1-B3E8-3BCC-9652-680E16935819}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\Swashbucklers.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <None Include="..\..\Source\SwashbucklersEditor.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <None Include="..\..\.gitattributes" />
+    <None Include="..\..\.gitignore" />
+    <None Include="..\..\.vsconfig" />
+    <None Include="..\..\OFL.txt" />
+    <Filter Include="Config">
+      <UniqueIdentifier>{FA535FFB-25E1-3D20-B416-52F9BE21E06E}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Config\DefaultEditor.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultEngine.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultGame.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultGameplayTags.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultInput.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultNiagara.ini">
+      <Filter>Config</Filter>
+    </None>
+    <Filter Include="Platforms">
+      <UniqueIdentifier>{ED49A36C-4FD5-37E5-A2AC-E11BEF4F21CF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platforms\HoloLens">
+      <UniqueIdentifier>{28125F47-4973-377C-9D77-EBC3C72EC856}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platforms\HoloLens\Config">
+      <UniqueIdentifier>{D3BF39CB-FA64-39E2-A327-B5021BA69773}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Platforms\HoloLens\Config\HoloLensEngine.ini">
+      <Filter>Platforms\HoloLens\Config</Filter>
+    </None>
+    <Filter Include="Source\Swashbucklers">
+      <UniqueIdentifier>{49BF67EB-504A-3B91-AAE4-7CDF8F89FE14}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\Swashbucklers\Swashbucklers.Build.cs">
+      <Filter>Source\Swashbucklers</Filter>
+    </None>
+    <ClCompile Include="..\..\Source\Swashbucklers\Swashbucklers.cpp">
+      <Filter>Source\Swashbucklers</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Swashbucklers\Swashbucklers.h">
+      <Filter>Source\Swashbucklers</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Swashbucklers\SwashbucklersGameModeBase.cpp">
+      <Filter>Source\Swashbucklers</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Swashbucklers\SwashbucklersGameModeBase.h">
+      <Filter>Source\Swashbucklers</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Private">
+      <UniqueIdentifier>{1FDEDFE6-E5E2-32C8-9239-63E9572BEA04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Swashbucklers\Private\AI">
+      <UniqueIdentifier>{0D81483D-CB45-36F9-8368-4A014FA0C836}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\AI\NavCheckPoints.cpp">
+      <Filter>Source\Swashbucklers\Private\AI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\AI\StaticNPC.cpp">
+      <Filter>Source\Swashbucklers\Private\AI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\AI\StaticNPCAnimInstance.cpp">
+      <Filter>Source\Swashbucklers\Private\AI</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\Buildings">
+      <UniqueIdentifier>{8EE60170-1139-381A-8E3A-4D4AB598FB4C}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Buildings\Building.cpp">
+      <Filter>Source\Swashbucklers\Private\Buildings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Buildings\Main.cpp">
+      <Filter>Source\Swashbucklers\Private\Buildings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Buildings\Store.cpp">
+      <Filter>Source\Swashbucklers\Private\Buildings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Buildings\Tower.cpp">
+      <Filter>Source\Swashbucklers\Private\Buildings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Buildings\TowerAnimInstance.cpp">
+      <Filter>Source\Swashbucklers\Private\Buildings</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\CapturePoints">
+      <UniqueIdentifier>{80DDD3EE-D0AD-3F05-890B-C9DAB7B6BB67}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\CapturePoints\CapturePoint.cpp">
+      <Filter>Source\Swashbucklers\Private\CapturePoints</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\Components">
+      <UniqueIdentifier>{A1120382-FA80-3502-82E9-FB5E470BED35}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Components\SBAbilitySystemComponent.cpp">
+      <Filter>Source\Swashbucklers\Private\Components</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\GameInstance">
+      <UniqueIdentifier>{34D88579-23FC-3813-AAFE-78F2E945D98A}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\GameInstance\SBGameInstance.cpp">
+      <Filter>Source\Swashbucklers\Private\GameInstance</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\GameModes">
+      <UniqueIdentifier>{670A2805-6C2E-3ACE-A670-29AA3DD91C77}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\GameModes\SBGameMode.cpp">
+      <Filter>Source\Swashbucklers\Private\GameModes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\GameModes\SBMainMenuGameMode.cpp">
+      <Filter>Source\Swashbucklers\Private\GameModes</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\GameplayAbilities">
+      <UniqueIdentifier>{E021D1DB-4686-3411-82C6-5F73706ACFCE}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\GameplayAbilities\SBAttributeSet.cpp">
+      <Filter>Source\Swashbucklers\Private\GameplayAbilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\GameplayAbilities\SBGameplayAbility.cpp">
+      <Filter>Source\Swashbucklers\Private\GameplayAbilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\GameplayAbilities\TickingTask.cpp">
+      <Filter>Source\Swashbucklers\Private\GameplayAbilities</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\GameplayAbilities\EffectExecutions">
+      <UniqueIdentifier>{663B02E2-4873-3384-B112-1C0955A7E88D}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\GameplayAbilities\EffectExecutions\SpeedEffectExecution.cpp">
+      <Filter>Source\Swashbucklers\Private\GameplayAbilities\EffectExecutions</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\GameStates">
+      <UniqueIdentifier>{3DA13677-C659-341C-B80C-117A953C6DAA}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\GameStates\SBGameState.cpp">
+      <Filter>Source\Swashbucklers\Private\GameStates</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\HUD">
+      <UniqueIdentifier>{8DE070BD-2D65-3DC3-BA25-329CECA31287}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\Announcement.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\BountyWidget.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\BountyWidgetComponent.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\CaptainHUD.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\CaptainOverlay.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\CaptureProgressComponent.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\CaptureProgressWidget.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\ClientLobbyMenu.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\Healthbar.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\HealthbarComponent.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\InGameMenu.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\Leaderboard.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\LeaderboardPlayerSlot.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\MainMenu.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\PlayerKillAnnouncementSlot.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\PlayerNameplate.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\PlayerNameplateComponent.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\PlayerSlot.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\ServerLine.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\ShipwrightWidget.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\SlotSelectionWidget.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\StoreAbilitySlot.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\StoreShipSlot.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\VictoryScreen.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\HUD\Actors">
+      <UniqueIdentifier>{101672BB-63C4-3E74-81C3-C401A37F7CBA}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\HUD\Actors\BountyActor.cpp">
+      <Filter>Source\Swashbucklers\Private\HUD\Actors</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\Interfaces">
+      <UniqueIdentifier>{DC3425AC-BA37-3548-B168-BE5D73F74222}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Interfaces\CaptainStateInterface.cpp">
+      <Filter>Source\Swashbucklers\Private\Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Interfaces\ExecutionInterface.cpp">
+      <Filter>Source\Swashbucklers\Private\Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Interfaces\HitInterface.cpp">
+      <Filter>Source\Swashbucklers\Private\Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Interfaces\InteractableInterface.cpp">
+      <Filter>Source\Swashbucklers\Private\Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Interfaces\MenuInterface.cpp">
+      <Filter>Source\Swashbucklers\Private\Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Interfaces\PlayerInterface.cpp">
+      <Filter>Source\Swashbucklers\Private\Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Interfaces\SlotInterface.cpp">
+      <Filter>Source\Swashbucklers\Private\Interfaces</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\PlayerControllers">
+      <UniqueIdentifier>{1D297E4A-F311-3A23-8EA2-FF7686B4474B}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\PlayerControllers\CaptainController.cpp">
+      <Filter>Source\Swashbucklers\Private\PlayerControllers</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\PlayerStates">
+      <UniqueIdentifier>{E447D018-DA36-3A58-9548-A22DAA7EF1EC}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\PlayerStates\CaptainState.cpp">
+      <Filter>Source\Swashbucklers\Private\PlayerStates</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\Ships">
+      <UniqueIdentifier>{DCF9B750-B0CF-3ACD-9B01-DA880127106E}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Ships\AIArtilleryShip.cpp">
+      <Filter>Source\Swashbucklers\Private\Ships</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Ships\AIShip.cpp">
+      <Filter>Source\Swashbucklers\Private\Ships</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Ships\ArtilleryShip.cpp">
+      <Filter>Source\Swashbucklers\Private\Ships</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Ships\ExplosiveShip.cpp">
+      <Filter>Source\Swashbucklers\Private\Ships</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Ships\GrapplingShip.cpp">
+      <Filter>Source\Swashbucklers\Private\Ships</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Ships\MerchantShip.cpp">
+      <Filter>Source\Swashbucklers\Private\Ships</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Ships\PlayerShip.cpp">
+      <Filter>Source\Swashbucklers\Private\Ships</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Ships\Ship.cpp">
+      <Filter>Source\Swashbucklers\Private\Ships</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\Waves">
+      <UniqueIdentifier>{EE6F5EF6-C6B8-330F-8887-7A8AF8508952}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Waves\SBGerstnerWaterWaveGenerator.cpp">
+      <Filter>Source\Swashbucklers\Private\Waves</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\Weapons">
+      <UniqueIdentifier>{510BB373-E706-39CF-A5D5-92EC228284B2}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Weapons\Cannon.cpp">
+      <Filter>Source\Swashbucklers\Private\Weapons</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\Weapons\Projectiles">
+      <UniqueIdentifier>{CA76A650-5919-3DF6-9664-DD6F55965FF7}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Weapons\Projectiles\Explosive.cpp">
+      <Filter>Source\Swashbucklers\Private\Weapons\Projectiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Weapons\Projectiles\Grapple.cpp">
+      <Filter>Source\Swashbucklers\Private\Weapons\Projectiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Weapons\Projectiles\Projectile.cpp">
+      <Filter>Source\Swashbucklers\Private\Weapons\Projectiles</Filter>
+    </ClCompile>
+    <Filter Include="Source\Swashbucklers\Public">
+      <UniqueIdentifier>{9706F264-6CB1-38B0-8A5B-52FBEBC81377}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Swashbucklers\Public\AI">
+      <UniqueIdentifier>{B2756FA2-42C4-3131-A63E-2ACD81DD3D87}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\AI\NavCheckPoints.h">
+      <Filter>Source\Swashbucklers\Public\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\AI\StaticNPC.h">
+      <Filter>Source\Swashbucklers\Public\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\AI\StaticNPCAnimInstance.h">
+      <Filter>Source\Swashbucklers\Public\AI</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\Buildings">
+      <UniqueIdentifier>{AAB7FE01-B235-320E-9EBC-D510751427FE}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Buildings\Building.h">
+      <Filter>Source\Swashbucklers\Public\Buildings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Buildings\BuildingTypes.h">
+      <Filter>Source\Swashbucklers\Public\Buildings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Buildings\Main.h">
+      <Filter>Source\Swashbucklers\Public\Buildings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Buildings\Store.h">
+      <Filter>Source\Swashbucklers\Public\Buildings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Buildings\Tower.h">
+      <Filter>Source\Swashbucklers\Public\Buildings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Buildings\TowerAnimInstance.h">
+      <Filter>Source\Swashbucklers\Public\Buildings</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\CapturePoints">
+      <UniqueIdentifier>{01B5A33A-1F0A-3A72-B8D3-8B75880B9E8D}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\CapturePoints\CapturePoint.h">
+      <Filter>Source\Swashbucklers\Public\CapturePoints</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\Components">
+      <UniqueIdentifier>{93C375D9-BFC4-3B75-8030-CF58E1C95B75}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Components\SBAbilitySystemComponent.h">
+      <Filter>Source\Swashbucklers\Public\Components</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\GameInstance">
+      <UniqueIdentifier>{D8961686-4AB1-3B6C-8A6F-B087F21260AD}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\GameInstance\SBGameInstance.h">
+      <Filter>Source\Swashbucklers\Public\GameInstance</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\GameModes">
+      <UniqueIdentifier>{6F0445C9-527E-3033-A539-E80773D85AEF}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\GameModes\SBGameMode.h">
+      <Filter>Source\Swashbucklers\Public\GameModes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\GameModes\SBMainMenuGameMode.h">
+      <Filter>Source\Swashbucklers\Public\GameModes</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\GameplayAbilities">
+      <UniqueIdentifier>{7FECEAF0-E8AA-3857-877A-67AADB77145B}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Public\GameplayAbilities\AbilityTypes.cpp">
+      <Filter>Source\Swashbucklers\Public\GameplayAbilities</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\GameplayAbilities\AbilityTypes.h">
+      <Filter>Source\Swashbucklers\Public\GameplayAbilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\GameplayAbilities\SBAttributeSet.h">
+      <Filter>Source\Swashbucklers\Public\GameplayAbilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\GameplayAbilities\SBGameplayAbility.h">
+      <Filter>Source\Swashbucklers\Public\GameplayAbilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\GameplayAbilities\TickingTask.h">
+      <Filter>Source\Swashbucklers\Public\GameplayAbilities</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\GameplayAbilities\EffectExecutions">
+      <UniqueIdentifier>{CDAC2A22-7B03-3465-B36B-F7F9CBE4D32B}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\GameplayAbilities\EffectExecutions\SpeedEffectExecution.h">
+      <Filter>Source\Swashbucklers\Public\GameplayAbilities\EffectExecutions</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\GameStates">
+      <UniqueIdentifier>{21DAF08D-0937-36B9-B2A8-E2843A4BA97D}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\GameStates\SBGameState.h">
+      <Filter>Source\Swashbucklers\Public\GameStates</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\HUD">
+      <UniqueIdentifier>{3EE3A7C0-3C87-3E25-8A6C-CD19AB283DA8}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\Announcement.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\BountyWidget.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\BountyWidgetComponent.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\CaptainHUD.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\CaptainOverlay.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\CaptureProgressComponent.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\CaptureProgressWidget.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\ClientLobbyMenu.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\Healthbar.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\HealthbarComponent.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\InGameMenu.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\Leaderboard.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\LeaderboardPlayerSlot.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\MainMenu.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\PlayerKillAnnouncementSlot.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\PlayerNameplate.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\PlayerNameplateComponent.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\PlayerSlot.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\ServerLine.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\ShipwrightWidget.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\SlotSelectionWidget.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\StoreAbilitySlot.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\StoreShipSlot.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\VictoryScreen.h">
+      <Filter>Source\Swashbucklers\Public\HUD</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\HUD\Actors">
+      <UniqueIdentifier>{BC1625ED-BF49-3A0F-B8C0-B54F8B8DEE9C}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\HUD\Actors\BountyActor.h">
+      <Filter>Source\Swashbucklers\Public\HUD\Actors</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\Interfaces">
+      <UniqueIdentifier>{4B3DC386-AEF7-3229-BAD3-323A1973F615}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Interfaces\CaptainStateInterface.h">
+      <Filter>Source\Swashbucklers\Public\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Interfaces\ExecutionInterface.h">
+      <Filter>Source\Swashbucklers\Public\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Interfaces\HitInterface.h">
+      <Filter>Source\Swashbucklers\Public\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Interfaces\InteractableInterface.h">
+      <Filter>Source\Swashbucklers\Public\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Interfaces\MenuInterface.h">
+      <Filter>Source\Swashbucklers\Public\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Interfaces\PlayerInterface.h">
+      <Filter>Source\Swashbucklers\Public\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Interfaces\SlotInterface.h">
+      <Filter>Source\Swashbucklers\Public\Interfaces</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\PlayerControllers">
+      <UniqueIdentifier>{AAF15D1D-396D-3656-ABB9-C86E4AB11C5C}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\PlayerControllers\CaptainController.h">
+      <Filter>Source\Swashbucklers\Public\PlayerControllers</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\PlayerStates">
+      <UniqueIdentifier>{DC65B374-3FF5-355E-985B-329CB66E1906}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\PlayerStates\CaptainState.h">
+      <Filter>Source\Swashbucklers\Public\PlayerStates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\PlayerStates\Teams.h">
+      <Filter>Source\Swashbucklers\Public\PlayerStates</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\Ships">
+      <UniqueIdentifier>{868FFABE-3900-3DE7-B81D-32F594428D9D}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Ships\AIArtilleryShip.h">
+      <Filter>Source\Swashbucklers\Public\Ships</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Ships\AIShip.h">
+      <Filter>Source\Swashbucklers\Public\Ships</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Ships\ArtilleryShip.h">
+      <Filter>Source\Swashbucklers\Public\Ships</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Ships\ExplosiveShip.h">
+      <Filter>Source\Swashbucklers\Public\Ships</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Ships\GrapplingShip.h">
+      <Filter>Source\Swashbucklers\Public\Ships</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Ships\MerchantShip.h">
+      <Filter>Source\Swashbucklers\Public\Ships</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Ships\PlayerShip.h">
+      <Filter>Source\Swashbucklers\Public\Ships</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Ships\Ship.h">
+      <Filter>Source\Swashbucklers\Public\Ships</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\Waves">
+      <UniqueIdentifier>{3D2CDFA8-AED7-3880-BA18-E4FD23A465C2}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Waves\SBGerstnerWaterWaveGenerator.h">
+      <Filter>Source\Swashbucklers\Public\Waves</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\Weapons">
+      <UniqueIdentifier>{AE8EF6A8-CDF3-3274-9BBE-7B798926ACEA}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Weapons\Cannon.h">
+      <Filter>Source\Swashbucklers\Public\Weapons</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\Weapons\Projectiles">
+      <UniqueIdentifier>{38A641E5-028D-3A44-99FE-E89730D368DC}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Weapons\Projectiles\Explosive.h">
+      <Filter>Source\Swashbucklers\Public\Weapons\Projectiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Weapons\Projectiles\Grapple.h">
+      <Filter>Source\Swashbucklers\Public\Weapons\Projectiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Weapons\Projectiles\Projectile.h">
+      <Filter>Source\Swashbucklers\Public\Weapons\Projectiles</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Steam">
+      <UniqueIdentifier>{ACFE8C93-7770-3E93-8FA4-5C7C33BD9454}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamapplist.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamapps.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamappticket.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamclient.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamcontroller.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamdualsense.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamfriends.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamgamecoordinator.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamgameserver.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamgameserverstats.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamhtmlsurface.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamhttp.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteaminput.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteaminventory.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteammatchmaking.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteammusic.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteammusicremote.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamnetworking.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamnetworkingmessages.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamnetworkingsockets.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamnetworkingutils.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamparentalsettings.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamps3overlayrenderer.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamremoteplay.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamremotestorage.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamscreenshots.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamugc.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamuser.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamuserstats.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamutils.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\isteamvideo.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\matchmakingtypes.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\steamclientpublic.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\steamencryptedappticket.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\steamhttpenums.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\steamnetworkingfakeip.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\steamnetworkingtypes.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\steamps3params.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\steamtypes.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\steamuniverse.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\steam_api.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <None Include="..\..\Source\Swashbucklers\Steam\steam_api.json">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </None>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\steam_api_common.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\steam_api_flat.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\steam_api_internal.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Steam\steam_gameserver.h">
+      <Filter>Source\Swashbucklers\Steam</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Steam\lib">
+      <UniqueIdentifier>{BA9BC506-0DA9-3EE1-8031-6B0ACA083D38}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\Swashbucklers\Steam\lib\steam_api64.dll">
+      <Filter>Source\Swashbucklers\Steam\lib</Filter>
+    </None>
+    <None Include="..\..\Source\Swashbucklers\Steam\lib\steam_api64.lib">
+      <Filter>Source\Swashbucklers\Steam\lib</Filter>
+    </None>
+    <Filter Include="Source\Swashbucklers\Steam\lib\linux32">
+      <UniqueIdentifier>{19E578E8-4030-368A-8362-C931C04D3393}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\Swashbucklers\Steam\lib\linux32\libsdkencryptedappticket.so">
+      <Filter>Source\Swashbucklers\Steam\lib\linux32</Filter>
+    </None>
+    <Filter Include="Source\Swashbucklers\Steam\lib\linux64">
+      <UniqueIdentifier>{AEC6F393-3B53-35FF-982F-6750114E2FB0}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\Swashbucklers\Steam\lib\linux64\libsdkencryptedappticket.so">
+      <Filter>Source\Swashbucklers\Steam\lib\linux64</Filter>
+    </None>
+    <Filter Include="Source\Swashbucklers\Steam\lib\osx">
+      <UniqueIdentifier>{B5FFCF44-C9BA-3D2D-B30F-6C419F848C45}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\Swashbucklers\Steam\lib\osx\libsdkencryptedappticket.dylib">
+      <Filter>Source\Swashbucklers\Steam\lib\osx</Filter>
+    </None>
+    <Filter Include="Source\Swashbucklers\Steam\lib\win32">
+      <UniqueIdentifier>{E16CE7AF-7F8D-33F3-9AF5-6E8681BBA40B}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\Swashbucklers\Steam\lib\win32\sdkencryptedappticket.dll">
+      <Filter>Source\Swashbucklers\Steam\lib\win32</Filter>
+    </None>
+    <None Include="..\..\Source\Swashbucklers\Steam\lib\win32\sdkencryptedappticket.lib">
+      <Filter>Source\Swashbucklers\Steam\lib\win32</Filter>
+    </None>
+    <Filter Include="Source\Swashbucklers\Steam\lib\win64">
+      <UniqueIdentifier>{B2C063DC-B658-3DB8-9F8F-5AF475AFC60E}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\Swashbucklers\Steam\lib\win64\sdkencryptedappticket64.dll">
+      <Filter>Source\Swashbucklers\Steam\lib\win64</Filter>
+    </None>
+    <None Include="..\..\Source\Swashbucklers\Steam\lib\win64\sdkencryptedappticket64.lib">
+      <Filter>Source\Swashbucklers\Steam\lib\win64</Filter>
+    </None>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,13 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\inc\\swashbucklers\\uht\\swashbucklers.init.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "s:\\swashbucklers\\intermediate\\build\\win64\\swashbucklerseditor\\development\\engine\\sharedpch.engine.shadowerrors.h.pch",
+        "Includes": [
+            "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\development\\swashbucklers\\definitions.swashbucklers.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

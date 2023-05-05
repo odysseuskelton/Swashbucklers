@@ -269,6 +269,40 @@ private:
 	void OnBountyChange(int32 Bounty, AActor* DestroyedActor);
 
 	UFUNCTION()
+	void OnPlayerKillChange(int32 PlayerKills);
+
+
+	UFUNCTION(Server, Reliable)
+	void ServerPlayerKillChange(ACaptainState* CaptainStatePlayerKillChange, int32 PlayerKills);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayerKillChange(ACaptainState* CaptainStatePlayerKillChange, int32 PlayerKills);
+
+	UFUNCTION()
+	void OnTowerKillChange(int32 TowerKills);
+
+	UFUNCTION()
+	void OnCaptureChange(int32 Captures);
+
+	UFUNCTION(Server, Reliable)
+	void ServerCaptureChange(ACaptainState* CaptainStateCaptureChange, int32 Captures);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastCaptureChange(ACaptainState* CaptainStateCaptureChange, int32 Captures);
+
+	UFUNCTION(Server, Reliable)
+	void ServerTowerKillChange(ACaptainState* CaptainStateTowerKillChange, int32 TowerKills);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastTowerKillChange(ACaptainState* CaptainStateTowerKillChange, int32 TowerKills);
+
+	UFUNCTION(Server, Reliable)
+	void ServerPlayerBountyChange(ACaptainState* CaptainStateBountyChange,int32 Bounty);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayerBountyChanged(ACaptainState* CaptainStateBountyChange,int32 Bounty);
+
+	UFUNCTION()
 	void OnPiecesOfEightChange(int32 PiecesOfEight, AActor* DestroyedActor, int32 Bounty);
 	//HitInterface Override
 	AActor* GetActorWithAbilityComponent() override;
@@ -291,6 +325,6 @@ public:
 	FORCEINLINE virtual UStaticMeshComponent* GetPlayerShipMesh() override { return ShipMesh; };
 	FORCEINLINE virtual float GetCannonRecoilMultiplierFromShip() override { return CannonRecoilMultiplier; }
 	FORCEINLINE virtual bool LocallyControlledPlayer() override { return IsLocallyControlled(); }
-
+	FORCEINLINE virtual ACaptainState* GetPlayerCaptainState() override { return GetCaptainState(); }
 	FORCEINLINE virtual void SetInteractableInterface(IInteractableInterface* InterfaceToSet) { InteractableInterface = InterfaceToSet; }
 };

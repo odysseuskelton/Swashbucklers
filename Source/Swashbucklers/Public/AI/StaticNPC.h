@@ -122,4 +122,5 @@ public:
 	FORCEINLINE virtual bool IsLocallyControlledInterface() override { return false; }
 	FORCEINLINE virtual bool IsAI() override { return true; }
 
+
 };

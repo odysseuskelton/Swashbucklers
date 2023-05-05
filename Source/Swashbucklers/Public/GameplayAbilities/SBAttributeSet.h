@@ -19,6 +19,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnManaChangeDelegate, float, Mana,
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBountyChangeDelegate, int32, Bounty, AActor*, DestroyedActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSpeedChangeDelegate, float, Speed);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPiecesOfEightDelegate, int32, PiecesOfEight, AActor*, DestroyedActor, int32, BountyToCollect);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerKillChangeDelegate, int32, PlayerKills);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTowerKillChangeDelegate, int32, TowerKills);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCaptureChangeDelegate, int32, Captures);
 
 /**
  * 
@@ -74,6 +77,12 @@ public:
 
 	void CollectBounty(AActor* BountiedActor, float BountyToCollect);
 
+	void AwardKill();
+
+	void AwardTower();
+
+	void AwardCapture();
+
 	void SendPOEToTeam(ETeam Team, int32 Amount);
 
 	void Buy(int32 Cost);
@@ -85,6 +94,9 @@ public:
 	FOnSpeedChangeDelegate OnSpeedChange;
 	FOnBountyChangeDelegate OnBountyChange;
 	FOnPiecesOfEightDelegate OnPiecesOfEightChange;
+	FOnPlayerKillChangeDelegate OnPlayerKillChange;
+	FOnPlayerKillChangeDelegate OnTowerKillChange;
+	FOnCaptureChangeDelegate OnCaptureChange;
 
 	UPROPERTY(Replicated)
 	AActor* InstigatorActor;

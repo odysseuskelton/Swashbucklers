@@ -1,0 +1,23 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\inc\\swashbucklers\\uht\\captainhud.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "s:\\swashbucklers\\intermediate\\build\\win64\\swashbucklerseditor\\development\\engine\\sharedpch.engine.shadowerrors.h.pch",
+        "Includes": [
+            "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\development\\swashbucklers\\definitions.swashbucklers.h",
+            "s:\\swashbucklers\\source\\swashbucklers\\public\\hud\\captainhud.h",
+            "x:\\epic\\ue_5.1\\engine\\source\\runtime\\engine\\classes\\gameframework\\hud.h",
+            "x:\\epic\\ue_5.1\\engine\\source\\runtime\\engine\\classes\\gameframework\\hudhitbox.h",
+            "x:\\epic\\ue_5.1\\engine\\source\\runtime\\engine\\classes\\gameframework\\debugtextinfo.h",
+            "x:\\epic\\ue_5.1\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\debugtextinfo.generated.h",
+            "x:\\epic\\ue_5.1\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\hud.generated.h",
+            "s:\\swashbucklers\\source\\swashbucklers\\public\\gameplayabilities\\abilitytypes.h",
+            "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\inc\\swashbucklers\\uht\\abilitytypes.generated.h",
+            "s:\\swashbucklers\\source\\swashbucklers\\public\\playerstates\\teams.h",
+            "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\inc\\swashbucklers\\uht\\captainhud.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

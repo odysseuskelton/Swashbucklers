@@ -32,62 +32,104 @@ void ULeaderboard::InitializeOverlay(APlayerController* Controller)
 
 void ULeaderboard::AddPlayer(ACaptainState* CaptainState)
 {
-	if (!OwningPlayerController || CaptainStates.Contains(CaptainState)) return;
+	if (!OwningPlayerController || CaptainStates.Contains(CaptainState) || !PlayerSlotClass) return;
 	ULeaderboardPlayerSlot* PlayerSlot = CreateWidget<ULeaderboardPlayerSlot>(OwningPlayerController, PlayerSlotClass);
 
-	if (OwningPlayerController->HasAuthority() && PlayerSlot)
+	if (PlayerSlot)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Add player slot on server, player slot valid"))
-			if (CaptainState && CaptainState->GetPlayerTeam() == ETeam::ET_NoTeam)
+		if (CaptainState->GetPlayerTeam() == ETeam::ET_Privateer)
+		{
+			if (PrivateerScrollBox)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("No team...."))
+				PrivateerScrollBox->AddChild(PlayerSlot);
+				CaptainStates.Add(CaptainState);
 			}
-		if (CaptainState && CaptainState->GetPlayerTeam() == ETeam::ET_Pirate)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("pirate...."))
 		}
-		if (CaptainState && CaptainState->GetPlayerTeam() == ETeam::ET_Privateer)
+		else if (CaptainState->GetPlayerTeam() == ETeam::ET_Pirate)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("pirate...."))
+			if (PirateScrollBox)
+			{
+				PirateScrollBox->AddChild(PlayerSlot);
+				CaptainStates.Add(CaptainState);
+			}
 		}
-	}
+		else
+		{
+			PlayerSlot->RemoveFromParent();
+			return;
+		}
 
+		if (PlayerSlot->PlayerNameText)
+		{
+			PlayerSlot->PlayerNameText->SetText(FText::FromString(CaptainState->GetPlayerName()));
+		}
 
-
-	if (CaptainState->GetPlayerTeam() == ETeam::ET_Privateer)
-	{
-		if (OwningPlayerController->HasAuthority() && PlayerSlot)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Add player slot on server, player slot valid add privateer"))
-		}
-		PrivateerLeaderboardSlots.Add(PlayerSlot);
-		if (PrivateerScrollBox)
-		{
-			PrivateerScrollBox->AddChild(PlayerSlot);
-			CaptainStates.Add(CaptainState);
-		}
-	}
-	else if (CaptainState->GetPlayerTeam() == ETeam::ET_Pirate)
-	{
-		if (OwningPlayerController->HasAuthority() && PlayerSlot)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Add player slot on server, player slot valid add privateer"))
-		}
-		PirateLeaderboardSlots.Add(PlayerSlot);
-		if (PirateScrollBox)
-		{
-			PirateScrollBox->AddChild(PlayerSlot);
-			CaptainStates.Add(CaptainState);
-		}
-	}
-	else
-	{
-		PlayerSlot->RemoveFromParent();
-	}
-
-	if (PlayerSlot && PlayerSlot->PlayerNameText)
-	{
-		PlayerSlot->PlayerNameText->SetText(FText::FromString(CaptainState->GetPlayerName()));
+		PlayerSlot->PlayerName = CaptainState->GetPlayerName();
+		PlayerSlots.Add(PlayerSlot);
 	}
 }
-	
+
+void ULeaderboard::UpdatePlayerBounty(ACaptainState* CaptainState, int32 Bounty)
+{
+	if (PlayerSlots.IsEmpty()) return;
+
+	for (ULeaderboardPlayerSlot* PlayerSlot : PlayerSlots)
+	{
+		if (PlayerSlot->PlayerName == CaptainState->GetPlayerName())
+		{
+			if (PlayerSlot->BountyText)
+			{
+				const FString StringToSet = FString::Printf(TEXT("%d"), Bounty);
+				PlayerSlot->BountyText->SetText(FText::FromString(StringToSet));
+			}
+		}
+	}
+
+}
+
+void ULeaderboard::UpdatePlayerKills(ACaptainState* CaptainState, int32 PlayerKills)
+{
+	if (PlayerSlots.IsEmpty()) return;
+
+	for (ULeaderboardPlayerSlot* PlayerSlot : PlayerSlots)
+	{
+		if (PlayerSlot->PlayerName == CaptainState->GetPlayerName())
+		{
+			if (PlayerSlot->KillText)
+			{
+				const FString StringToSet = FString::Printf(TEXT("%d"), PlayerKills);
+				PlayerSlot->KillText->SetText(FText::FromString(StringToSet));
+			}
+		}
+	}
+}
+
+void ULeaderboard::UpdateTowerKills(ACaptainState* CaptainState, int32 TowerKills)
+{
+	for (ULeaderboardPlayerSlot* PlayerSlot : PlayerSlots)
+	{
+		if (PlayerSlot->PlayerName == CaptainState->GetPlayerName())
+		{
+			if (PlayerSlot->TowerText)
+			{
+				const FString StringToSet = FString::Printf(TEXT("%d"), TowerKills);
+				PlayerSlot->TowerText->SetText(FText::FromString(StringToSet));
+			}
+		}
+	}
+}
+
+void ULeaderboard::UpdateCaptures(ACaptainState* CaptainState, int32 Captures)
+{
+	for (ULeaderboardPlayerSlot* PlayerSlot : PlayerSlots)
+	{
+		if (PlayerSlot->PlayerName == CaptainState->GetPlayerName())
+		{
+			if (PlayerSlot->CaptureText)
+			{
+				const FString StringToSet = FString::Printf(TEXT("%d"), Captures);
+				PlayerSlot->CaptureText->SetText(FText::FromString(StringToSet));
+			}
+		}
+	}
+}

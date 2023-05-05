@@ -86,21 +86,7 @@ void AStore::ExitStore(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, 
 
 void AStore::BeginInteraction(APlayerController* InteractingController)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Store begin interaction"))
-	if (InteractingController)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Interacting Controller valid"))
-	}
-	if (!ShipwrightWidget)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No widget"))
 
-	}
-	if (!InteractingController->IsLocalController())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("LocalController"))
-
-	}
 
 	if (!InteractingController || !ShipwrightWidgetClass || !InteractingController->IsLocalController() || ShipwrightWidget) return;
 

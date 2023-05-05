@@ -324,16 +324,7 @@ void USBGameInstance::SwitchTeams(ACaptainState* CaptainStateTeamToSwitch)
 
 void USBGameInstance::CheckTeams()
 {
-	for (FString Name : PirateTeamNames)
-	{
 
-		UE_LOG(LogTemp, Warning, TEXT("Pirate Team: %s"), *Name);
-	}
-
-	for (FString Name : PrivateerTeamNames)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Privateer Team: %s"), *Name);
-	}
 }
 
 void USBGameInstance::ClearTeams()

@@ -34,7 +34,7 @@ public:
 	void UpdateAnnouncement(float CountdownTime);
 
 	void UpdateHUDTreasureWaitingToSpawn();
-	void UpdateHUDTreasureHasSpawned();
+	void UpdateHUDTreasureHasSpawned(FVector TreasureLocation);
 	void UpdateHUDTreasureHasBeenCaptured(ETeam TeamCapturingTreasure, ETeam PlayerTeam);
 
 	void SendDeathAnnouncementToHUD(FString SunkCapName, FString SinkingCapName, ETeam SunkCapTeam, ETeam SinkingCapTeam);
@@ -56,6 +56,13 @@ public:
 	ULeaderboard* LeaderboardOverlay;
 
 	void AddPlayerToLeaderboard(ACaptainState* CaptainState);
+
+	void UpdatePlayerBountyOnLeaderboard(ACaptainState* CaptainState, int32 Bounty);
+	void UpdateHUDKills(ACaptainState* CapStateToUpdate, int32 PlayerKills);
+
+	void UpdateHUDTowers(ACaptainState* CapStateToUpdate, int32 TowerKills);
+
+	void UpdateHUDCaptures(ACaptainState* CaptainState, int32 Captures);
 
 protected:
 	virtual void BeginPlay() override;

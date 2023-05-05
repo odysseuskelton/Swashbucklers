@@ -9,6 +9,7 @@
 class IHitInterface;
 class UCaptureProgressComponent;
 class ASBGameMode;
+class ASBGameState;
 
 UCLASS()
 class SWASHBUCKLERS_API ACapturePoint : public AActor

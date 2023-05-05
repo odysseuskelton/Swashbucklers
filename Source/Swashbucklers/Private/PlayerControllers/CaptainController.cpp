@@ -3,6 +3,7 @@
 
 #include "PlayerControllers/CaptainController.h"
 #include "GameplayAbilities/SBAttributeSet.h"
+#include "Interfaces/PlayerInterface.h"
 #include "HUD/CaptainHUD.h"
 #include "HUD/InGameMenu.h"
 #include "HUD/Announcement.h"
@@ -41,20 +42,44 @@ void ACaptainController::BindLeaderboardDelegates()
 	CaptainState = CaptainState == nullptr ? GetPlayerState<ACaptainState>() : CaptainState;
 	if (CaptainState)
 	{
-		CaptainState->GetAttributeSet()->OnBountyChange.AddUniqueDynamic(this, &ACaptainController::OnBountyChange);
+		//CaptainState->GetAttributeSet()->OnBountyChange.AddUniqueDynamic(this, &ACaptainController::PlayerBountyChange);
 		//CaptainState->GetAttributeSet()->O.AddUniqueDynamic(this, &APlayerShip::OnManaChanged);
 	}
 }
 
-void ACaptainController::OnBountyChange(int32 Bounty, AActor* DestroyedActor)
-{
-	if (!HasAuthority()) return;
-	CaptainHUD = CaptainHUD == nullptr ? Cast<ACaptainHUD>(GetHUD()) : CaptainHUD;
-	if (CaptainHUD)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("bounty change on captain controller authoritaty"))
-	}
-}
+//void ACaptainController::PlayerBountyChange(int32 Bounty, AActor* DestroyedActor)
+//{
+//	if (HasAuthority())
+//	{
+//		MulticastPlayerBountyChange(Bounty, DestroyedActor, GetPawn());
+//	}
+//	else
+//	{
+//		ServerPlayerBountyChange(Bounty, DestroyedActor, GetPawn());
+//	}
+//}
+//
+//void ACaptainController::ServerPlayerBountyChange_Implementation(int32 Bounty, AActor* DestroyedActor, AActor* DestroyingActor)
+//{
+//	MulticastPlayerBountyChange(Bounty, DestroyedActor, DestroyingActor);
+//}
+//
+//void ACaptainController::MulticastPlayerBountyChange_Implementation(int32 Bounty, AActor* DestroyedActor, AActor* DestroyingActor)
+//{
+//	IPlayerInterface* DestroyedActorPlayer = Cast<IPlayerInterface>(DestroyedActor);
+//	IPlayerInterface* DestroyingActorPlayer = Cast<IPlayerInterface>(DestroyingActor);
+//
+//	if(DestroyedActorPlayer && DestroyingActorPlayer && DestroyedActorPlayer->GetPlayerCaptainState() && DestroyingActorPlayer->GetPlayerCaptainState())
+//	{
+//		ACaptainState* DestroyedCapState = DestroyedActorPlayer->GetPlayerCaptainState();
+//		ACaptainState* DestroyingCapState = DestroyingActorPlayer->GetPlayerCaptainState();
+//		if (DestroyedCapState && DestroyingCapState)
+//		{
+//			UE_LOG(LogTemp, Warning, TEXT("BountyChange multicast -- Destroyed Actor %s , Instigator Actor %s"), *DestroyedCapState->GetPlayerName(), *DestroyingCapState->GetPlayerName())
+//		}
+//
+//	}
+//}
 
 void ACaptainController::InitializePlayerController()
 {
@@ -162,6 +187,13 @@ void ACaptainController::Tick(float DeltaTime)
 	CheckTimeSynch(DeltaTime);
 	PollInit();
 
+	ASBGameState* SBGameState = GetWorld()->GetGameState<ASBGameState>();
+
+	if (MatchState == MatchState::TreasureSpawned && SBGameState->TreasureLocation != FVector::ZeroVector && bTreasureLocationOnClient == false && !HasAuthority())
+	{
+		CaptainHUD->UpdateHUDTreasureHasSpawned(SBGameState->TreasureLocation);
+		bTreasureLocationOnClient = true;
+	}
 
 }
 
@@ -312,7 +344,11 @@ void ACaptainController::HandleTreasureHasSpawned()
 	CaptainHUD = CaptainHUD == nullptr ? Cast<ACaptainHUD>(GetHUD()) : CaptainHUD;
 	if (CaptainHUD)
 	{
-		CaptainHUD->UpdateHUDTreasureHasSpawned();
+		ASBGameState* SBGameState = GetWorld()->GetGameState<ASBGameState>();
+		if (SBGameState && HasAuthority())
+		{
+			CaptainHUD->UpdateHUDTreasureHasSpawned(SBGameState->TreasureLocation);
+		}
 	}
 }
 
@@ -326,6 +362,11 @@ void ACaptainController::HandleTreasureCaptured()
 		if (SBGameState)
 		{
 			CaptainHUD->UpdateHUDTreasureHasBeenCaptured(SBGameState->TeamCapturingTreasure, CaptainState->GetPlayerTeam());			
+		}
+
+		if (!HasAuthority() && bTreasureLocationOnClient == true)
+		{
+			bTreasureLocationOnClient = false;
 		}
 	}
 }

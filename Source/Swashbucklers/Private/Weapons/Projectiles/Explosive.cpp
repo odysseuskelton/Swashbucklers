@@ -44,11 +44,6 @@ void AExplosive::BeginPlay()
 
 	ExplosiveMesh->OnComponentBeginOverlap.AddDynamic(this, &AExplosive::ExplosiveOverlap);
 	
-
-	if (GetOwner())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Owner Name %s"), *GetOwner()->GetName())	
-	}
 }
 
 void AExplosive::ExplosiveOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -227,7 +222,6 @@ void AExplosive::ExplosiveActivated()
 	}
 
 	++NumberOfPulsesActivated;
-	UE_LOG(LogTemp, Warning, TEXT("Number of pulses %d"), NumberOfPulsesActivated)
 	if (NumberOfPulsesActivated <= 16)
 	{
 		GetWorldTimerManager().SetTimer(ActivatedTimerHandle, this, &AExplosive::ExplosiveActivated, 0.1);

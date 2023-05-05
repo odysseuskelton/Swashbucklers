@@ -10,7 +10,7 @@
 #include "Interfaces/CaptainStateInterface.h"
 #include "Interfaces/PlayerInterface.h"
 #include "GameplayEffect.h"
-
+	
 USBAttributeSet::USBAttributeSet() :
 	Health(500.f),
 	MaxHealth(500.f), 
@@ -75,22 +75,40 @@ void USBAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, f
 
 void USBAttributeSet::CollectBounty(AActor* BountiedActor, float BountyToCollect)
 {
+	IPlayerInterface* PlayerInterface = Cast<IPlayerInterface>(BountiedActor);
+	if (PlayerInterface)
+	{
+		AwardKill();
+	}
+
 	if (!GetActorInfo()->AvatarActor.IsValid() || !GetActorInfo()->AvatarActor->HasAuthority()) return;
 
 	Bounty.SetCurrentValue(FMath::CeilToInt(Bounty.GetCurrentValue() + BountyToCollect / 2));
 	DestroyedActor = BountiedActor;
 	BountyCollected = BountyToCollect;
 
-	IPlayerInterface* PlayerInterface = Cast<IPlayerInterface>(BountiedActor);
-	if (PlayerInterface)
-	{
-		PlayerKills.SetCurrentValue(PlayerKills.GetCurrentValue() + 1);
-	}
 	OnBountyChange.Broadcast(FMath::CeilToInt(Bounty.GetCurrentValue()), DestroyedActor);
-
 
 	PiecesOfEight.SetCurrentValue(FMath::CeilToInt(PiecesOfEight.GetCurrentValue() + BountyToCollect));
 	OnPiecesOfEightChange.Broadcast(FMath::CeilToInt(PiecesOfEight.GetCurrentValue()), DestroyedActor, BountyToCollect);
+}
+
+void USBAttributeSet::AwardKill()
+{
+	PlayerKills.SetCurrentValue(PlayerKills.GetCurrentValue() + 1);
+	OnPlayerKillChange.Broadcast(FMath::CeilToInt(PlayerKills.GetCurrentValue()));
+}
+
+void USBAttributeSet::AwardTower()
+{
+	TowerKills.SetCurrentValue(TowerKills.GetCurrentValue() + 1);
+	OnTowerKillChange.Broadcast(FMath::CeilToInt(TowerKills.GetCurrentValue()));
+}
+
+void USBAttributeSet::AwardCapture()
+{
+	TreasureCaptures.SetCurrentValue(TreasureCaptures.GetCurrentValue() + 1);
+	OnCaptureChange.Broadcast(FMath::CeilToInt(TreasureCaptures.GetCurrentValue()));
 }
 
 void USBAttributeSet::SendPOEToTeam(ETeam Team, int32 Amount)
@@ -185,5 +203,7 @@ void USBAttributeSet::OnRep_TowerKills(const FGameplayAttributeData& OldTowerKil
 void USBAttributeSet::OnRep_PlayerKills(const FGameplayAttributeData& OldPlayerKills)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(USBAttributeSet, PlayerKills, OldPlayerKills);
+
+	//OnPlayerKillChange.Broadcast(FMath::CeilToInt(PlayerKills.GetCurrentValue()));
 }
 

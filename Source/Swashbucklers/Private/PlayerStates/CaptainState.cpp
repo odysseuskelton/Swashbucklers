@@ -123,7 +123,6 @@ void ACaptainState::RemoveActiveEffects()
 		FGameplayEffectQuery Query;
 		Query.ModifyingAttribute;
 		AbilityComponent->RemoveActiveEffects(Query);
-		UE_LOG(LogTemp, Warning, TEXT("RemoveActiveEffects"))
 	}
 }
 
@@ -429,11 +428,6 @@ void ACaptainState::SetTeam(ETeam TeamToSet)
 
 	}	
 	ASBGameState* SBGameState = GetWorld()->GetGameState<ASBGameState>();
-	if (SBGameState)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Setteam register"))
-		//SBGameState->RegisterCaptainState(this);
-	}
 
 }
 

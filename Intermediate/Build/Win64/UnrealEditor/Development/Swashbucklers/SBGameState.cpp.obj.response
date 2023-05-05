@@ -320,6 +320,11 @@ S:\Swashbucklers\Source\Swashbucklers\Private\GameStates\SBGameState.cpp
 /I ..\Plugins\Online\OnlineSubsystemUtils\Source
 /I ..\Plugins\Online\OnlineSubsystemUtils\Source\OnlineSubsystemUtils\Classes
 /I ..\Plugins\Online\OnlineSubsystemUtils\Source\OnlineSubsystemUtils\Public
+/I ..\Plugins\Marketplace\SenseSystem\Intermediate\Build\Win64\UnrealEditor\Inc\SenseSystem\UHT
+/I ..\Plugins\Marketplace\SenseSystem\Source
+/I ..\Plugins\Marketplace\SenseSystem\Source\SenseSystem\Public
+/I ..\Plugins\Marketplace\SenseSystem\Source\SenseSystem\Public\Sensors
+/I ..\Plugins\Marketplace\SenseSystem\Source\SenseSystem\Public\Sensors\Tests
 /external:W0
 /external:I ThirdParty\mimalloc\include
 /external:I ThirdParty\LibTiff\Source\Win64

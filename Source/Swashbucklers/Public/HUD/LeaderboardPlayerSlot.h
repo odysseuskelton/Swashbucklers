@@ -17,6 +17,8 @@ class SWASHBUCKLERS_API ULeaderboardPlayerSlot : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	FString PlayerName;
+
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* PlayerNameText;
 	

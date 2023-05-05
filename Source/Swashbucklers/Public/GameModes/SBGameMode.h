@@ -19,6 +19,7 @@ class ACaptainState;
 class AMerchantShip;
 class ACapturePoint;
 class ASBGameState;
+class AAIShip;
 /**
  * 
  */
@@ -26,6 +27,11 @@ UCLASS()
 class SWASHBUCKLERS_API ASBGameMode : public AGameMode
 {
 	GENERATED_BODY()
+
+public:
+	AActor* PirateGoal;
+
+	AActor* PrivateerGoal;
 	
 protected:
 	ASBGameMode();
@@ -37,8 +43,29 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> KrakenToSpawn;
 
+	UPROPERTY(EditAnywhere)
+	float AIWaveSpawnTime = 15.f;
+	FTimerHandle AIWaveTimer;
+
+	UPROPERTY(EditAnywhere)
+	float TimeBetweenAISpawn = 2.5f;
+	FTimerHandle SpawnDelayTimer;
+	void SpawnAI();
+
+	void HandleAISpawn(ETeam AITeam);
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AAIShip> WaveShipClass;
+
+	UPROPERTY(EditAnywhere)
+	int32 NumberOfAIToSpawn = 3;
+
+	UPROPERTY(EditAnywhere)
+	int32 SpawnIndex = 0;
+
 	void SpawnKraken();
 	virtual void OnMatchStateSet() override;
+	void HandleTreasureWaitingToSpawn();
 	void HandleTreasureCaptured();
 	void HandleTreasureSpawned();
 	virtual void Tick(float DeltaTime) override;
@@ -47,9 +74,6 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AMerchantShip> MerchantShipClass;
 
-	AActor* PirateGoal;
-
-	AActor* PrivateerGoal;
 
 public:
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;

@@ -3,6 +3,7 @@
 
 #include "GameModes/SBGameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "GameStates/SBGameState.h"
 #include "GameFramework/PlayerStart.h"
 #include "PlayerControllers/CaptainController.h"
@@ -59,6 +60,58 @@ void ASBGameMode::BeginPlay()
 
 	GetWorldTimerManager().SetTimer(KrakenSpawnTimer, this, &ASBGameMode::SpawnKraken, KrakenSpawnTime);
 
+	//GetWorldTimerManager().SetTimer(SpawnDelayTimer, this, &ASBGameMode::SpawnAI, TimeBetweenAISpawn);
+}
+
+void ASBGameMode::SpawnAI()
+{
+	HandleAISpawn(ETeam::ET_Pirate);
+	HandleAISpawn(ETeam::ET_Privateer);
+
+	++SpawnIndex;
+	if (SpawnIndex >= NumberOfAIToSpawn)
+	{
+		SpawnIndex = 0;
+		GetWorldTimerManager().SetTimer(AIWaveTimer, this, &ASBGameMode::SpawnAI, AIWaveSpawnTime);
+	}
+	else
+	{
+		GetWorldTimerManager().SetTimer(SpawnDelayTimer, this, &ASBGameMode::SpawnAI, TimeBetweenAISpawn);
+	}
+}
+
+void ASBGameMode::HandleAISpawn(ETeam AITeam)
+{
+	UWorld* World = GetWorld();
+
+	if (World)
+	{
+		FActorSpawnParameters SpawnInfo;
+		if (AITeam == ETeam::ET_Pirate && PirateGoal && PrivateerGoal)
+		{
+			AAIShip* PirateShip = World->SpawnActor<AAIShip>(
+				WaveShipClass, 
+				PirateGoal->GetActorLocation(), 
+				UKismetMathLibrary::FindLookAtRotation(PirateGoal->GetActorLocation(), 
+				PrivateerGoal->GetActorLocation()), 
+				SpawnInfo);
+
+			PirateShip->SetTeam(ETeam::ET_Pirate);
+			PirateShip->MoveToLocation(PrivateerGoal->GetActorLocation(), 0.f);
+		}
+		else if (AITeam == ETeam::ET_Privateer && PirateGoal && PrivateerGoal)
+		{
+			AAIShip* PrivateerShip = World->SpawnActor<AAIShip>(
+				WaveShipClass,
+				PrivateerGoal->GetActorLocation(),
+				UKismetMathLibrary::FindLookAtRotation(PrivateerGoal->GetActorLocation(),
+				PirateGoal->GetActorLocation()),
+				SpawnInfo);
+
+			PrivateerShip->SetTeam(ETeam::ET_Privateer);
+			PrivateerShip->MoveToLocation(PirateGoal->GetActorLocation(), 0.f);
+		}
+	}
 }
 
 void ASBGameMode::SpawnKraken()
@@ -72,7 +125,7 @@ void ASBGameMode::SpawnKraken()
 
 	if (OutActors.IsValidIndex(Selection))
 	{
-		FActorSpawnParameters SpawnInfo;
+		 FActorSpawnParameters SpawnInfo;
 		 GetWorld()->SpawnActor<AActor>(KrakenToSpawn, OutActors[Selection]->GetActorLocation(), FRotator::ZeroRotator, SpawnInfo);
 	}
 
@@ -84,18 +137,10 @@ void ASBGameMode::OnMatchStateSet()
 {
 	Super::OnMatchStateSet();
 
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-	{
-		ACaptainController* CaptainController = Cast<ACaptainController>(*It);
-		if (CaptainController)
-		{
-			CaptainController->OnMatchStateSet(MatchState);
-		}
-	}
-	
 	if (MatchState == MatchState::InProgress && bDelayedStart == true)
 	{
 		SetMatchState(MatchState::WaitingForTreasureToSpawn);
+		HandleTreasureWaitingToSpawn();
 	}
 	else if (MatchState == MatchState::TreasureSpawned)
 	{
@@ -106,6 +151,23 @@ void ASBGameMode::OnMatchStateSet()
 		HandleTreasureCaptured();
 	}
 
+
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		ACaptainController* CaptainController = Cast<ACaptainController>(*It);
+		if (CaptainController)
+		{
+			CaptainController->OnMatchStateSet(MatchState);
+		}
+	}
+
+}
+
+void ASBGameMode::HandleTreasureWaitingToSpawn()
+{
+	if (GetWorldTimerManager().IsTimerActive(AIWaveTimer) || GetWorldTimerManager().IsTimerActive(SpawnDelayTimer)) return;
+
+	SpawnAI();
 }
 
 void ASBGameMode::HandleTreasureSpawned()
@@ -119,7 +181,7 @@ void ASBGameMode::HandleTreasureSpawned()
 	AActor* RandomCapturePointSelection;
 	UGameplayStatics::GetAllActorsOfClass(this, ACapturePoint::StaticClass(), FoundActors);
 	uint32 RandomSelection = FMath::RandRange(0, FoundActors.Num() - 1);
-
+	
 	if (FoundActors.IsValidIndex(RandomSelection))
 	{
 		RandomCapturePointSelection = FoundActors[RandomSelection];
@@ -129,6 +191,11 @@ void ASBGameMode::HandleTreasureSpawned()
 			if (CapturePoint)
 			{
 				CapturePoint->SetCapturePointVisibility(true);
+				SBGameState = SBGameState == nullptr ? GetGameState<ASBGameState>() : SBGameState;
+				if (SBGameState)
+				{
+					SBGameState->TreasureLocation = CapturePoint->GetActorLocation();
+				}
 				ActiveCapturePoint = CapturePoint;
 			}
 		}
@@ -142,6 +209,7 @@ void ASBGameMode::HandleTreasureCaptured()
 
 	if (ActiveCapturePoint && SBGameState)
 	{
+		SBGameState->TreasureLocation = FVector::ZeroVector;
 		ActiveCapturePoint->SetCapturePointVisibility(false);
 		FActorSpawnParameters SpawnInfo;
 		FTransform SpawnTransform = ActiveCapturePoint->GetCapturePointTransform();
@@ -231,7 +299,6 @@ void ASBGameMode::Tick(float DeltaTime)
 
 void ASBGameMode::PostLogin(APlayerController* NewPlayer)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Player name %s"), *NewPlayer->GetName())
 
 	USBGameInstance* SBGameInstance = GetGameInstance<USBGameInstance>();
 	if (SBGameInstance)
@@ -300,7 +367,6 @@ void ASBGameMode::RequestRespawn(APawn* ElimmedShip, AController* ElimmedControl
 
 void ASBGameMode::RestartPlayer(AController* NewPlayer)
 {
-	UE_LOG(LogTemp, Warning, TEXT("restart"))
 
 	if (NewPlayer == nullptr || NewPlayer->IsPendingKillPending())
 	{

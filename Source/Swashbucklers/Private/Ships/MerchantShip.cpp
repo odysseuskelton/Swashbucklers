@@ -38,10 +38,7 @@ void AMerchantShip::BeginPlay()
 
 
 	UGameplayStatics::GetAllActorsOfClass(this, ANavCheckPoints::StaticClass(), NavPoints); 
-	for (AActor* Navpoint : NavPoints)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Nav point found"))
-	}
+
 	FindNextCheckpoint();
 
 }
@@ -72,7 +69,6 @@ void AMerchantShip::ShipBeginOverlap(UPrimitiveComponent* OverlappedComponent, A
 void AMerchantShip::TreasureResolved()
 {
 	ASBGameMode* GameMode = Cast<ASBGameMode>(UGameplayStatics::GetGameMode(this));
-	UE_LOG(LogTemp, Warning, TEXT("Treasure Resolved"))
 
 		if (GameMode)
 		{
@@ -139,10 +135,8 @@ void AMerchantShip::DestroyTimerFinished()
 
 void AMerchantShip::FindNextCheckpoint()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Find next checkpoint enter"))
 
 	if (NavPoints.IsEmpty() || !CurrentTarget) return;
-	UE_LOG(LogTemp, Warning, TEXT("Find next checkpoint"))
 
 	TArray<AActor*> ReachableNavPoints;
 	UWorld* World = GetWorld();
@@ -174,7 +168,7 @@ void AMerchantShip::FindNextCheckpoint()
 					{
 						ClosestNavPoint = DistNavToTarget;
 						CurrentTargetNavPoint = NavPoint;
-						MoveToLocation(NavPoint->GetActorLocation());
+						MoveToLocation(NavPoint->GetActorLocation(), 0.f);
 					}
 				}
 			}

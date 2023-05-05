@@ -16,13 +16,43 @@ void ACaptainHUD::BeginPlay()
 
 void ACaptainHUD::AddPlayerToLeaderboard(ACaptainState* CaptainState)
 {
-
 	LeaderboardOverlay = LeaderboardOverlay == nullptr ? InitializeLeaderboardOverlay() : LeaderboardOverlay;
 	if (LeaderboardOverlay)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Addplayertoleadboard onserver"))
-
 		LeaderboardOverlay->AddPlayer(CaptainState);
+	}
+}
+
+void ACaptainHUD::UpdatePlayerBountyOnLeaderboard(ACaptainState* CaptainState, int32 Bounty)
+{
+	LeaderboardOverlay = LeaderboardOverlay == nullptr ? InitializeLeaderboardOverlay() : LeaderboardOverlay;
+	if (LeaderboardOverlay)
+	{
+		LeaderboardOverlay->UpdatePlayerBounty(CaptainState, Bounty);
+	}
+}
+
+void ACaptainHUD::UpdateHUDKills(ACaptainState* CapStateToUpdate, int32 PlayerKills)
+{
+	if (LeaderboardOverlay)
+	{
+		LeaderboardOverlay->UpdatePlayerKills(CapStateToUpdate, PlayerKills);
+	}
+}
+
+void ACaptainHUD::UpdateHUDTowers(ACaptainState* CapStateToUpdate, int32 TowerKills)
+{
+	if (LeaderboardOverlay)
+	{
+		LeaderboardOverlay->UpdateTowerKills(CapStateToUpdate, TowerKills);
+	}
+}
+
+void ACaptainHUD::UpdateHUDCaptures(ACaptainState* CaptainState, int32 Captures)
+{
+	if (LeaderboardOverlay)
+	{
+		LeaderboardOverlay->UpdateCaptures(CaptainState, Captures);
 	}
 }
 
@@ -152,11 +182,11 @@ void ACaptainHUD::UpdateHUDTreasureWaitingToSpawn()
 	}
 }
 
-void ACaptainHUD::UpdateHUDTreasureHasSpawned()
+void ACaptainHUD::UpdateHUDTreasureHasSpawned(FVector TreasureLocation)
 {
 	if (CaptainOverlay)
 	{
-		CaptainOverlay->TreasureHasSpawned();
+		CaptainOverlay->TreasureHasSpawned(TreasureLocation);
 	}
 }
 
@@ -171,7 +201,6 @@ void ACaptainHUD::UpdateHUDTreasureHasBeenCaptured(ETeam TeamCapturingTreasure, 
 
 void ACaptainHUD::SendDeathAnnouncementToHUD(FString SunkCapName, FString SinkingCapName, ETeam SunkCapTeam, ETeam SinkingCapTeam)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Send Announcment"))
 	if (!SunkCapName.IsEmpty() && !SinkingCapName.IsEmpty() && CaptainOverlay)
 	{
 		CaptainOverlay->CreateDeathAnnouncement(SunkCapName, SinkingCapName, SunkCapTeam, SinkingCapTeam);

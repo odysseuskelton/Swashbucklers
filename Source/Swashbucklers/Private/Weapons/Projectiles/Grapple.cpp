@@ -71,11 +71,9 @@ void AGrapple::CollisionSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 
 			if (HitActor)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Hit actor interface %s"), *SphereHit.GetActor()->GetName())
 
 				if (InstigatorInterface && HitInterface && InstigatorInterface->GetHitActorTeam() != HitInterface->GetHitActorTeam())
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Made it into hitactor team %s"), *SphereHit.GetActor()->GetName())
 					ProjectileMovement->DestroyComponent();
 					SetLifeSpan(GrappleDuration);
 					FAttachmentTransformRules TransformRules(EAttachmentRule::KeepRelative, false);

@@ -13,6 +13,21 @@ class AAIController;
 class USBAbilitySystemComponent;
 class USBAttributeSet;
 class USBGameplayAbility;
+class USenseReceiverComponent;
+
+UENUM(BlueprintType)
+enum class EAIState : uint8
+{
+	EAI_NoState UMETA(DisplayName = "NoState"),
+	EAI_Dead UMETA(DisplayName = "Dead"),
+	EAI_Patrolling UMETA(DisplayName = "Patrolling"),
+	EAI_Aggroed UMETA(DisplayName = "Aggroed"),
+	EAI_Repositioning UMETA(DisplayName = "Repositioning"),
+	EAI_Chasing UMETA(DisplayName = "Chasing"),
+	EAI_Attacking UMETA(DisplayName = "Attacking"),
+	EAI_Engaged UMETA(DisplayName = "Engaged")
+};
+
 /**
  * 
  */
@@ -23,9 +38,9 @@ class SWASHBUCKLERS_API AAIShip : public AShip, public IAbilitySystemInterface
 	
 public:
 	void MoveToTarget(AActor* Target);
-	void MoveToLocation(FVector LocationToMoveTo);
+	void MoveToLocation(FVector LocationToMoveTo, float AcptRadius);
 	UFUNCTION(Server, Reliable)
-	void ServerMoveToLocation(FVector LocationToMoveTo);
+	void ServerMoveToLocation(FVector LocationToMoveTo, float AcptRadius);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void SetTeam(ETeam TeamToSet);
@@ -37,7 +52,11 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
+	virtual void Die(AActor* InstigatorActor) override;
+
 	virtual void MulticastOnHealthChanged_Implementation(float Health, float MaxHealth, AActor* InstigatorActor) override;
+
+	EAIState AIState = EAIState::EAI_Patrolling;
 
 	void Tick(float DeltaTime);
 	void InitializeEnemy();
@@ -61,6 +80,9 @@ protected:
 
 	AAIController* AIController;
 
+	UPROPERTY(VisibleAnywhere)
+	USenseReceiverComponent* Sensor;
+
 public:
 
 
@@ -74,6 +96,9 @@ public:
 
 	//IAbilitySystemInterface Override
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	bool ShipIsIdle();
+
 
 
 };

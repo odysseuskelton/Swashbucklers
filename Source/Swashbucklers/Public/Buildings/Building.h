@@ -17,6 +17,7 @@ class USBGameplayAbility;
 class UHealthbarComponent;
 class UNiagaraSystem;
 class UGameplayEffect;
+class USenseStimulusComponent;
 
 UCLASS()
 class SWASHBUCKLERS_API ABuilding : public AActor, public IAbilitySystemInterface, public IHitInterface
@@ -34,6 +35,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AbilitySystem", meta = (AllowPrivateAccess))
 	USBAbilitySystemComponent* AbilityComponent;
 
+	UPROPERTY(VisibleAnywhere)
+	USenseStimulusComponent* StimulusComponent;
+
 	UFUNCTION()
 	void OnBuildingHealthChange(float Health, float MaxHealth, AActor* InstigatorActor);
 
@@ -42,7 +46,7 @@ protected:
 
 	void SpawnDamageSystem(uint16 NumberOfSystemsToSpawn);
 
-	virtual void Die();
+	virtual void Die(AActor* InstigatorActor);
 	FTimerHandle DeathTimer;
 	void DeathTimerFinished();
 	UPROPERTY(EditAnywhere)

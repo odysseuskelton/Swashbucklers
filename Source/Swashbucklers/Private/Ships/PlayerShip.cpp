@@ -163,7 +163,6 @@ void APlayerShip::FireStarboardCannons()
 {
 	Super::FireStarboardCannons();
 
-	UE_LOG(LogTemp, Warning, TEXT("Ability to activate %s"), *StarboardCannonAbility.GetDefaultObject()->GetName())
 	if (bIsDead) return;
 	if (HasAuthority())
 	{
@@ -592,8 +591,6 @@ void APlayerShip::AuxiliaryCannonActive()
 	//DrawDebugSphere(GetWorld(), MuzzleTransform.GetLocation(), 130, 12, FColor::Red);
 	for(FHitResult Hit : HitActors)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("hit actor"))
-
 		IHitInterface* HitInterface = Cast<IHitInterface>(Hit.GetActor());
 		IHitInterface* InstigatorInterface = Cast<IHitInterface>(this);
 		if (HitInterface)
@@ -807,6 +804,9 @@ void APlayerShip::BindAbilityComponentDelegates()
 		CaptainState->GetAttributeSet()->OnSpeedChange.AddUniqueDynamic(this, &APlayerShip::OnSpeedChanged);
 		CaptainState->GetAttributeSet()->OnBountyChange.AddUniqueDynamic(this, &APlayerShip::OnBountyChange);
 		CaptainState->GetAttributeSet()->OnPiecesOfEightChange.AddUniqueDynamic(this, &APlayerShip::OnPiecesOfEightChange);
+		CaptainState->GetAttributeSet()->OnPlayerKillChange.AddUniqueDynamic(this, &APlayerShip::OnPlayerKillChange);
+		CaptainState->GetAttributeSet()->OnTowerKillChange.AddUniqueDynamic(this, &APlayerShip::OnTowerKillChange);
+		CaptainState->GetAttributeSet()->OnCaptureChange.AddUniqueDynamic(this, &APlayerShip::OnCaptureChange);
 	}
 }
 
@@ -823,25 +823,14 @@ void APlayerShip::CanInteract(UPrimitiveComponent* OverlappedComponent, AActor* 
 	if (HasAuthority())
 	{
 		InteractableInterface = Cast<IInteractableInterface>(OtherActor);
-		if (InteractableInterface)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Found interactable interfaec"))
 
-		}
 	}
 }
 
 void APlayerShip::StartInteracting()
 {
-	if (!InteractableInterface)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Interfface invalid"))
-
-	}
-
 	if (HasAuthority())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Begin interacting"))
 		if (InteractableInterface == nullptr || !IsLocallyControlled() || !PlayerController) return;
 		InteractableInterface->BeginInteraction(PlayerController);
 	}
@@ -893,11 +882,16 @@ ACaptainState* APlayerShip::GetCaptainState()
 	CaptainState = CaptainState == nullptr ? Cast<ACaptainState>(GetPlayerState()) : CaptainState;
 	if (CaptainState)
 	{
+
 		CaptainState->GetAttributeSet()->OnHealthChange.AddUniqueDynamic(this, &AShip::OnHealthChanged);
 		CaptainState->GetAttributeSet()->OnManaChange.AddUniqueDynamic(this, &APlayerShip::OnManaChanged);
 		CaptainState->GetAttributeSet()->OnSpeedChange.AddUniqueDynamic(this, &APlayerShip::OnSpeedChanged);
 		CaptainState->GetAttributeSet()->OnBountyChange.AddUniqueDynamic(this, &APlayerShip::OnBountyChange);
 		CaptainState->GetAttributeSet()->OnPiecesOfEightChange.AddUniqueDynamic(this, &APlayerShip::OnPiecesOfEightChange);
+		CaptainState->GetAttributeSet()->OnPlayerKillChange.AddUniqueDynamic(this, &APlayerShip::OnPlayerKillChange);
+		CaptainState->GetAttributeSet()->OnTowerKillChange.AddUniqueDynamic(this, &APlayerShip::OnTowerKillChange);
+		CaptainState->GetAttributeSet()->OnCaptureChange.AddUniqueDynamic(this, &APlayerShip::OnCaptureChange);
+
 		return CaptainState;
 		/*AcquireCannonAbilities();*/
 	}
@@ -975,7 +969,94 @@ void APlayerShip::OnBountyChange(int32 Bounty, AActor* DestroyedActor)
 		PlayerNameplateComponent->SetPlayerBounty(Bounty);
 	}
 
+	/*if (HasAuthority())
+	{
+		MulticastPlayerBountyChanged(CaptainState);
+	}
+	else
+	{*/
+		ServerPlayerBountyChange(CaptainState, Bounty);
+	//}
 }
+
+void APlayerShip::ServerPlayerBountyChange_Implementation(ACaptainState* CaptainStateBountyChange,int32 Bounty)
+{
+	MulticastPlayerBountyChanged(CaptainStateBountyChange, Bounty);
+}
+
+void APlayerShip::MulticastPlayerBountyChanged_Implementation(ACaptainState* CaptainStateBountyChange,int32 Bounty)
+{
+	ASBGameState* GameState = GetWorld()->GetGameState<ASBGameState>();
+	if (GameState)
+	{
+		GameState->PlayerBountyChanged(CaptainState, Bounty);
+	}
+}
+
+void APlayerShip::OnPlayerKillChange(int32 PlayerKills)
+{
+
+	if (!IsLocallyControlled()) return;
+	
+	ServerPlayerKillChange(CaptainState, PlayerKills);
+}
+
+void APlayerShip::ServerPlayerKillChange_Implementation(ACaptainState* CaptainStatePlayerKillChange, int32 PlayerKills)
+{
+	MulticastPlayerKillChange(CaptainStatePlayerKillChange, PlayerKills);
+}
+
+void APlayerShip::MulticastPlayerKillChange_Implementation(ACaptainState* CaptainStatePlayerKillChange, int32 PlayerKills)
+{
+	ASBGameState* GameState = GetWorld()->GetGameState<ASBGameState>();
+	if (GameState)
+	{
+		GameState->UpdatePlayerKills(CaptainState, PlayerKills);
+	}
+}
+
+void APlayerShip::OnTowerKillChange(int32 TowerKills)
+{
+	if (!IsLocallyControlled()) return;
+
+	ServerTowerKillChange(CaptainState, TowerKills);
+}
+
+void APlayerShip::ServerTowerKillChange_Implementation(ACaptainState* CaptainStateTowerKillChange, int32 TowerKills)
+{
+	MulticastTowerKillChange(CaptainStateTowerKillChange, TowerKills);
+}
+
+void APlayerShip::MulticastTowerKillChange_Implementation(ACaptainState* CaptainStateTowerKillChange, int32 TowerKills)
+{
+	ASBGameState* GameState = GetWorld()->GetGameState<ASBGameState>();
+	if (GameState)
+	{
+		GameState->UpdateTowerKills(CaptainState, TowerKills);
+	}
+}
+
+void APlayerShip::OnCaptureChange(int32 Captures)
+{
+
+	ServerCaptureChange(CaptainState, Captures);
+}
+
+void APlayerShip::ServerCaptureChange_Implementation(ACaptainState* CaptainStateCaptureChange, int32 Captures)
+{
+
+	MulticastCaptureChange(CaptainStateCaptureChange, Captures);
+}
+
+void APlayerShip::MulticastCaptureChange_Implementation(ACaptainState* CaptainStateCaptureChange, int32 Captures)
+{
+	ASBGameState* GameState = GetWorld()->GetGameState<ASBGameState>();
+	if (GameState)
+	{
+		GameState->UpdateCaptures(CaptainState, Captures);
+	}
+}
+
 
 void APlayerShip::OnPiecesOfEightChange(int32 PiecesOfEight, AActor* DestroyedActor, int32 Bounty)
 {

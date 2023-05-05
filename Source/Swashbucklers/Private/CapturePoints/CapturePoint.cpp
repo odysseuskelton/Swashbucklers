@@ -3,6 +3,7 @@
 
 #include "CapturePoints/CapturePoint.h"
 #include "GameModes/SBGameMode.h"
+#include "GameStates/SBGameState.h"
 #include "PlayerStates/Teams.h"
 #include "Interfaces/HitInterface.h"
 #include "HUD/CaptureProgressComponent.h"
@@ -198,6 +199,19 @@ void ACapturePoint::Captured()
 		else if (!PirateTeamOnPoint.IsEmpty() && PrivateerTeamOnPoint.IsEmpty())
 		{
 			SBGameMode->TreasureCaptured(ETeam::ET_Pirate);
+		}
+	}
+
+	ASBGameState* SBGameState = Cast<ASBGameState>(UGameplayStatics::GetGameState(this));
+	if (SBGameState)
+	{
+		if (!PirateTeamOnPoint.IsEmpty())
+		{
+			SBGameState->TreasureCaptureCredit(PirateTeamOnPoint);
+		}
+		if (!PrivateerTeamOnPoint.IsEmpty())
+		{
+			SBGameState->TreasureCaptureCredit(PrivateerTeamOnPoint);
 		}
 	}
 

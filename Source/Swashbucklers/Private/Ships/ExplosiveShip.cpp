@@ -120,7 +120,6 @@ void AExplosiveShip::Tick(float DeltaTime)
 
 void AExplosiveShip::AcquireTarget()
 {
-	UE_LOG(LogTemp, Warning, TEXT("AcquireTarget"))
 	float ShortestDistance = 1000000000.f;
 	TArray<AActor*> OutActors;
 	UGameplayStatics::GetAllActorsWithInterface(this, UHitInterface::StaticClass(), OutActors);
@@ -148,7 +147,7 @@ void AExplosiveShip::AcquireTarget()
 		TargetLocation = LocationToMoveTo;
 		if (GetDistanceTo(CurrentTarget) < 100000)
 		{
-			MoveToLocation(TargetLocation);
+			MoveToLocation(TargetLocation, 0.f);
 			GetWorldTimerManager().SetTimer(CorrectRotationTimer, this, &AAIShip::CorrectActorRotationTowardTarget, 2.f);
 		}
 	}
@@ -178,22 +177,18 @@ void AExplosiveShip::ServerExplodeShip_Implementation()
 
 	for (FHitResult Hit : HitActors)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Hit actor in explode %s"), *Hit.GetActor()->GetName())
 		IHitInterface* HitInterface = Cast<IHitInterface>(Hit.GetActor());
 		if (HitInterface)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Hit interface valid in explosion"))
 			if (HitInterface->IsHitActorDead()) return;
 
 			AActor* HitActor = HitInterface->GetActorWithAbilityComponent();
 
 			if (HitActor)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Hit actor valid valid in explosion"))
 
 				if (HitInterface && AITeam != HitInterface->GetHitActorTeam() && !ActorsToApplyGameplayEffectTo.Contains(HitActor))
 				{
-					UE_LOG(LogTemp, Warning, TEXT("All conditions met, apply gameplay effect"))
 					ActorsToApplyGameplayEffectTo.Add(HitActor);
 				}
 			}

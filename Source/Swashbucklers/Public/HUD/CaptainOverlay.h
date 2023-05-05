@@ -28,6 +28,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetManaProgress(float CurrentMana, float MaxMana);
 	
+	UFUNCTION(BlueprintCallable)
+	void RotateTreasureArrow();
+
 	void SetPoEText(int32 PoEToSet);
 
 	UFUNCTION(BlueprintImplementableEvent)
@@ -41,9 +44,11 @@ public:
 
 	void WaitingForTreasureToSpawn();
 
-	void TreasureHasSpawned();
+	void TreasureHasSpawned(FVector TreasureLocationToSet);
 
 	void TreasureHasBeenCaptured(ETeam TeamCapturingTreasure, ETeam PlayerTeam);
+
+	void ToggleTreasureArrowVisibility(bool bVisibility, FVector LocationOfNewCapturePoint);
 
 	void UpdateSlot(FGameplayAbilityInfo AbilityInfo, EAbilitySlot SlotAssigned);
 
@@ -83,6 +88,8 @@ public:
 	UPROPERTY()
 	TArray<UPlayerKillAnnouncementSlot*> CurrentKillAnnouncements;
 
+	FVector TreasureLocation;
+
 private:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* PoEText;
@@ -95,6 +102,9 @@ private:
 	UImage* Slot3Image;
 	UPROPERTY(meta = (BindWidget))
 	UImage* Slot4Image;
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* TreasureArrow;
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Slot1Text;

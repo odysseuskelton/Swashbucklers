@@ -2,8 +2,9 @@
 
 
 #include "Ships/Ship.h"
-#include "X:/Epic/UE_5.1/Engine/Plugins/Marketplace/SmoothSync/Source/SmoothSyncPlugin/Public/SmoothSync.h"
-#include "X:/Epic/UE_5.1/Engine/Plugins/Marketplace/SmoothSync/Source/SmoothSyncPlugin/Public/State.h"
+#include "./SmoothSyncPlugin/Public/SmoothSync.h"
+#include "./SmoothSyncPlugin/Public/State.h"
+#include "SenseStimulusComponent.h"
 
 #include "GameplayAbilities/SBGameplayAbility.h"
 #include "Components/SBAbilitySystemComponent.h"
@@ -46,6 +47,8 @@ AShip::AShip()
 	BuoyancyComponent = CreateDefaultSubobject<UBuoyancyComponent>(TEXT("BuoyancyComp"));
 
 	SmoothSyncComp = CreateDefaultSubobject<USmoothSync>(TEXT("SmoothSyncComp"));
+
+	StimulusComponent = CreateDefaultSubobject<USenseStimulusComponent>(TEXT("StimulusComponent"));
 
 	PawnMovement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("PawnMovement"));
 }
@@ -178,7 +181,6 @@ void AShip::MulticastOnHealthChanged_Implementation(float Health, float MaxHealt
 {
 	if (!IsLocallyControlled() && HealthbarComponent && HealthbarComponent->GetHealthPercent() > Health / MaxHealth)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("render opac"))
 
 		HealthbarComponent->SetRenderOpacity(100.f);
 		GetWorldTimerManager().SetTimer(HealthbarTimer, this, &AShip::HealthbarTimerFinished, 4.f);

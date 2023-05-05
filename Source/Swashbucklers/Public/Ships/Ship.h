@@ -24,6 +24,7 @@ class USBAbilitySystemComponent;
 class UNiagaraSystem;
 class UBuoyancyComponent;
 class USmoothSync;
+class USenseStimulusComponent;
 
 UCLASS()
 class SWASHBUCKLERS_API AShip : public APawn, public IHitInterface, public IExecutionInterface
@@ -147,10 +148,11 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	USmoothSync* SmoothSyncComp;
 
+	UPROPERTY(VisibleAnywhere)
+	USenseStimulusComponent* StimulusComponent;
+
 	AActor* RammedShip;
 	float ImpactSpeed = 0.f;
-
-
 
 	//Ship Variables
 	float DeltaSeconds;
@@ -254,8 +256,8 @@ public:
 	//HitInterface Override
 	virtual AActor* GetActorWithAbilityComponent() override;
 	ETeam GetHitActorTeam() override;
-	FORCEINLINE bool IsHitActorDead() { return bIsDead; }
-	FORCEINLINE bool CanBeKnocked() { return true; }
+	FORCEINLINE bool IsHitActorDead() override { return bIsDead; } 
+	FORCEINLINE bool CanBeKnocked() override { return true; }
 	FORCEINLINE virtual bool IsLocallyControlledInterface() override { return IsLocallyControlled(); }
 	FORCEINLINE bool AITargetable() override { return true; }
 	FORCEINLINE virtual bool IsAI() override { return false; }

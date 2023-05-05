@@ -4,12 +4,40 @@
 #include "HUD/CaptainOverlay.h"
 #include "GameplayAbilities/AbilityTypes.h"
 #include "Kismet/KismetMaterialLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Components/GridPanel.h"
 #include "HUD/PlayerKillAnnouncementSlot.h"
 #include "Components/Image.h"
 #include "Components/Textblock.h"
 #include "Components/GridSlot.h"
 #include "Components/GridPanel.h"
+
+
+ 
+void UCaptainOverlay::RotateTreasureArrow()
+{
+	/*if (!GetOwningPlayerPawn()->HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Rotate To Treasure CALLED, no auth %s"), *TreasureLocation.ToString())
+	}*/
+	if (TreasureLocation != FVector::ZeroVector)
+	{
+		if (TreasureArrow)
+		{
+			/*if (!GetOwningPlayerPawn()->HasAuthority())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Rotate To Treasure, no auth"))
+			}*/
+			FRotator RotationToTreasure = UKismetMathLibrary::FindLookAtRotation(GetOwningPlayerPawn()->GetActorLocation(), TreasureLocation);
+			//UE_LOG(LogTemp, Warning, TEXT("Rotate To Treasure %f"), RotationToTreasure.Yaw)
+			FRotator PVRot;
+			FVector PVLoc;
+			GetOwningPlayerPawn()->GetController()->GetPlayerViewPoint(PVLoc, PVRot);
+			RotationToTreasure.Yaw -= PVRot.Yaw;
+			TreasureArrow->SetRenderTransformAngle(RotationToTreasure.Yaw);
+		}
+	}
+}
 
 void UCaptainOverlay::SetPoEText(int32 PoEToSet)
 {
@@ -83,12 +111,12 @@ void UCaptainOverlay::SetCountdownText(float CountdownTime)
 	{
 		if (CountdownText->GetRenderOpacity() == 0.f)
 		{
-			CountdownText->SetRenderOpacity(100.f);
+			CountdownText->SetRenderOpacity(1.f);
 		}
 
 		if (AnnouncementText->GetRenderOpacity() == 0.f)
 		{
-			AnnouncementText->SetRenderOpacity(100.f);
+			AnnouncementText->SetRenderOpacity(1.f);
 		}
 
 		if (CountdownTime <= 10.f)
@@ -108,7 +136,6 @@ void UCaptainOverlay::CreateDeathAnnouncement(FString SunkCapName, FString Sinki
 {
 	if (PlayerKillAnnouncementClass)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Player Kill Announcement"))
 
 		UPlayerKillAnnouncementSlot* NewKillAnnouncement  = CreateWidget<UPlayerKillAnnouncementSlot>(GetOwningPlayer(), PlayerKillAnnouncementClass);
 		if (NewKillAnnouncement && KillAnnouncementPanel)
@@ -141,7 +168,7 @@ void UCaptainOverlay::WaitingForTreasureToSpawn()
 {
 	if (CountdownText->GetRenderOpacity() == 0.f)
 	{
-		CountdownText->SetRenderOpacity(100.f);
+		CountdownText->SetRenderOpacity(1.f);
 	}
 
 	if (AnnouncementText)
@@ -150,11 +177,12 @@ void UCaptainOverlay::WaitingForTreasureToSpawn()
 	}
 }
 
-void UCaptainOverlay::TreasureHasSpawned()
+void UCaptainOverlay::TreasureHasSpawned(FVector TreasureLocationToSet)
 {
+	ToggleTreasureArrowVisibility(true, TreasureLocationToSet);
 	if (CountdownText && AnnouncementText)
 	{
-		if (CountdownText->GetRenderOpacity() == 100.f)
+		if (CountdownText->GetRenderOpacity() == 1.f)
 		{
 			CountdownText->SetRenderOpacity(0.f);
 		}
@@ -165,7 +193,7 @@ void UCaptainOverlay::TreasureHasSpawned()
 
 void UCaptainOverlay::TreasureHasBeenCaptured(ETeam TeamCapturingTreasure, ETeam PlayerTeam)
 {
-
+	ToggleTreasureArrowVisibility(false, FVector::ZeroVector);
 	if(TeamCapturingTreasure == PlayerTeam)
 	{
 		AnnouncementText->SetText(FText::FromString(TEXT("Your team has captured the treasure, escort the merchant ship to base!")));
@@ -177,5 +205,22 @@ void UCaptainOverlay::TreasureHasBeenCaptured(ETeam TeamCapturingTreasure, ETeam
 	else if (TeamCapturingTreasure == ETeam::ET_Privateer)
 	{
 		AnnouncementText->SetText(FText::FromString(TEXT("The privateers have captured the treasure! Sink the merchant ship before it reaches their HQ!")));
+	}
+}
+
+void UCaptainOverlay::ToggleTreasureArrowVisibility(bool bVisibility, FVector LocationOfNewCapturePoint)
+{
+	if (TreasureArrow)
+	{
+		if (bVisibility)
+		{
+			TreasureArrow->SetRenderOpacity(1.f);
+			TreasureLocation = LocationOfNewCapturePoint;
+		}
+		else
+		{
+			TreasureArrow->SetRenderOpacity(0.f);
+			TreasureLocation = FVector::ZeroVector;
+		}
 	}
 }

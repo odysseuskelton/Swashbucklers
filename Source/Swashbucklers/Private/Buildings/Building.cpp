@@ -7,6 +7,7 @@
 #include "HUD/HealthbarComponent.h"
 #include "Components/SBAbilitySystemComponent.h"
 #include "GameStates/SBGameState.h"
+#include "SenseStimulusComponent.h"
 
 #include "Kismet/KismetMathLibrary.h"
 #include "NiagaraFunctionLibrary.h"
@@ -27,6 +28,8 @@ ABuilding::ABuilding(const FObjectInitializer& ObjectInitializer)
 	AbilityComponent = CreateDefaultSubobject<USBAbilitySystemComponent>("AbilityComponent");
 	AbilityComponent->SetIsReplicated(true);
 	AbilityComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+
+	StimulusComponent = CreateDefaultSubobject<USenseStimulusComponent>("StimulusComponent");
 
 	AttributeSet = CreateDefaultSubobject<USBAttributeSet>("AttributeSetBaseComp");
 	PrimaryActorTick.bCanEverTick = false;
@@ -104,7 +107,7 @@ void ABuilding::MulticastOnBuildingHealthChange_Implementation(float Health, flo
 
 	if (Health <= 0 && !bIsDead)
 	{
-		Die();
+		Die(InstigatorActor);
 	}
 }
 
@@ -125,7 +128,7 @@ void ABuilding::SpawnDamageSystem(uint16 NumberOfSystemsToSpawn)
 	}
 }
 
-void ABuilding::Die()
+void ABuilding::Die(AActor* InstigatorActor)
 {
 	if (bIsDead) return;
 	bIsDead = true;
@@ -153,7 +156,7 @@ void ABuilding::Die()
 		ASBGameState* SBGameState = World->GetGameState<ASBGameState>();
 		if (SBGameState)
 		{
-			SBGameState->BuildingDestroyed(BuildingType, this);
+			SBGameState->BuildingDestroyed(BuildingType, this, InstigatorActor);
 		}
 		GetWorldTimerManager().SetTimer(DeathTimer, this, &ABuilding::DeathTimerFinished, DeathTimerDelay);
 	}

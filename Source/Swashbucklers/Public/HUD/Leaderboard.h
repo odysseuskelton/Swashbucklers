@@ -23,6 +23,14 @@ public:
 
 	void AddPlayer(ACaptainState* CaptainState);
 
+	void UpdatePlayerBounty(ACaptainState* CaptainState, int32 Bounty);
+
+	void UpdatePlayerKills(ACaptainState* CaptainState, int32 PlayerKills);
+
+	void UpdateTowerKills(ACaptainState* CaptainState, int32 TowerKills);
+
+	void UpdateCaptures(ACaptainState* CaptainState, int32 Captures);
+
 	ASBGameState* GameState;
 
 	TArray<ACaptainState*> CaptainStates;
@@ -38,8 +46,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ULeaderboardPlayerSlot> PlayerSlotClass;
 
-	TArray<ULeaderboardPlayerSlot*> PirateLeaderboardSlots;
-	TArray<ULeaderboardPlayerSlot*> PrivateerLeaderboardSlots;
+	TArray<ULeaderboardPlayerSlot*>PlayerSlots;
 
 
 };

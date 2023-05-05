@@ -47,14 +47,21 @@ public:
 
 	void HandleTreasureCaptured();
 
+	bool bTreasureLocationOnClient = false;
 
 protected:
 	virtual void BeginPlay() override;
 
 	void BindLeaderboardDelegates();
 
-	UFUNCTION()
-	void OnBountyChange(int32 Bounty, AActor* DestroyedActor);
+	/*UFUNCTION()
+	void PlayerBountyChange(int32 Bounty, AActor* DestroyedActor);
+
+	UFUNCTION(Server, Unreliable)
+	void ServerPlayerBountyChange(int32 Bounty, AActor* DestroyedActor, AActor* DestroyingActor);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastPlayerBountyChange(int32 Bounty, AActor* DestroyedActor, AActor* DestroyingActor);*/
 
 	void InitializePlayerController();
 

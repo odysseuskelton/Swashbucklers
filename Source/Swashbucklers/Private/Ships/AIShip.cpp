@@ -8,6 +8,7 @@
 #include "AIController.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "SenseReceiverComponent.h"
 
 #include "Components/SBAbilitySystemComponent.h"
 #include "GameplayAbilities/SBAttributeSet.h"
@@ -22,6 +23,9 @@ AAIShip::AAIShip()
 	AbilityComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	AttributeSet = CreateDefaultSubobject<USBAttributeSet>("AttributeSetBaseComp");
+
+	Sensor = CreateDefaultSubobject<USenseReceiverComponent>(TEXT("Sensor"));
+	Sensor->SetupAttachment(GetRootComponent());
 
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -39,6 +43,7 @@ void AAIShip::BeginPlay()
 		AttributeSet->Health.SetCurrentValue(ShipHealth);
 		AttributeSet->Health.SetBaseValue(ShipHealth);
 	}
+
 	
 }
 
@@ -49,6 +54,18 @@ void AAIShip::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	DOREPLIFETIME(AAIShip, AITeam);
 
 }
+
+void AAIShip::Die(AActor* InstigatorActor)
+{
+	Super::Die(InstigatorActor);
+
+	AIState = EAIState::EAI_Dead;
+
+	SetLifeSpan(7.f);
+
+	bIsDead = true;
+}
+
 
 void AAIShip::MulticastOnHealthChanged_Implementation(float Health, float MaxHealth, AActor* InstigatorActor)
 {
@@ -130,7 +147,7 @@ void AAIShip::CorrectActorRotationTowardTarget()
 		FVector NewLocation = CurrentTarget->GetActorLocation();
 		NewLocation.Z = GetActorLocation().Z;
 		TargetLocation = NewLocation;
-		MoveToLocation(TargetLocation);
+		MoveToLocation(TargetLocation, 0.f);
 	}
 	else
 	{
@@ -158,31 +175,37 @@ void AAIShip::MoveToTarget(AActor* Target)
 	AIController->MoveTo(MoveRequest);
 }
 
-void AAIShip::MoveToLocation(FVector LocationToMoveTo)
+void AAIShip::MoveToLocation(FVector LocationToMoveTo, float AcptRadius)
 {
 	if (!HasAuthority()) return;
 
-	ServerMoveToLocation(LocationToMoveTo);
+	ServerMoveToLocation(LocationToMoveTo, AcptRadius);
 }
 
-void AAIShip::ServerMoveToLocation_Implementation(FVector LocationToMoveTo)
+void AAIShip::ServerMoveToLocation_Implementation(FVector LocationToMoveTo, float AcptRadius)
 {
 	if (AIController == nullptr) return;
 
-	FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), LocationToMoveTo);
-	SetActorRotation(LookAtRotation);
+	/*FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), LocationToMoveTo);
+	SetActorRotation(LookAtRotation);*/
 
 	FAIMoveRequest MoveRequest;
-	MoveRequest.SetAllowPartialPath(true);
+	MoveRequest.SetCanStrafe(true);
+ 	MoveRequest.SetAllowPartialPath(true);
 	MoveRequest.SetUsePathfinding(false);
 	MoveRequest.SetProjectGoalLocation(false);
 	MoveRequest.SetReachTestIncludesAgentRadius(false);
 	MoveRequest.SetGoalLocation(LocationToMoveTo);
-	MoveRequest.SetAcceptanceRadius(0.f);
+	MoveRequest.SetAcceptanceRadius(AcptRadius);
 	AIController->MoveTo(MoveRequest);
 }
 
 UAbilitySystemComponent* AAIShip::GetAbilitySystemComponent() const
 {
 	return AbilityComponent;
+}
+
+bool AAIShip::ShipIsIdle()
+{
+	return AIController && (AIController->GetMoveStatus() == EPathFollowingStatus::Waiting || AIController->GetMoveStatus() == EPathFollowingStatus::Paused || AIController->GetMoveStatus() == EPathFollowingStatus::Idle);
 }

@@ -56,7 +56,6 @@ void USpeedEffectExecution::Execute_Implementation(const FGameplayEffectCustomEx
 	}
 
 	float FinalDamage = FMath::Clamp(InstigatorSpeedMagnitude, 0, InstigatorSpeedMagnitude);
-	UE_LOG(LogTemp, Warning, TEXT("Final Damage %f"), FinalDamage)
 
 	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(HealthProperty, EGameplayModOp::Additive, -FinalDamage));
 

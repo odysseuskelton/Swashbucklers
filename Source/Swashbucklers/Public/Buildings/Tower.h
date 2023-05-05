@@ -75,7 +75,7 @@ private:
 
 	void TurretFireEffects();
 
-	virtual void Die() override;
+	virtual void Die(AActor* InstigatorActor) override;
 
 	FTimerHandle FireTimerHandle;
 	void FireTimerFinished();

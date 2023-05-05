@@ -2,7 +2,9 @@
 
 
 #include "GameStates/SBGameState.h"
+#include "GameplayAbilities/SBAttributeSet.h"
 #include "Kismet/GameplayStatics.h"
+#include "Interfaces/PlayerInterface.h"
 #include "Interfaces/CaptainStateInterface.h"
 #include "PlayerStates/CaptainState.h"
 #include "HUD/CaptainHUD.h"
@@ -25,6 +27,7 @@ void ASBGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ASBGameState, TreasureActiveTime);
 	DOREPLIFETIME(ASBGameState, NewestCaptainState);
 	DOREPLIFETIME(ASBGameState, CaptainStates);
+	DOREPLIFETIME(ASBGameState, TreasureLocation);
 }
 
 void ASBGameState::BeginPlay()
@@ -81,7 +84,7 @@ void ASBGameState::OnRep_RegisterCaptainState(ACaptainState* CaptainState)
 	}
 }
 
-void ASBGameState::BuildingDestroyed(EBuildingType BuildingType, ABuilding* BuildingDestroyed)
+void ASBGameState::BuildingDestroyed(EBuildingType BuildingType, ABuilding* BuildingDestroyed, AActor* InstigatorActor)
 {
 	if (HasAuthority())
 	{
@@ -106,6 +109,7 @@ void ASBGameState::BuildingDestroyed(EBuildingType BuildingType, ABuilding* Buil
 		if (BuildingType == EBuildingType::EBT_Tower)
 		{
 			TArray<AActor*> OutActors;
+			
 			UGameplayStatics::GetAllActorsWithInterface(this, UCaptainStateInterface::StaticClass(), OutActors);
 
 			for (AActor* Actor : OutActors)
@@ -117,11 +121,11 @@ void ASBGameState::BuildingDestroyed(EBuildingType BuildingType, ABuilding* Buil
 				}
 			}
 		}
-		MulticastBuildingDestroyed(BuildingType, BuildingDestroyed);
+		MulticastBuildingDestroyed(BuildingType, BuildingDestroyed, InstigatorActor);
 	}
 }
 
-void ASBGameState::MulticastBuildingDestroyed_Implementation(EBuildingType BuildingType, ABuilding* BuildingDestroyed)
+void ASBGameState::MulticastBuildingDestroyed_Implementation(EBuildingType BuildingType, ABuilding* BuildingDestroyed, AActor* InstigatorActor)
 {
 	OnBuildingDestroyed.Broadcast(BuildingType);
 
@@ -138,6 +142,16 @@ void ASBGameState::MulticastBuildingDestroyed_Implementation(EBuildingType Build
 			}
 		}
 	}
+
+	if (BuildingType == EBuildingType::EBT_Tower)
+	{
+		ACaptainState* CapState = Cast<ACaptainState>(InstigatorActor);
+		if (CapState)
+		{
+			CapState->GetAttributeSet()->AwardTower();
+		}
+	}
+	
 }
 
 void ASBGameState::PlayerKilled(ACaptainState* SunkCaptainState, ACaptainState* InstigatorCaptainState)
@@ -160,8 +174,6 @@ void ASBGameState::PlayerKilled(ACaptainState* SunkCaptainState, ACaptainState* 
 		ClientPlayerKilled(SunkCaptainState, InstigatorCaptainState);
 
 	}
-
-
 }
 
 void ASBGameState::ClientPlayerKilled_Implementation(ACaptainState* SunkCaptainState, ACaptainState* InstigatorCaptainState)
@@ -179,6 +191,119 @@ void ASBGameState::ClientPlayerKilled_Implementation(ACaptainState* SunkCaptainS
 		}
 	}
 }
+
+void ASBGameState::UpdatePlayerKills(ACaptainState* CaptainState, int32 PlayerKills)
+{
+	if (HasAuthority())
+	{
+		if (CaptainState)
+		{
+			ACaptainController* CapController = Cast<ACaptainController>(GetWorld()->GetFirstPlayerController());
+			if (CapController)
+			{
+				ACaptainHUD* CapHUD = CapController->GetHUD<ACaptainHUD>();
+				if (CapHUD)
+				{
+					CapHUD->UpdateHUDKills(CaptainState, PlayerKills);
+				}
+			}
+		}
+	}
+	else
+	{
+		ClientUpdatePlayerKills(CaptainState, PlayerKills);
+	}
+}
+
+void ASBGameState::UpdateTowerKills(ACaptainState* CaptainState, int32 TowerKills)
+{
+	if (HasAuthority())
+	{
+		if (CaptainState)
+		{
+			ACaptainController* CapController = Cast<ACaptainController>(GetWorld()->GetFirstPlayerController());
+			if (CapController)
+			{
+				ACaptainHUD* CapHUD = CapController->GetHUD<ACaptainHUD>();
+				if (CapHUD)
+				{
+					CapHUD->UpdateHUDTowers(CaptainState, TowerKills);
+				}
+			}
+		}
+	}
+	else
+	{
+		ClientUpdateTowerKills(CaptainState, TowerKills);
+	}
+}
+
+void ASBGameState::ClientUpdateTowerKills_Implementation(ACaptainState* CaptainState, int32 TowerKills)
+{
+	if (CaptainState)
+	{
+		ACaptainController* CapController = Cast<ACaptainController>(GetWorld()->GetFirstPlayerController());
+		if (CapController)
+		{
+			ACaptainHUD* CapHUD = CapController->GetHUD<ACaptainHUD>();
+			if (CapHUD)
+			{
+				CapHUD->UpdateHUDTowers(CaptainState, TowerKills);
+			}
+		}
+	}
+}
+
+void ASBGameState::ClientUpdatePlayerKills_Implementation(ACaptainState* CaptainState, int32 PlayerKills)
+{
+	if (CaptainState)
+	{
+		ACaptainController* CapController = Cast<ACaptainController>(GetWorld()->GetFirstPlayerController());
+		if (CapController)
+		{
+			ACaptainHUD* CapHUD = CapController->GetHUD<ACaptainHUD>();
+			if (CapHUD)
+			{
+				CapHUD->UpdateHUDKills(CaptainState, PlayerKills);
+			}
+		}
+	}
+}
+
+void ASBGameState::PlayerBountyChanged(ACaptainState* CapState, int32 Bounty)
+{
+	if (HasAuthority())
+	{
+		ACaptainController* CapController = Cast<ACaptainController>(GetWorld()->GetFirstPlayerController());
+		if (CapController)
+		{
+			ACaptainHUD* CapHUD = CapController->GetHUD<ACaptainHUD>();
+			if (CapHUD)
+			{
+				CapHUD->UpdatePlayerBountyOnLeaderboard(CapState, Bounty);
+			}
+		}
+	}
+	else
+	{
+		ClientPlayerBountyChanged(CapState, Bounty);
+
+	}
+}
+
+void ASBGameState::ClientPlayerBountyChanged_Implementation(ACaptainState* CapState, int32 Bounty)
+{
+	ACaptainController* CapController = Cast<ACaptainController>(GetWorld()->GetFirstPlayerController());
+	if (CapController)
+	{
+		ACaptainHUD* CapHUD = CapController->GetHUD<ACaptainHUD>();
+		if (CapHUD)
+		{
+			CapHUD->UpdatePlayerBountyOnLeaderboard(CapState, Bounty);
+		}
+	}
+}
+
 
 void ASBGameState::ExtraHeartPiece()
 {
@@ -224,6 +349,62 @@ void ASBGameState::SetTreasuresCaptured(int32 NumberOfCaptures, float TimeTreasu
 		CapController->SetTreasureActiveTime(TreasureActiveTime);
 	}
 
+}
+
+void ASBGameState::TreasureCaptureCredit(TArray<AActor*> ActorsOnPoint)
+{
+	for (AActor* CapturingActor : ActorsOnPoint)
+	{
+		IPlayerInterface* CapturingPlayerInterface = Cast<IPlayerInterface>(CapturingActor);
+		if (CapturingPlayerInterface)
+		{
+			ACaptainState* CapState = CapturingPlayerInterface->GetPlayerCaptainState();
+			if (CapState)
+			{
+				CapState->GetAttributeSet()->AwardCapture();
+			}
+		}
+	}
+	
+}
+
+void ASBGameState::UpdateCaptures(ACaptainState* CaptainState, int32 Captures)
+{
+	if (HasAuthority())
+	{
+		if (CaptainState)
+		{
+			ACaptainController* CapController = Cast<ACaptainController>(GetWorld()->GetFirstPlayerController());
+			if (CapController)
+			{
+				ACaptainHUD* CapHUD = CapController->GetHUD<ACaptainHUD>();
+				if (CapHUD)
+				{
+					CapHUD->UpdateHUDCaptures(CaptainState, Captures);
+				}
+			}
+		}
+	}
+	else
+	{
+		ClientUpdateHUDCaptures(CaptainState, Captures);
+	}
+}
+
+void ASBGameState::ClientUpdateHUDCaptures_Implementation(ACaptainState* CaptainState, int32 Captures)
+{
+	if (CaptainState)
+	{
+		ACaptainController* CapController = Cast<ACaptainController>(GetWorld()->GetFirstPlayerController());
+		if (CapController)
+		{
+			ACaptainHUD* CapHUD = CapController->GetHUD<ACaptainHUD>();
+			if (CapHUD)
+			{
+				CapHUD->UpdateHUDCaptures(CaptainState, Captures);
+			}
+		}
+	}
 }
 
 void ASBGameState::OnRep_TreasureCapturesUpdate()

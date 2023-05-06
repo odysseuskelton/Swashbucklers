@@ -52,29 +52,40 @@ void AAIArtilleryShip::Tick(float DeltaTime)
 
 	if (AIState == EAIState::EAI_Dead) return;
 
-	
+	if (!CurrentTarget && AIState != EAIState::EAI_Patrolling)
+	{
+		ResumePath();
+	}
+
 	OpenCloseSails();
 
 	HandleShipRotation(DeltaTime);
-
-	RemoveNullDetectedActors();
 
 	//if (StoredTargetInterface && StoredTargetInterface->IsHitActorDead())
 	//{
 	//	AcquireNewTarget();
 	//}
+	if (AIState == EAIState::EAI_Patrolling || AIState == EAIState::EAI_Repositioning) return;
 
-
-	if (CurrentTarget && GetDistanceTo(CurrentTarget) < FiringDistance && (AIState == EAIState::EAI_Aggroed || AIState == EAIState::EAI_Chasing) && AIState != EAIState::EAI_Attacking && AIState != EAIState::EAI_Repositioning)
+	if (CurrentTarget && GetDistanceTo(CurrentTarget) < AttackAcceptanceRadius &&  AIState == EAIState::EAI_Chasing && AIState != EAIState::EAI_Repositioning)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Reposition in tick!"))
+
 		Reposition();
+		return;
+	}
+	else if(CurrentTarget && AIState == EAIState::EAI_Aggroed && GetDistanceTo(CurrentTarget) > FiringDistance && GetDistanceTo(CurrentTarget) < MaxAggroRange && AIState != EAIState::EAI_Chasing)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Chase target in tick!"))
+		ChaseTarget();
+		return;
 	}
 
 
-	if (!CurrentTarget && !CurrentlyDetectedActors.IsEmpty())
+	/*if (!CurrentTarget && !CurrentlyDetectedActors.IsEmpty())
 	{
 		AcquireNewTarget();
-	}
+	}*/
 
 	/*else
 	{
@@ -85,6 +96,14 @@ void AAIArtilleryShip::Tick(float DeltaTime)
 		}
 		AIState = EAIState::EAI_Patrolling;
 	}*/
+}
+
+void AAIArtilleryShip::ChaseTarget()
+{
+	if (AIState == EAIState::EAI_Repositioning || AIState == EAIState::EAI_Chasing || AIState == EAIState::EAI_Dead) return;
+	MoveToLocation(CurrentTarget->GetActorLocation(), 100.f);
+	AIState = EAIState::EAI_Chasing;
+	return;
 }
 
 void AAIArtilleryShip::Reposition()
@@ -133,6 +152,7 @@ void AAIArtilleryShip::HandleShipRotation(float DeltaTime)
 {
 	if (TargetLocation != FVector::ZeroVector && AIState != EAIState::EAI_Attacking)
 	{
+		//UE_LOG(LogTemp, Warning, TEXT("Rotate"))
 		FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TargetLocation);
 		SetActorRotation(FMath::RInterpTo(GetActorRotation(), LookAtRotation, DeltaTime, 2.f));
 	}
@@ -146,7 +166,7 @@ void AAIArtilleryShip::HandleShipRotation(float DeltaTime)
 
 void AAIArtilleryShip::RotateArtilleryCannon(FRotator& LookAtRotation)
 {
-	if (TurretCannonMesh)
+	if (TurretCannonMesh && CurrentTarget)
 	{
 		LookAtRotation.Roll = 0.f;
 		LookAtRotation.Yaw = 0.f;
@@ -169,22 +189,25 @@ void AAIArtilleryShip::OpenCloseSails()
 
 void AAIArtilleryShip::OnMoveCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result)
 {
-	if (AIState == EAIState::EAI_Dead) return;
-	if (AIState == EAIState::EAI_Patrolling) return;
+	UE_LOG(LogTemp, Warning, TEXT("Reach target..."))
 
-	if (AIController)
-	{
-		AIController->StopMovement();
-	}
+	if (AIState != EAIState::EAI_Repositioning) return;
 
-	if (CurrentTargetInRange())
+	if (AIState == EAIState::EAI_Repositioning)
 	{
+		
+		if (AIController)
+		{
+			AIController->StopMovement();
+		}
+		UE_LOG(LogTemp, Warning, TEXT("Set attack timer..."))
+
 		GetWorldTimerManager().SetTimer(AttackTimer, this, &AAIArtilleryShip::Attack, AttackDelay);
+		return;
+		
+		
 	}
-	else
-	{
-		AcquireNewTarget();
-	}
+
 }
 
 bool AAIArtilleryShip::CurrentTargetInRange()
@@ -208,9 +231,9 @@ void AAIArtilleryShip::Attack()
 {
 	if (AIState == EAIState::EAI_Dead) return;
 
-	if (!CurrentTarget || !StoredTargetInterface || StoredTargetInterface->IsHitActorDead())
+	if (!CurrentTarget || !StoredTargetInterface || StoredTargetInterface->IsHitActorDead() || (CurrentTarget && GetDistanceTo(CurrentTarget) > MaxAggroRange))
 	{
-		AcquireNewTarget();
+		ResumePath();
 		return;
 	}
 
@@ -224,7 +247,23 @@ void AAIArtilleryShip::Attack()
 
 void AAIArtilleryShip::OnCurrentSense(const USensorBase* SensorPtr, int32 Channel, const TArray<FSensedStimulus>& inSensedStimulus)
 {
-	if (AIState == EAIState::EAI_Dead || CurrentTarget || !bNeedsNewTargets) return;
+	if (AIState == EAIState::EAI_Dead || !bNeedsNewTargets) return;
+
+	if (CurrentTarget)
+	{
+		CurrentTarget = nullptr;
+	}
+
+	if (StoredTargetInterface)
+	{
+		StoredTargetInterface = nullptr;
+	}
+
+	if (GetWorldTimerManager().IsTimerActive(AttackTimer))
+	{
+		GetWorldTimerManager().ClearTimer(AttackTimer);
+	}
+
 	if (SensorPtr)
 	{
 		TArray<AActor*> OutActors = SensorPtr->GetSensedActorsByClass(ActorClassToDetect, ESensorArrayByType::SenseCurrent, 1);
@@ -233,12 +272,27 @@ void AAIArtilleryShip::OnCurrentSense(const USensorBase* SensorPtr, int32 Channe
 		{
 			if (OutActors.IsValidIndex(i))
 			{
-				if (!CurrentlyDetectedActors.Contains(OutActors[i]))
+				if (!OutActors[i]) continue;
+				IHitInterface* HitInterface = Cast<IHitInterface>(OutActors[i]);
+
+				if (HitInterface)
 				{
-					IHitInterface* HitInterface = Cast<IHitInterface>(OutActors[i]);
-					if (HitInterface && HitInterface->GetHitActorTeam() != AITeam && !HitInterface->IsHitActorDead())
+					if (OutActors[i] && HitInterface->GetHitActorTeam() != AITeam)
 					{
-						CurrentlyDetectedActors.Add(OutActors[i]);
+						StoredTargetInterface = HitInterface;
+						CurrentTarget = OutActors[i];
+						bNeedsNewTargets = false;
+						CurrentlyDetectedActors.Empty();
+						ChaseTarget();
+						return;
+					}
+
+				}
+				else if (HitInterface)
+				{
+					if (OutActors[i] && HitInterface->GetHitActorTeam() != AITeam)
+					{
+						ActorsToIgnore.Add(OutActors[i]);
 					}
 				}
 			}
@@ -247,6 +301,8 @@ void AAIArtilleryShip::OnCurrentSense(const USensorBase* SensorPtr, int32 Channe
 
 
 	}
+
+
 
 }
 
@@ -258,10 +314,9 @@ void AAIArtilleryShip::OnLostSense(const USensorBase* SensorPtr, int32 Channel, 
 
 void AAIArtilleryShip::AcquireNewTarget()
 {
-	bNeedsNewTargets = true;
-	if (AIState == EAIState::EAI_Dead) return;
+	//bNeedsNewTargets = true;
+	//if (AIState == EAIState::EAI_Dead) return;
 
-	RemoveNullDetectedActors();
 
 	/*for (int32 i = 0; i < CurrentlyDetectedActors.Num() - 1; i++)
 	{
@@ -286,7 +341,7 @@ void AAIArtilleryShip::AcquireNewTarget()
 	}*/
 
 
-	if (CurrentTarget)
+	/*if (CurrentTarget)
 	{
 		if (CurrentlyDetectedActors.Contains(CurrentTarget))
 		{
@@ -327,26 +382,16 @@ void AAIArtilleryShip::AcquireNewTarget()
 				ActorsToIgnore.Add(Actor);
 			}
 		}
-	}
+	}*/
 
-	if (!CurrentTarget)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Resume path..."))
+	//if (!CurrentTarget)
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("Resume path..."))
 
-		ResumePath();
-	}
+	//	ResumePath();
+	//}
 }
 
-void AAIArtilleryShip::RemoveNullDetectedActors()
-{
-	for (int32 i = 0; i < CurrentlyDetectedActors.Num(); i++)
-	{
-		if (CurrentlyDetectedActors[i] == nullptr)
-		{
-			CurrentlyDetectedActors.Remove(CurrentlyDetectedActors[i]);
-		}
-	}
-}
 
 void AAIArtilleryShip::FireArtilleryCannon()
 {
@@ -372,7 +417,13 @@ void AAIArtilleryShip::FireArtilleryCannon()
 
 void AAIArtilleryShip::ResumePath()
 {
+	if (GetWorldTimerManager().IsTimerActive(AttackTimer))
+	{
+		GetWorldTimerManager().ClearTimer(AttackTimer);
+	}
+
 	AIState = EAIState::EAI_Patrolling;
+	bNeedsNewTargets = true;
 
 	ASBGameMode* SBGameMode = Cast<ASBGameMode>(UGameplayStatics::GetGameMode(this));
 	if (AITeam == ETeam::ET_Pirate)

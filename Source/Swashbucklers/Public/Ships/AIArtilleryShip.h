@@ -30,6 +30,8 @@ protected:
 
 	virtual void Tick(float DeltaTime) override;
 
+	void ChaseTarget();
+
 	void Reposition();
 
 	void HandleShipRotation(float DeltaTime);
@@ -53,8 +55,6 @@ protected:
 
 	void AcquireNewTarget();
 
-	void RemoveNullDetectedActors();
-
 	bool bNeedsNewTargets = true;
 
 	UPROPERTY(EditAnywhere)
@@ -63,7 +63,7 @@ protected:
 	FTimerHandle AttackTimer;
 
 	UPROPERTY(EditAnywhere)
-	float AttackAcceptanceRadius = 30000.f;
+	float AttackAcceptanceRadius = 20000.f;
 	
 	UPROPERTY(EditAnywhere)
 	float AttackDelay = 3.5f;

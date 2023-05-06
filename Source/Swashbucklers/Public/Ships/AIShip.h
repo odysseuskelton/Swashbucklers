@@ -56,6 +56,7 @@ protected:
 
 	virtual void MulticastOnHealthChanged_Implementation(float Health, float MaxHealth, AActor* InstigatorActor) override;
 
+	UPROPERTY(VisibleAnywhere)
 	EAIState AIState = EAIState::EAI_Patrolling;
 
 	void Tick(float DeltaTime);

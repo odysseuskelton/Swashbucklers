@@ -242,6 +242,11 @@ void EmptyLinkFunctionForGeneratedCodeAIShip() {}
 #if WITH_METADATA
 		static const UECodeGen_Private::FMetaDataPairParam Class_MetaDataParams[];
 #endif
+		static const UECodeGen_Private::FBytePropertyParams NewProp_AIState_Underlying;
+#if WITH_METADATA
+		static const UECodeGen_Private::FMetaDataPairParam NewProp_AIState_MetaData[];
+#endif
+		static const UECodeGen_Private::FEnumPropertyParams NewProp_AIState;
 #if WITH_METADATA
 		static const UECodeGen_Private::FMetaDataPairParam NewProp_CurrentTarget_MetaData[];
 #endif
@@ -285,6 +290,14 @@ void EmptyLinkFunctionForGeneratedCodeAIShip() {}
 		{ "ModuleRelativePath", "Public/Ships/AIShip.h" },
 	};
 #endif
+	const UECodeGen_Private::FBytePropertyParams Z_Construct_UClass_AAIShip_Statics::NewProp_AIState_Underlying = { "UnderlyingType", nullptr, (EPropertyFlags)0x0000000000000000, UECodeGen_Private::EPropertyGenFlags::Byte, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, 0, nullptr, METADATA_PARAMS(nullptr, 0) };
+#if WITH_METADATA
+	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UClass_AAIShip_Statics::NewProp_AIState_MetaData[] = {
+		{ "Category", "AIShip" },
+		{ "ModuleRelativePath", "Public/Ships/AIShip.h" },
+	};
+#endif
+	const UECodeGen_Private::FEnumPropertyParams Z_Construct_UClass_AAIShip_Statics::NewProp_AIState = { "AIState", nullptr, (EPropertyFlags)0x0020080000020001, UECodeGen_Private::EPropertyGenFlags::Enum, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, STRUCT_OFFSET(AAIShip, AIState), Z_Construct_UEnum_Swashbucklers_EAIState, METADATA_PARAMS(Z_Construct_UClass_AAIShip_Statics::NewProp_AIState_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_AAIShip_Statics::NewProp_AIState_MetaData)) }; // 2931747560
 #if WITH_METADATA
 	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UClass_AAIShip_Statics::NewProp_CurrentTarget_MetaData[] = {
 		{ "Category", "AIShip" },
@@ -327,6 +340,8 @@ void EmptyLinkFunctionForGeneratedCodeAIShip() {}
 #endif
 	const UECodeGen_Private::FObjectPropertyParams Z_Construct_UClass_AAIShip_Statics::NewProp_Sensor = { "Sensor", nullptr, (EPropertyFlags)0x00200800000a0009, UECodeGen_Private::EPropertyGenFlags::Object, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, STRUCT_OFFSET(AAIShip, Sensor), Z_Construct_UClass_USenseReceiverComponent_NoRegister, METADATA_PARAMS(Z_Construct_UClass_AAIShip_Statics::NewProp_Sensor_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_AAIShip_Statics::NewProp_Sensor_MetaData)) };
 	const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UClass_AAIShip_Statics::PropPointers[] = {
+		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AAIShip_Statics::NewProp_AIState_Underlying,
+		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AAIShip_Statics::NewProp_AIState,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AAIShip_Statics::NewProp_CurrentTarget,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AAIShip_Statics::NewProp_AITeam_Underlying,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AAIShip_Statics::NewProp_AITeam,
@@ -388,9 +403,9 @@ void EmptyLinkFunctionForGeneratedCodeAIShip() {}
 		{ EAIState_StaticEnum, TEXT("EAIState"), &Z_Registration_Info_UEnum_EAIState, CONSTRUCT_RELOAD_VERSION_INFO(FEnumReloadVersionInfo, 2931747560U) },
 	};
 	const FClassRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_AIShip_h_Statics::ClassInfo[] = {
-		{ Z_Construct_UClass_AAIShip, AAIShip::StaticClass, TEXT("AAIShip"), &Z_Registration_Info_UClass_AAIShip, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(AAIShip), 711299497U) },
+		{ Z_Construct_UClass_AAIShip, AAIShip::StaticClass, TEXT("AAIShip"), &Z_Registration_Info_UClass_AAIShip, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(AAIShip), 187992547U) },
 	};
-	static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_AIShip_h_2880848602(TEXT("/Script/Swashbucklers"),
+	static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_AIShip_h_3176650639(TEXT("/Script/Swashbucklers"),
 		Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_AIShip_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_AIShip_h_Statics::ClassInfo),
 		nullptr, 0,
 		Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_AIShip_h_Statics::EnumInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_AIShip_h_Statics::EnumInfo));

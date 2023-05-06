@@ -1,0 +1,20 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\development\\swashbucklers\\module.swashbucklers.1_of_2.cpp",
+        "ProvidedModule": "",
+        "PCH": "s:\\swashbucklers\\intermediate\\build\\win64\\swashbucklerseditor\\development\\engine\\sharedpch.engine.shadowerrors.h.pch",
+        "Includes": [
+            "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\development\\swashbucklers\\definitions.swashbucklers.h",
+            "s:\\swashbucklers\\source\\swashbucklers\\private\\ai\\navcheckpoints.cpp",
+            "s:\\swashbucklers\\source\\swashbucklers\\public\\ai\\navcheckpoints.h",
+            "s:\\swashbucklers\\intermediate\\build\\win64\\unrealeditor\\inc\\swashbucklers\\uht\\navcheckpoints.generated.h",
+            "x:\\epic\\ue_5.1\\engine\\source\\runtime\\engine\\classes\\components\\spherecomponent.h",
+            "x:\\epic\\ue_5.1\\engine\\source\\runtime\\engine\\classes\\components\\shapecomponent.h",
+            "x:\\epic\\ue_5.1\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\shapecomponent.generated.h",
+            "x:\\epic\\ue_5.1\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\spherecomponent.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

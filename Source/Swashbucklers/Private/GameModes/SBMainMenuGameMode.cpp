@@ -35,6 +35,7 @@ void ASBMainMenuGameMode::PostLogin(APlayerController* NewPlayer)
 		ACaptainState* NewPlayerCaptainState = NewPlayer->GetPlayerState<ACaptainState>();
 		if (NewPlayerCaptainState)
 		{
+			NewPlayerCaptainState->bExitingGame = false;
 			USBGameInstance* SBGameInstance = GetGameInstance<USBGameInstance>();
 			if (SBGameInstance)
 			{
@@ -45,3 +46,32 @@ void ASBMainMenuGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 
 }
+
+void ASBMainMenuGameMode::Logout(AController* Exiting)
+{
+	Super::Logout(Exiting);
+
+	if (HostMainMenu)
+	{
+		ACaptainState* LeavingPlayerState = Exiting->GetPlayerState<ACaptainState>();
+
+		if (LeavingPlayerState->bExitingGame)
+		{
+			
+			ULevel* CurrentLevel = LeavingPlayerState->GetPlayerController()->GetLevel();
+			UE_LOG(LogTemp,Warning, TEXT("Levelname: %s"), *CurrentLevel->GetPathName())
+			if (LeavingPlayerState )
+			{
+				ETeam TeamToRemoveFrom = LeavingPlayerState->GetPlayerTeam();
+				HostMainMenu->RemovePlayerFromList(LeavingPlayerState->GetPlayerName());
+				USBGameInstance* SBGameInstance = GetGameInstance<USBGameInstance>();
+				if (SBGameInstance)
+				{
+					SBGameInstance->RemovePlayerFromTeam(LeavingPlayerState);
+				}
+		
+			}
+		}
+	}
+}
+

@@ -6,6 +6,7 @@
 #include "PlayerControllers/CaptainController.h"
 #include "Components/Button.h"
 #include "Components/Scrollbox.h"
+#include "PlayerStates/CaptainState.h"
 
 void UClientLobbyMenu::Setup()
 {
@@ -53,8 +54,14 @@ void UClientLobbyMenu::ExitLobbyButtonPressed()
 	CaptainController = Cast<ACaptainController>(GetWorld()->GetFirstPlayerController());
 	if (CaptainController)
 	{
-		CaptainController->ClientReturnToMainMenuWithTextReason(FText::FromString(FString("ExitLobby")));
+		CaptainController->ClientTravel("/Game/Core/Maps/MainMenu?listen", TRAVEL_Absolute);
+		ACaptainState* CapState = CaptainController->GetPlayerState<ACaptainState>();
+		if (CapState)
+		{
+			CapState->bExitingGame = true;
+		}
 	}
+
 }
 
 void UClientLobbyMenu::UpdateClientLobbyWidget(TArray<FString> PirateTeamNames, TArray<FString> PrivateerTeamNames)

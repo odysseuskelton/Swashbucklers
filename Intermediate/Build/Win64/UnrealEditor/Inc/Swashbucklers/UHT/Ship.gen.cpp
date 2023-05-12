@@ -19,6 +19,7 @@ void EmptyLinkFunctionForGeneratedCodeShip() {}
 	ENGINE_API UClass* Z_Construct_UClass_UFloatingPawnMovement_NoRegister();
 	ENGINE_API UClass* Z_Construct_UClass_UMaterialInterface_NoRegister();
 	ENGINE_API UClass* Z_Construct_UClass_UPrimitiveComponent_NoRegister();
+	ENGINE_API UClass* Z_Construct_UClass_USkeletalMeshComponent_NoRegister();
 	ENGINE_API UClass* Z_Construct_UClass_USoundBase_NoRegister();
 	ENGINE_API UClass* Z_Construct_UClass_UStaticMeshComponent_NoRegister();
 	ENGINE_API UClass* Z_Construct_UClass_UTexture2D_NoRegister();
@@ -648,6 +649,14 @@ void EmptyLinkFunctionForGeneratedCodeShip() {}
 #endif
 		static const UECodeGen_Private::FObjectPropertyParams NewProp_ShipMesh;
 #if WITH_METADATA
+		static const UECodeGen_Private::FMetaDataPairParam NewProp_ShipWheelMesh_MetaData[];
+#endif
+		static const UECodeGen_Private::FObjectPropertyParams NewProp_ShipWheelMesh;
+#if WITH_METADATA
+		static const UECodeGen_Private::FMetaDataPairParam NewProp_RudderMesh_MetaData[];
+#endif
+		static const UECodeGen_Private::FObjectPropertyParams NewProp_RudderMesh;
+#if WITH_METADATA
 		static const UECodeGen_Private::FMetaDataPairParam NewProp_PlayerController_MetaData[];
 #endif
 		static const UECodeGen_Private::FObjectPropertyParams NewProp_PlayerController;
@@ -912,6 +921,24 @@ void EmptyLinkFunctionForGeneratedCodeShip() {}
 #endif
 	const UECodeGen_Private::FObjectPropertyParams Z_Construct_UClass_AShip_Statics::NewProp_ShipMesh = { "ShipMesh", nullptr, (EPropertyFlags)0x00200800000a000d, UECodeGen_Private::EPropertyGenFlags::Object, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, STRUCT_OFFSET(AShip, ShipMesh), Z_Construct_UClass_UStaticMeshComponent_NoRegister, METADATA_PARAMS(Z_Construct_UClass_AShip_Statics::NewProp_ShipMesh_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_AShip_Statics::NewProp_ShipMesh_MetaData)) };
 #if WITH_METADATA
+	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UClass_AShip_Statics::NewProp_ShipWheelMesh_MetaData[] = {
+		{ "AllowPrivateAccess", "" },
+		{ "Category", "Ship" },
+		{ "EditInline", "true" },
+		{ "ModuleRelativePath", "Public/Ships/Ship.h" },
+	};
+#endif
+	const UECodeGen_Private::FObjectPropertyParams Z_Construct_UClass_AShip_Statics::NewProp_ShipWheelMesh = { "ShipWheelMesh", nullptr, (EPropertyFlags)0x00200800000a000d, UECodeGen_Private::EPropertyGenFlags::Object, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, STRUCT_OFFSET(AShip, ShipWheelMesh), Z_Construct_UClass_USkeletalMeshComponent_NoRegister, METADATA_PARAMS(Z_Construct_UClass_AShip_Statics::NewProp_ShipWheelMesh_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_AShip_Statics::NewProp_ShipWheelMesh_MetaData)) };
+#if WITH_METADATA
+	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UClass_AShip_Statics::NewProp_RudderMesh_MetaData[] = {
+		{ "AllowPrivateAccess", "" },
+		{ "Category", "Ship" },
+		{ "EditInline", "true" },
+		{ "ModuleRelativePath", "Public/Ships/Ship.h" },
+	};
+#endif
+	const UECodeGen_Private::FObjectPropertyParams Z_Construct_UClass_AShip_Statics::NewProp_RudderMesh = { "RudderMesh", nullptr, (EPropertyFlags)0x00200800000a000d, UECodeGen_Private::EPropertyGenFlags::Object, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, STRUCT_OFFSET(AShip, RudderMesh), Z_Construct_UClass_UStaticMeshComponent_NoRegister, METADATA_PARAMS(Z_Construct_UClass_AShip_Statics::NewProp_RudderMesh_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_AShip_Statics::NewProp_RudderMesh_MetaData)) };
+#if WITH_METADATA
 	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UClass_AShip_Statics::NewProp_PlayerController_MetaData[] = {
 		{ "ModuleRelativePath", "Public/Ships/Ship.h" },
 	};
@@ -1157,6 +1184,8 @@ void EmptyLinkFunctionForGeneratedCodeShip() {}
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AShip_Statics::NewProp_PrivateerFlag,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AShip_Statics::NewProp_RamDamageEffectClass,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AShip_Statics::NewProp_ShipMesh,
+		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AShip_Statics::NewProp_ShipWheelMesh,
+		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AShip_Statics::NewProp_RudderMesh,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AShip_Statics::NewProp_PlayerController,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AShip_Statics::NewProp_PawnMovement,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AShip_Statics::NewProp_BuoyancyComponent,
@@ -1250,9 +1279,9 @@ void EmptyLinkFunctionForGeneratedCodeShip() {}
 		static const FClassRegisterCompiledInInfo ClassInfo[];
 	};
 	const FClassRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_Ship_h_Statics::ClassInfo[] = {
-		{ Z_Construct_UClass_AShip, AShip::StaticClass, TEXT("AShip"), &Z_Registration_Info_UClass_AShip, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(AShip), 168752527U) },
+		{ Z_Construct_UClass_AShip, AShip::StaticClass, TEXT("AShip"), &Z_Registration_Info_UClass_AShip, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(AShip), 1530448909U) },
 	};
-	static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_Ship_h_1491468674(TEXT("/Script/Swashbucklers"),
+	static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_Ship_h_1806080878(TEXT("/Script/Swashbucklers"),
 		Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_Ship_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_Ship_h_Statics::ClassInfo),
 		nullptr, 0,
 		nullptr, 0);

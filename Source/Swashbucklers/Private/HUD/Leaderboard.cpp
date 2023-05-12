@@ -35,7 +35,7 @@ void ULeaderboard::AddPlayer(ACaptainState* CaptainState)
 	if (!OwningPlayerController || CaptainStates.Contains(CaptainState) || !PlayerSlotClass) return;
 	ULeaderboardPlayerSlot* PlayerSlot = CreateWidget<ULeaderboardPlayerSlot>(OwningPlayerController, PlayerSlotClass);
 
-	if (PlayerSlot)
+	if (PlayerSlot && CaptainState)
 	{
 		if (CaptainState->GetPlayerTeam() == ETeam::ET_Privateer)
 		{

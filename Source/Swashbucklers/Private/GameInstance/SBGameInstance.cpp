@@ -112,6 +112,7 @@ void USBGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCom
 
 	Controller->ClientTravel(Address, TRAVEL_Absolute);
 
+
 }
 
 void USBGameInstance::Join(uint32 Index)
@@ -319,6 +320,21 @@ void USBGameInstance::SwitchTeams(ACaptainState* CaptainStateTeamToSwitch)
 		{
 			SBGameState->UpdateTeams(PirateTeamNames, PrivateerTeamNames, CaptainStateTeamToSwitch);
 		}
+	}
+}
+
+void USBGameInstance::RemovePlayerFromTeam(ACaptainState* CaptainStateTeamToSwitch)
+{
+	if (!CaptainStateTeamToSwitch) return;
+
+	if (PirateTeamNames.Contains(CaptainStateTeamToSwitch->GetPlayerName()))
+	{
+		PirateTeamNames.Remove(CaptainStateTeamToSwitch->GetPlayerName());
+	}
+
+	if (PrivateerTeamNames.Contains(CaptainStateTeamToSwitch->GetPlayerName()))
+	{
+		PrivateerTeamNames.Remove(CaptainStateTeamToSwitch->GetPlayerName());
 	}
 }
 

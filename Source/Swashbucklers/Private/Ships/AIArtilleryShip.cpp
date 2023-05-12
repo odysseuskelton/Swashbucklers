@@ -4,6 +4,7 @@
 #include "Ships/AIArtilleryShip.h"
 #include "SenseReceiverComponent.h"
 #include "Interfaces/HitInterface.h"
+#include "Interfaces/CaptainStateInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
@@ -12,6 +13,7 @@
 #include "Components/SBAbilitySystemComponent.h"
 #include "GameModes/SBGameMode.h"
 #include "GameplayAbilities/SBGameplayAbility.h"
+#include "GameplayAbilities/SBAttributeSet.h"
 #include "AIController.h"
 
 
@@ -50,7 +52,7 @@ void AAIArtilleryShip::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (AIState == EAIState::EAI_Dead) return;
+	if (AIState == EAIState::EAI_Dead || !HasAuthority()) return;
 
 	if (!CurrentTarget && AIState != EAIState::EAI_Patrolling)
 	{
@@ -69,14 +71,14 @@ void AAIArtilleryShip::Tick(float DeltaTime)
 
 	if (CurrentTarget && GetDistanceTo(CurrentTarget) < AttackAcceptanceRadius &&  AIState == EAIState::EAI_Chasing && AIState != EAIState::EAI_Repositioning)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Reposition in tick!"))
+		//UE_LOG(LogTemp, Warning, TEXT("Reposition in tick!"))
 
 		Reposition();
 		return;
 	}
 	else if(CurrentTarget && AIState == EAIState::EAI_Aggroed && GetDistanceTo(CurrentTarget) > FiringDistance && GetDistanceTo(CurrentTarget) < MaxAggroRange && AIState != EAIState::EAI_Chasing)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Chase target in tick!"))
+		//UE_LOG(LogTemp, Warning, TEXT("Chase target in tick!"))
 		ChaseTarget();
 		return;
 	}
@@ -100,6 +102,8 @@ void AAIArtilleryShip::Tick(float DeltaTime)
 
 void AAIArtilleryShip::ChaseTarget()
 {
+	if (!HasAuthority()) return;
+
 	if (AIState == EAIState::EAI_Repositioning || AIState == EAIState::EAI_Chasing || AIState == EAIState::EAI_Dead) return;
 	MoveToLocation(CurrentTarget->GetActorLocation(), 100.f);
 	AIState = EAIState::EAI_Chasing;
@@ -108,6 +112,8 @@ void AAIArtilleryShip::ChaseTarget()
 
 void AAIArtilleryShip::Reposition()
 {
+	if (!HasAuthority()) return;
+
 	if(GetWorldTimerManager().IsTimerActive(AttackTimer))
 	{
 		GetWorldTimerManager().ClearTimer(AttackTimer);
@@ -150,6 +156,7 @@ void AAIArtilleryShip::Reposition()
 
 void AAIArtilleryShip::HandleShipRotation(float DeltaTime)
 {
+	if (!HasAuthority()) return;
 	if (TargetLocation != FVector::ZeroVector && AIState != EAIState::EAI_Attacking)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("Rotate"))
@@ -166,6 +173,7 @@ void AAIArtilleryShip::HandleShipRotation(float DeltaTime)
 
 void AAIArtilleryShip::RotateArtilleryCannon(FRotator& LookAtRotation)
 {
+	if (!HasAuthority()) return;
 	if (TurretCannonMesh && CurrentTarget)
 	{
 		LookAtRotation.Roll = 0.f;
@@ -189,7 +197,8 @@ void AAIArtilleryShip::OpenCloseSails()
 
 void AAIArtilleryShip::OnMoveCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Reach target..."))
+	if (!HasAuthority()) return;
+	//UE_LOG(LogTemp, Warning, TEXT("Reach target..."))
 
 	if (AIState != EAIState::EAI_Repositioning) return;
 
@@ -200,7 +209,7 @@ void AAIArtilleryShip::OnMoveCompleted(FAIRequestID RequestID, EPathFollowingRes
 		{
 			AIController->StopMovement();
 		}
-		UE_LOG(LogTemp, Warning, TEXT("Set attack timer..."))
+		//UE_LOG(LogTemp, Warning, TEXT("Set attack timer..."))
 
 		GetWorldTimerManager().SetTimer(AttackTimer, this, &AAIArtilleryShip::Attack, AttackDelay);
 		return;
@@ -212,6 +221,7 @@ void AAIArtilleryShip::OnMoveCompleted(FAIRequestID RequestID, EPathFollowingRes
 
 bool AAIArtilleryShip::CurrentTargetInRange()
 {
+	if (!HasAuthority()) return false;
 	if (AIState == EAIState::EAI_Dead) return false;
 
 	if (!CurrentTarget || !StoredTargetInterface || StoredTargetInterface->IsHitActorDead()) return false;
@@ -229,6 +239,7 @@ bool AAIArtilleryShip::CurrentTargetInRange()
 
 void AAIArtilleryShip::Attack()
 {
+	if (!HasAuthority()) return;
 	if (AIState == EAIState::EAI_Dead) return;
 
 	if (!CurrentTarget || !StoredTargetInterface || StoredTargetInterface->IsHitActorDead() || (CurrentTarget && GetDistanceTo(CurrentTarget) > MaxAggroRange))
@@ -247,7 +258,9 @@ void AAIArtilleryShip::Attack()
 
 void AAIArtilleryShip::OnCurrentSense(const USensorBase* SensorPtr, int32 Channel, const TArray<FSensedStimulus>& inSensedStimulus)
 {
+	if (!HasAuthority()) return;
 	if (AIState == EAIState::EAI_Dead || !bNeedsNewTargets) return;
+
 
 	if (CurrentTarget)
 	{
@@ -268,7 +281,7 @@ void AAIArtilleryShip::OnCurrentSense(const USensorBase* SensorPtr, int32 Channe
 	{
 		TArray<AActor*> OutActors = SensorPtr->GetSensedActorsByClass(ActorClassToDetect, ESensorArrayByType::SenseCurrent, 1);
 
-		for (int32 i = 0; i < OutActors.Num()-1 ; ++i)
+		for (int32 i = 0; i < OutActors.Num() ; ++i)
 		{
 			if (OutActors.IsValidIndex(i))
 			{
@@ -301,8 +314,6 @@ void AAIArtilleryShip::OnCurrentSense(const USensorBase* SensorPtr, int32 Channe
 
 
 	}
-
-
 
 }
 
@@ -395,6 +406,7 @@ void AAIArtilleryShip::AcquireNewTarget()
 
 void AAIArtilleryShip::FireArtilleryCannon()
 {
+	if (!HasAuthority()) return;
 	if (AIState == EAIState::EAI_Dead) return;
 	if (GetOwner()->HasAuthority())
 	{
@@ -417,6 +429,7 @@ void AAIArtilleryShip::FireArtilleryCannon()
 
 void AAIArtilleryShip::ResumePath()
 {
+	if (!HasAuthority()) return;
 	if (GetWorldTimerManager().IsTimerActive(AttackTimer))
 	{
 		GetWorldTimerManager().ClearTimer(AttackTimer);
@@ -443,4 +456,18 @@ void AAIArtilleryShip::ResumePath()
 		}
 	}
 
+}
+
+void AAIArtilleryShip::Die(AActor* InstigatorActor)
+{
+	Super::Die(InstigatorActor);
+
+	if (InstigatorActor)
+	{
+		ICaptainStateInterface* CaptainStateInterface = Cast<ICaptainStateInterface>(InstigatorActor);
+		if (CaptainStateInterface)
+		{
+			CaptainStateInterface->GetPlayerAttributeSet()->CollectBounty(this, AIBounty); 
+		}
+	}
 }

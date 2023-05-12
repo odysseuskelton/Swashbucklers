@@ -16,7 +16,9 @@ void EmptyLinkFunctionForGeneratedCodePlayerShip() {}
 	ENGINE_API UClass* Z_Construct_UClass_AActor_NoRegister();
 	ENGINE_API UClass* Z_Construct_UClass_APlayerController_NoRegister();
 	ENGINE_API UClass* Z_Construct_UClass_UCameraComponent_NoRegister();
+	ENGINE_API UClass* Z_Construct_UClass_UMaterialInterface_NoRegister();
 	ENGINE_API UClass* Z_Construct_UClass_UPrimitiveComponent_NoRegister();
+	ENGINE_API UClass* Z_Construct_UClass_USkeletalMeshComponent_NoRegister();
 	ENGINE_API UClass* Z_Construct_UClass_USpringArmComponent_NoRegister();
 	ENGINE_API UScriptStruct* Z_Construct_UScriptStruct_FHitResult();
 	ENHANCEDINPUT_API UClass* Z_Construct_UClass_UInputAction_NoRegister();
@@ -213,6 +215,15 @@ void EmptyLinkFunctionForGeneratedCodePlayerShip() {}
 		P_THIS->ServerReleaseAuxiliarycannons_Implementation();
 		P_NATIVE_END;
 	}
+	DEFINE_FUNCTION(APlayerShip::execServerCaptainTurn)
+	{
+		P_GET_UBOOL(Z_Param_bNewLeft);
+		P_GET_UBOOL(Z_Param_bNewRight);
+		P_FINISH;
+		P_NATIVE_BEGIN;
+		P_THIS->ServerCaptainTurn_Implementation(Z_Param_bNewLeft,Z_Param_bNewRight);
+		P_NATIVE_END;
+	}
 	DEFINE_FUNCTION(APlayerShip::execServerHoistSails)
 	{
 		P_FINISH;
@@ -339,6 +350,11 @@ void EmptyLinkFunctionForGeneratedCodePlayerShip() {}
 	{
 		EAbilitySlot AbilitySlot;
 	};
+	struct PlayerShip_eventServerCaptainTurn_Parms
+	{
+		bool bNewLeft;
+		bool bNewRight;
+	};
 	struct PlayerShip_eventServerCaptureChange_Parms
 	{
 		ACaptainState* CaptainStateCaptureChange;
@@ -427,6 +443,14 @@ void EmptyLinkFunctionForGeneratedCodePlayerShip() {}
 		PlayerShip_eventServerActivateSlotAction_Parms Parms;
 		Parms.AbilitySlot=AbilitySlot;
 		ProcessEvent(FindFunctionChecked(NAME_APlayerShip_ServerActivateSlotAction),&Parms);
+	}
+	static FName NAME_APlayerShip_ServerCaptainTurn = FName(TEXT("ServerCaptainTurn"));
+	void APlayerShip::ServerCaptainTurn(bool bNewLeft, bool bNewRight)
+	{
+		PlayerShip_eventServerCaptainTurn_Parms Parms;
+		Parms.bNewLeft=bNewLeft ? true : false;
+		Parms.bNewRight=bNewRight ? true : false;
+		ProcessEvent(FindFunctionChecked(NAME_APlayerShip_ServerCaptainTurn),&Parms);
 	}
 	static FName NAME_APlayerShip_ServerCaptureChange = FName(TEXT("ServerCaptureChange"));
 	void APlayerShip::ServerCaptureChange(ACaptainState* CaptainStateCaptureChange, int32 Captures)
@@ -520,6 +544,7 @@ void EmptyLinkFunctionForGeneratedCodePlayerShip() {}
 			{ "OnSpeedChanged", &APlayerShip::execOnSpeedChanged },
 			{ "OnTowerKillChange", &APlayerShip::execOnTowerKillChange },
 			{ "ServerActivateSlotAction", &APlayerShip::execServerActivateSlotAction },
+			{ "ServerCaptainTurn", &APlayerShip::execServerCaptainTurn },
 			{ "ServerCaptureChange", &APlayerShip::execServerCaptureChange },
 			{ "ServerDropSails", &APlayerShip::execServerDropSails },
 			{ "ServerFireAuxiliary", &APlayerShip::execServerFireAuxiliary },
@@ -1284,6 +1309,47 @@ void EmptyLinkFunctionForGeneratedCodePlayerShip() {}
 		}
 		return ReturnFunction;
 	}
+	struct Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics
+	{
+		static void NewProp_bNewLeft_SetBit(void* Obj);
+		static const UECodeGen_Private::FBoolPropertyParams NewProp_bNewLeft;
+		static void NewProp_bNewRight_SetBit(void* Obj);
+		static const UECodeGen_Private::FBoolPropertyParams NewProp_bNewRight;
+		static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
+#if WITH_METADATA
+		static const UECodeGen_Private::FMetaDataPairParam Function_MetaDataParams[];
+#endif
+		static const UECodeGen_Private::FFunctionParams FuncParams;
+	};
+	void Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics::NewProp_bNewLeft_SetBit(void* Obj)
+	{
+		((PlayerShip_eventServerCaptainTurn_Parms*)Obj)->bNewLeft = 1;
+	}
+	const UECodeGen_Private::FBoolPropertyParams Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics::NewProp_bNewLeft = { "bNewLeft", nullptr, (EPropertyFlags)0x0010000000000080, UECodeGen_Private::EPropertyGenFlags::Bool | UECodeGen_Private::EPropertyGenFlags::NativeBool, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, sizeof(bool), sizeof(PlayerShip_eventServerCaptainTurn_Parms), &Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics::NewProp_bNewLeft_SetBit, METADATA_PARAMS(nullptr, 0) };
+	void Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics::NewProp_bNewRight_SetBit(void* Obj)
+	{
+		((PlayerShip_eventServerCaptainTurn_Parms*)Obj)->bNewRight = 1;
+	}
+	const UECodeGen_Private::FBoolPropertyParams Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics::NewProp_bNewRight = { "bNewRight", nullptr, (EPropertyFlags)0x0010000000000080, UECodeGen_Private::EPropertyGenFlags::Bool | UECodeGen_Private::EPropertyGenFlags::NativeBool, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, sizeof(bool), sizeof(PlayerShip_eventServerCaptainTurn_Parms), &Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics::NewProp_bNewRight_SetBit, METADATA_PARAMS(nullptr, 0) };
+	const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics::PropPointers[] = {
+		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics::NewProp_bNewLeft,
+		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics::NewProp_bNewRight,
+	};
+#if WITH_METADATA
+	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics::Function_MetaDataParams[] = {
+		{ "ModuleRelativePath", "Public/Ships/PlayerShip.h" },
+	};
+#endif
+	const UECodeGen_Private::FFunctionParams Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics::FuncParams = { (UObject*(*)())Z_Construct_UClass_APlayerShip, nullptr, "ServerCaptainTurn", nullptr, nullptr, sizeof(PlayerShip_eventServerCaptainTurn_Parms), Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics::PropPointers, UE_ARRAY_COUNT(Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics::PropPointers), RF_Public|RF_Transient|RF_MarkAsNative, (EFunctionFlags)0x00280C40, 0, 0, METADATA_PARAMS(Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics::Function_MetaDataParams, UE_ARRAY_COUNT(Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics::Function_MetaDataParams)) };
+	UFunction* Z_Construct_UFunction_APlayerShip_ServerCaptainTurn()
+	{
+		static UFunction* ReturnFunction = nullptr;
+		if (!ReturnFunction)
+		{
+			UECodeGen_Private::ConstructUFunction(&ReturnFunction, Z_Construct_UFunction_APlayerShip_ServerCaptainTurn_Statics::FuncParams);
+		}
+		return ReturnFunction;
+	}
 	struct Z_Construct_UFunction_APlayerShip_ServerCaptureChange_Statics
 	{
 		static const UECodeGen_Private::FObjectPropertyParams NewProp_CaptainStateCaptureChange;
@@ -1665,6 +1731,28 @@ void EmptyLinkFunctionForGeneratedCodePlayerShip() {}
 #endif
 		static const UECodeGen_Private::FFloatPropertyParams NewProp_RotationMultiplier;
 #if WITH_METADATA
+		static const UECodeGen_Private::FMetaDataPairParam NewProp_RudderTurnSpeed_MetaData[];
+#endif
+		static const UECodeGen_Private::FFloatPropertyParams NewProp_RudderTurnSpeed;
+#if WITH_METADATA
+		static const UECodeGen_Private::FMetaDataPairParam NewProp_bTurningLeft_MetaData[];
+#endif
+		static void NewProp_bTurningLeft_SetBit(void* Obj);
+		static const UECodeGen_Private::FBoolPropertyParams NewProp_bTurningLeft;
+#if WITH_METADATA
+		static const UECodeGen_Private::FMetaDataPairParam NewProp_bTurningRight_MetaData[];
+#endif
+		static void NewProp_bTurningRight_SetBit(void* Obj);
+		static const UECodeGen_Private::FBoolPropertyParams NewProp_bTurningRight;
+#if WITH_METADATA
+		static const UECodeGen_Private::FMetaDataPairParam NewProp_PirateCaptainMaterial_MetaData[];
+#endif
+		static const UECodeGen_Private::FObjectPropertyParams NewProp_PirateCaptainMaterial;
+#if WITH_METADATA
+		static const UECodeGen_Private::FMetaDataPairParam NewProp_PrivateerCaptainMaterial_MetaData[];
+#endif
+		static const UECodeGen_Private::FObjectPropertyParams NewProp_PrivateerCaptainMaterial;
+#if WITH_METADATA
 		static const UECodeGen_Private::FMetaDataPairParam NewProp_CaptainState_MetaData[];
 #endif
 		static const UECodeGen_Private::FObjectPropertyParams NewProp_CaptainState;
@@ -1680,6 +1768,10 @@ void EmptyLinkFunctionForGeneratedCodePlayerShip() {}
 		static const UECodeGen_Private::FMetaDataPairParam NewProp_PlayerNameplateComponent_MetaData[];
 #endif
 		static const UECodeGen_Private::FObjectPropertyParams NewProp_PlayerNameplateComponent;
+#if WITH_METADATA
+		static const UECodeGen_Private::FMetaDataPairParam NewProp_CaptainMesh_MetaData[];
+#endif
+		static const UECodeGen_Private::FObjectPropertyParams NewProp_CaptainMesh;
 #if WITH_METADATA
 		static const UECodeGen_Private::FMetaDataPairParam NewProp_BountyWidgetClass_MetaData[];
 #endif
@@ -1720,6 +1812,7 @@ void EmptyLinkFunctionForGeneratedCodePlayerShip() {}
 		{ &Z_Construct_UFunction_APlayerShip_OnSpeedChanged, "OnSpeedChanged" }, // 3643876919
 		{ &Z_Construct_UFunction_APlayerShip_OnTowerKillChange, "OnTowerKillChange" }, // 3151342425
 		{ &Z_Construct_UFunction_APlayerShip_ServerActivateSlotAction, "ServerActivateSlotAction" }, // 2153273640
+		{ &Z_Construct_UFunction_APlayerShip_ServerCaptainTurn, "ServerCaptainTurn" }, // 479652884
 		{ &Z_Construct_UFunction_APlayerShip_ServerCaptureChange, "ServerCaptureChange" }, // 1720521810
 		{ &Z_Construct_UFunction_APlayerShip_ServerDropSails, "ServerDropSails" }, // 2366411984
 		{ &Z_Construct_UFunction_APlayerShip_ServerFireAuxiliary, "ServerFireAuxiliary" }, // 1876618486
@@ -1916,6 +2009,49 @@ void EmptyLinkFunctionForGeneratedCodePlayerShip() {}
 #endif
 	const UECodeGen_Private::FFloatPropertyParams Z_Construct_UClass_APlayerShip_Statics::NewProp_RotationMultiplier = { "RotationMultiplier", nullptr, (EPropertyFlags)0x0020080000000001, UECodeGen_Private::EPropertyGenFlags::Float, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, STRUCT_OFFSET(APlayerShip, RotationMultiplier), METADATA_PARAMS(Z_Construct_UClass_APlayerShip_Statics::NewProp_RotationMultiplier_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_APlayerShip_Statics::NewProp_RotationMultiplier_MetaData)) };
 #if WITH_METADATA
+	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UClass_APlayerShip_Statics::NewProp_RudderTurnSpeed_MetaData[] = {
+		{ "Category", "PlayerShip" },
+		{ "ModuleRelativePath", "Public/Ships/PlayerShip.h" },
+	};
+#endif
+	const UECodeGen_Private::FFloatPropertyParams Z_Construct_UClass_APlayerShip_Statics::NewProp_RudderTurnSpeed = { "RudderTurnSpeed", nullptr, (EPropertyFlags)0x0020080000000001, UECodeGen_Private::EPropertyGenFlags::Float, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, STRUCT_OFFSET(APlayerShip, RudderTurnSpeed), METADATA_PARAMS(Z_Construct_UClass_APlayerShip_Statics::NewProp_RudderTurnSpeed_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_APlayerShip_Statics::NewProp_RudderTurnSpeed_MetaData)) };
+#if WITH_METADATA
+	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UClass_APlayerShip_Statics::NewProp_bTurningLeft_MetaData[] = {
+		{ "Category", "PlayerShip" },
+		{ "ModuleRelativePath", "Public/Ships/PlayerShip.h" },
+	};
+#endif
+	void Z_Construct_UClass_APlayerShip_Statics::NewProp_bTurningLeft_SetBit(void* Obj)
+	{
+		((APlayerShip*)Obj)->bTurningLeft = 1;
+	}
+	const UECodeGen_Private::FBoolPropertyParams Z_Construct_UClass_APlayerShip_Statics::NewProp_bTurningLeft = { "bTurningLeft", nullptr, (EPropertyFlags)0x0020080000000034, UECodeGen_Private::EPropertyGenFlags::Bool | UECodeGen_Private::EPropertyGenFlags::NativeBool, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, sizeof(bool), sizeof(APlayerShip), &Z_Construct_UClass_APlayerShip_Statics::NewProp_bTurningLeft_SetBit, METADATA_PARAMS(Z_Construct_UClass_APlayerShip_Statics::NewProp_bTurningLeft_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_APlayerShip_Statics::NewProp_bTurningLeft_MetaData)) };
+#if WITH_METADATA
+	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UClass_APlayerShip_Statics::NewProp_bTurningRight_MetaData[] = {
+		{ "Category", "PlayerShip" },
+		{ "ModuleRelativePath", "Public/Ships/PlayerShip.h" },
+	};
+#endif
+	void Z_Construct_UClass_APlayerShip_Statics::NewProp_bTurningRight_SetBit(void* Obj)
+	{
+		((APlayerShip*)Obj)->bTurningRight = 1;
+	}
+	const UECodeGen_Private::FBoolPropertyParams Z_Construct_UClass_APlayerShip_Statics::NewProp_bTurningRight = { "bTurningRight", nullptr, (EPropertyFlags)0x0020080000000034, UECodeGen_Private::EPropertyGenFlags::Bool | UECodeGen_Private::EPropertyGenFlags::NativeBool, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, sizeof(bool), sizeof(APlayerShip), &Z_Construct_UClass_APlayerShip_Statics::NewProp_bTurningRight_SetBit, METADATA_PARAMS(Z_Construct_UClass_APlayerShip_Statics::NewProp_bTurningRight_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_APlayerShip_Statics::NewProp_bTurningRight_MetaData)) };
+#if WITH_METADATA
+	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UClass_APlayerShip_Statics::NewProp_PirateCaptainMaterial_MetaData[] = {
+		{ "Category", "PlayerShip" },
+		{ "ModuleRelativePath", "Public/Ships/PlayerShip.h" },
+	};
+#endif
+	const UECodeGen_Private::FObjectPropertyParams Z_Construct_UClass_APlayerShip_Statics::NewProp_PirateCaptainMaterial = { "PirateCaptainMaterial", nullptr, (EPropertyFlags)0x0020080000000001, UECodeGen_Private::EPropertyGenFlags::Object, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, STRUCT_OFFSET(APlayerShip, PirateCaptainMaterial), Z_Construct_UClass_UMaterialInterface_NoRegister, METADATA_PARAMS(Z_Construct_UClass_APlayerShip_Statics::NewProp_PirateCaptainMaterial_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_APlayerShip_Statics::NewProp_PirateCaptainMaterial_MetaData)) };
+#if WITH_METADATA
+	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UClass_APlayerShip_Statics::NewProp_PrivateerCaptainMaterial_MetaData[] = {
+		{ "Category", "PlayerShip" },
+		{ "ModuleRelativePath", "Public/Ships/PlayerShip.h" },
+	};
+#endif
+	const UECodeGen_Private::FObjectPropertyParams Z_Construct_UClass_APlayerShip_Statics::NewProp_PrivateerCaptainMaterial = { "PrivateerCaptainMaterial", nullptr, (EPropertyFlags)0x0020080000000001, UECodeGen_Private::EPropertyGenFlags::Object, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, STRUCT_OFFSET(APlayerShip, PrivateerCaptainMaterial), Z_Construct_UClass_UMaterialInterface_NoRegister, METADATA_PARAMS(Z_Construct_UClass_APlayerShip_Statics::NewProp_PrivateerCaptainMaterial_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_APlayerShip_Statics::NewProp_PrivateerCaptainMaterial_MetaData)) };
+#if WITH_METADATA
 	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UClass_APlayerShip_Statics::NewProp_CaptainState_MetaData[] = {
 		{ "Comment", "//Playerstate\n" },
 		{ "ModuleRelativePath", "Public/Ships/PlayerShip.h" },
@@ -1947,6 +2083,14 @@ void EmptyLinkFunctionForGeneratedCodePlayerShip() {}
 	};
 #endif
 	const UECodeGen_Private::FObjectPropertyParams Z_Construct_UClass_APlayerShip_Statics::NewProp_PlayerNameplateComponent = { "PlayerNameplateComponent", nullptr, (EPropertyFlags)0x00400000000a0009, UECodeGen_Private::EPropertyGenFlags::Object, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, STRUCT_OFFSET(APlayerShip, PlayerNameplateComponent), Z_Construct_UClass_UPlayerNameplateComponent_NoRegister, METADATA_PARAMS(Z_Construct_UClass_APlayerShip_Statics::NewProp_PlayerNameplateComponent_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_APlayerShip_Statics::NewProp_PlayerNameplateComponent_MetaData)) };
+#if WITH_METADATA
+	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UClass_APlayerShip_Statics::NewProp_CaptainMesh_MetaData[] = {
+		{ "Category", "PlayerShip" },
+		{ "EditInline", "true" },
+		{ "ModuleRelativePath", "Public/Ships/PlayerShip.h" },
+	};
+#endif
+	const UECodeGen_Private::FObjectPropertyParams Z_Construct_UClass_APlayerShip_Statics::NewProp_CaptainMesh = { "CaptainMesh", nullptr, (EPropertyFlags)0x00400000000a0009, UECodeGen_Private::EPropertyGenFlags::Object, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, STRUCT_OFFSET(APlayerShip, CaptainMesh), Z_Construct_UClass_USkeletalMeshComponent_NoRegister, METADATA_PARAMS(Z_Construct_UClass_APlayerShip_Statics::NewProp_CaptainMesh_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_APlayerShip_Statics::NewProp_CaptainMesh_MetaData)) };
 #if WITH_METADATA
 	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UClass_APlayerShip_Statics::NewProp_BountyWidgetClass_MetaData[] = {
 		{ "Category", "PlayerShip" },
@@ -1989,10 +2133,16 @@ void EmptyLinkFunctionForGeneratedCodePlayerShip() {}
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_APlayerShip_Statics::NewProp_DefaultSpeed,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_APlayerShip_Statics::NewProp_DefaultAcceleration,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_APlayerShip_Statics::NewProp_RotationMultiplier,
+		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_APlayerShip_Statics::NewProp_RudderTurnSpeed,
+		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_APlayerShip_Statics::NewProp_bTurningLeft,
+		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_APlayerShip_Statics::NewProp_bTurningRight,
+		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_APlayerShip_Statics::NewProp_PirateCaptainMaterial,
+		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_APlayerShip_Statics::NewProp_PrivateerCaptainMaterial,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_APlayerShip_Statics::NewProp_CaptainState,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_APlayerShip_Statics::NewProp_Camera,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_APlayerShip_Statics::NewProp_SpringArm,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_APlayerShip_Statics::NewProp_PlayerNameplateComponent,
+		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_APlayerShip_Statics::NewProp_CaptainMesh,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_APlayerShip_Statics::NewProp_BountyWidgetClass,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_APlayerShip_Statics::NewProp_TurnRollAmount,
 	};
@@ -2034,10 +2184,14 @@ void EmptyLinkFunctionForGeneratedCodePlayerShip() {}
 	{
 		static const FName Name_StarboardCannonRotation(TEXT("StarboardCannonRotation"));
 		static const FName Name_PortCannonRotation(TEXT("PortCannonRotation"));
+		static const FName Name_bTurningLeft(TEXT("bTurningLeft"));
+		static const FName Name_bTurningRight(TEXT("bTurningRight"));
 
 		const bool bIsValid = true
 			&& Name_StarboardCannonRotation == ClassReps[(int32)ENetFields_Private::StarboardCannonRotation].Property->GetFName()
-			&& Name_PortCannonRotation == ClassReps[(int32)ENetFields_Private::PortCannonRotation].Property->GetFName();
+			&& Name_PortCannonRotation == ClassReps[(int32)ENetFields_Private::PortCannonRotation].Property->GetFName()
+			&& Name_bTurningLeft == ClassReps[(int32)ENetFields_Private::bTurningLeft].Property->GetFName()
+			&& Name_bTurningRight == ClassReps[(int32)ENetFields_Private::bTurningRight].Property->GetFName();
 
 		checkf(bIsValid, TEXT("UHT Generated Rep Indices do not match runtime populated Rep Indices for properties in APlayerShip"));
 	}
@@ -2048,9 +2202,9 @@ void EmptyLinkFunctionForGeneratedCodePlayerShip() {}
 		static const FClassRegisterCompiledInInfo ClassInfo[];
 	};
 	const FClassRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_PlayerShip_h_Statics::ClassInfo[] = {
-		{ Z_Construct_UClass_APlayerShip, APlayerShip::StaticClass, TEXT("APlayerShip"), &Z_Registration_Info_UClass_APlayerShip, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(APlayerShip), 2170427692U) },
+		{ Z_Construct_UClass_APlayerShip, APlayerShip::StaticClass, TEXT("APlayerShip"), &Z_Registration_Info_UClass_APlayerShip, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(APlayerShip), 3290075324U) },
 	};
-	static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_PlayerShip_h_2655599261(TEXT("/Script/Swashbucklers"),
+	static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_PlayerShip_h_3320194662(TEXT("/Script/Swashbucklers"),
 		Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_PlayerShip_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_PlayerShip_h_Statics::ClassInfo),
 		nullptr, 0,
 		nullptr, 0);

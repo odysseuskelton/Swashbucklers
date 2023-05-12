@@ -37,6 +37,12 @@ AShip::AShip()
 	ShipMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShipMesh"));
 	SetRootComponent(ShipMesh);
 
+	RudderMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RudderMesh"));
+	RudderMesh->SetupAttachment(ShipMesh);
+
+	ShipWheelMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ShipWheelMesh"));
+	ShipWheelMesh->SetupAttachment(ShipMesh);
+
 	HealthbarComponent = CreateDefaultSubobject<UHealthbarComponent>(TEXT("Healthbar"));
 	HealthbarComponent->SetupAttachment(ShipMesh);
 

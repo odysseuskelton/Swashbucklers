@@ -91,11 +91,16 @@ protected:
 
 	void ResumePath();
 
+	virtual void Die(AActor* InstigatorActor) override;
+
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AProjectile> ArtilleryProjectileClass;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess))
 	FGameplayEffectSpecHandle ArtilleryGEHandle;
+
+	UPROPERTY(EditAnywhere)
+	float AIBounty = 50.f;
 
 private:
 	UPROPERTY(VisibleAnywhere)

@@ -10,6 +10,7 @@
 
 class AShip;
 class USBGameplayAbility;
+class USBAttributeSet;
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UCaptainStateInterface : public UInterface
@@ -35,5 +36,6 @@ public:
 	virtual ETeam GetPlayerTeam() = 0;
 	virtual void SendPlayerPOE(int32 POEToSend) = 0;
 	virtual TArray<TSubclassOf<USBGameplayAbility>> GetCurrentAbilities() = 0;
+	virtual USBAttributeSet* GetPlayerAttributeSet() = 0;
 
 };

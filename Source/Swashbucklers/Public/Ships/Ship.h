@@ -95,7 +95,7 @@ public:
 	int32 StoreCost;
 
 
-	void SetSailColors(ETeam PlayerTeam);
+	virtual void SetSailColors(ETeam PlayerTeam);
 	bool bSailColorSet = false;
 
 
@@ -129,6 +129,12 @@ protected:
 	//Components
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess))
 	UStaticMeshComponent* ShipMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess))
+	USkeletalMeshComponent* ShipWheelMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess))
+	UStaticMeshComponent* RudderMesh;
 
 	UPROPERTY()
 	APlayerController* PlayerController;
@@ -241,6 +247,7 @@ protected:
 
 public:	
 	FORCEINLINE UFloatingPawnMovement* GetPawnMovement() { return PawnMovement; }
+	FORCEINLINE UStaticMeshComponent* GetShipMesh() { return ShipMesh; }
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	bool bOpenSails = false;

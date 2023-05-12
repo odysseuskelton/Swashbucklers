@@ -9,6 +9,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "SenseReceiverComponent.h"
+#include "SenseStimulusComponent.h"
 
 #include "Components/SBAbilitySystemComponent.h"
 #include "GameplayAbilities/SBAttributeSet.h"
@@ -23,6 +24,7 @@ AAIShip::AAIShip()
 	AbilityComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	AttributeSet = CreateDefaultSubobject<USBAttributeSet>("AttributeSetBaseComp");
+	UE_LOG(LogTemp, Warning, TEXT("Construct ai ship"))
 
 	Sensor = CreateDefaultSubobject<USenseReceiverComponent>(TEXT("Sensor"));
 	Sensor->SetupAttachment(GetRootComponent());
@@ -35,8 +37,11 @@ void AAIShip::BeginPlay()
 	Super::BeginPlay();
 	InitializeEnemy();
 
+	UE_LOG(LogTemp, Warning, TEXT("AI Ship begin play"))
 	if (AttributeSet)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Att set valid on Ship begin play"))
+
 		AttributeSet->OnHealthChange.AddUniqueDynamic(this, &AShip::OnHealthChanged);
 		AttributeSet->MaxHealth.SetCurrentValue(ShipHealth);
 		AttributeSet->MaxHealth.SetBaseValue(ShipHealth);
@@ -69,6 +74,7 @@ void AAIShip::Die(AActor* InstigatorActor)
 
 void AAIShip::MulticastOnHealthChanged_Implementation(float Health, float MaxHealth, AActor* InstigatorActor)
 {
+	UE_LOG(LogTemp, Warning, TEXT("HealthChange"))
 	if (HealthbarComponent && HealthbarComponent->GetHealthPercent() > Health / MaxHealth)
 	{
 		HealthbarComponent->SetRenderOpacity(100.f);
@@ -121,12 +127,16 @@ void AAIShip::Tick(float DeltaTime)
 
 void AAIShip::SetTeam(ETeam TeamToSet)
 {
+	UE_LOG(LogTemp, Warning, TEXT("AITeam set/..."))
+
 	AITeam = TeamToSet;
 	SetSailColors(TeamToSet);
+
 }
 
 void AAIShip::OnRep_SetTeam()
 {
+	UE_LOG(LogTemp, Warning ,TEXT("Onrep aiteam"))
 	SetSailColors(AITeam);
 }
 

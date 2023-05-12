@@ -14,6 +14,7 @@
 #include "Buildings/Tower.h"
 #include "Ships/Ship.h"
 #include "Ships/MerchantShip.h"
+#include "Ships/PlayerShip.h"
 #include "GameFramework/FloatingPawnMovement.h"
 
 #include "TimerManager.h"
@@ -306,6 +307,7 @@ void ASBGameMode::PostLogin(APlayerController* NewPlayer)
 		ACaptainState* CaptainState = NewPlayer->GetPlayerState<ACaptainState>();
 		if (CaptainState && CaptainState->GetPlayerTeam() == ETeam::ET_NoTeam)
 		{
+			CaptainState->bExitingGame = false;
 			SBGameInstance->CheckTeams();
 			if (SBGameInstance->PirateTeamNames.Contains(CaptainState->GetPlayerName()))
 			{
@@ -549,4 +551,28 @@ void ASBGameMode::MegaJarOfDirt()
 	}
 }
 
+void ASBGameMode::Logout(AController* Exiting)
+{
+	Super::Logout(Exiting);
 
+	ACaptainState* LeavingPlayerState = Exiting->GetPlayerState<ACaptainState>();
+	if (LeavingPlayerState)
+	{
+		ETeam TeamToRemoveFrom = LeavingPlayerState->GetPlayerTeam();
+		USBGameInstance* SBGameInstance = GetGameInstance<USBGameInstance>();
+		if (SBGameInstance)
+		{
+			SBGameInstance->RemovePlayerFromTeam(LeavingPlayerState);
+		}
+
+		if (LeavingPlayerState->GetPawn())
+		{
+			APlayerShip* LeavingPlayerShip = Cast<APlayerShip>(LeavingPlayerState->GetPawn());
+			if (LeavingPlayerShip)
+			{
+				LeavingPlayerShip->Die(nullptr);
+			}
+		}
+	}
+	
+}

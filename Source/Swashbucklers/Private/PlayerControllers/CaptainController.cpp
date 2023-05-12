@@ -391,6 +391,11 @@ void ACaptainController::ReturnToMainMenu()
 	else
 	{
 		ClientTravel("/Game/Core/Maps/MainMenu?listen", TRAVEL_Absolute);
+		ACaptainState* CapState = GetPlayerState<ACaptainState>();
+		if (CapState)
+		{
+			CapState->bExitingGame = true;
+		}
 	}
 }
 

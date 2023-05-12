@@ -43,13 +43,13 @@ void EmptyLinkFunctionForGeneratedCodeSwashbucklers_init() {}
 				SingletonFuncArray,
 				UE_ARRAY_COUNT(SingletonFuncArray),
 				PKG_CompiledIn | 0x00000000,
-				0xD61CF918,
-				0xFE254527,
+				0x146CC862,
+				0xBC6763FA,
 				METADATA_PARAMS(nullptr, 0)
 			};
 			UECodeGen_Private::ConstructUPackage(Z_Registration_Info_UPackage__Script_Swashbucklers.OuterSingleton, PackageParams);
 		}
 		return Z_Registration_Info_UPackage__Script_Swashbucklers.OuterSingleton;
 	}
-	static FRegisterCompiledInInfo Z_CompiledInDeferPackage_UPackage__Script_Swashbucklers(Z_Construct_UPackage__Script_Swashbucklers, TEXT("/Script/Swashbucklers"), Z_Registration_Info_UPackage__Script_Swashbucklers, CONSTRUCT_RELOAD_VERSION_INFO(FPackageReloadVersionInfo, 0xD61CF918, 0xFE254527));
+	static FRegisterCompiledInInfo Z_CompiledInDeferPackage_UPackage__Script_Swashbucklers(Z_Construct_UPackage__Script_Swashbucklers, TEXT("/Script/Swashbucklers"), Z_Registration_Info_UPackage__Script_Swashbucklers, CONSTRUCT_RELOAD_VERSION_INFO(FPackageReloadVersionInfo, 0x146CC862, 0xBC6763FA));
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

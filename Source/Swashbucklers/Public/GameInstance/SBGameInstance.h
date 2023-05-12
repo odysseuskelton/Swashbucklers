@@ -59,6 +59,7 @@ public:
 
 	ETeam AssignTeam(ACaptainState* PlayerToAssignTeamTo);
 	virtual void SwitchTeams(ACaptainState* CaptainStateTeamToSwitch) override;
+	void RemovePlayerFromTeam(ACaptainState* CaptainStateTeamToSwitch);
 	void CheckTeams();
 	virtual void ClearTeams() override;
 	virtual void Join(uint32 Index) override;

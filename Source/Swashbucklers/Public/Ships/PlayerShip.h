@@ -105,6 +105,8 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	virtual void SetSailColors(ETeam TeamToSet) override;
+
 	void InitializeOverlays();
 
 	virtual  void Tick(float DeltaTime) override;
@@ -158,6 +160,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float RotationMultiplier = 70.f;
 
+	UPROPERTY(EditAnywhere)
+	float RudderTurnSpeed = 1.f;
+
 	//
 
 	void OnRep_PlayerState() override;
@@ -206,7 +211,15 @@ protected:
 
 	void Turn(const FInputActionValue& Value);
 
+	UFUNCTION(Server, Unreliable)
+	void ServerCaptainTurn(bool bNewLeft, bool bNewRight);
+
 	void RightShip(const FInputActionValue& Value);
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	bool bTurningLeft = false;
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	bool bTurningRight = false;
 
 	virtual void FirePortCannons() override;
 
@@ -230,7 +243,11 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerActivateSlotAction(EAbilitySlot AbilitySlot);
 
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* PirateCaptainMaterial;
 
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* PrivateerCaptainMaterial;
 
 	//Playerstate
 	UPROPERTY()
@@ -249,6 +266,8 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UPlayerNameplateComponent* PlayerNameplateComponent;
 
+	UPROPERTY(VisibleAnywhere)
+	USkeletalMeshComponent* CaptainMesh;
 
 	UFUNCTION()
 	void OnManaChanged(float Mana, float MaxMana);

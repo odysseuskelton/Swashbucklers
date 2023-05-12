@@ -106,6 +106,8 @@ public:
 	UFUNCTION(Exec, Category = "Commands")
 	void MegaJarOfDirt();
 
+	virtual void Logout(AController* Exiting) override;
+
 	AMerchantShip* ActiveMerchantShip;
 	ACapturePoint* ActiveCapturePoint;
 	ASBGameState* SBGameState;

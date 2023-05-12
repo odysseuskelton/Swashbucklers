@@ -144,6 +144,12 @@
     <ClCompile Include="..\..\Source\Swashbucklers\Private\GameplayAbilities\EffectExecutions\SpeedEffectExecution.cpp">
       <Filter>Source\Swashbucklers\Private\GameplayAbilities\EffectExecutions</Filter>
     </ClCompile>
+    <Filter Include="Source\Swashbucklers\Private\GameplayAbilities\SpellActors">
+      <UniqueIdentifier>{6CE232FB-681D-35D2-95A8-1E6B80E724CE}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\GameplayAbilities\SpellActors\WaterSpout.cpp">
+      <Filter>Source\Swashbucklers\Private\GameplayAbilities\SpellActors</Filter>
+    </ClCompile>
     <Filter Include="Source\Swashbucklers\Private\GameStates">
       <UniqueIdentifier>{3DA13677-C659-341C-B80C-117A953C6DAA}</UniqueIdentifier>
     </Filter>
@@ -279,6 +285,9 @@
     <ClCompile Include="..\..\Source\Swashbucklers\Private\Ships\ArtilleryShip.cpp">
       <Filter>Source\Swashbucklers\Private\Ships</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Ships\DeployableShip.cpp">
+      <Filter>Source\Swashbucklers\Private\Ships</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\Swashbucklers\Private\Ships\ExplosiveShip.cpp">
       <Filter>Source\Swashbucklers\Private\Ships</Filter>
     </ClCompile>
@@ -304,6 +313,12 @@
       <UniqueIdentifier>{510BB373-E706-39CF-A5D5-92EC228284B2}</UniqueIdentifier>
     </Filter>
     <ClCompile Include="..\..\Source\Swashbucklers\Private\Weapons\Cannon.cpp">
+      <Filter>Source\Swashbucklers\Private\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Weapons\TripleCannon.cpp">
+      <Filter>Source\Swashbucklers\Private\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Swashbucklers\Private\Weapons\TripleCannonAnim.cpp">
       <Filter>Source\Swashbucklers\Private\Weapons</Filter>
     </ClCompile>
     <Filter Include="Source\Swashbucklers\Private\Weapons\Projectiles">
@@ -404,6 +419,12 @@
     </Filter>
     <ClInclude Include="..\..\Source\Swashbucklers\Public\GameplayAbilities\EffectExecutions\SpeedEffectExecution.h">
       <Filter>Source\Swashbucklers\Public\GameplayAbilities\EffectExecutions</Filter>
+    </ClInclude>
+    <Filter Include="Source\Swashbucklers\Public\GameplayAbilities\SpellActors">
+      <UniqueIdentifier>{F336AB96-AFBC-3661-8B01-8BABF503F538}</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\GameplayAbilities\SpellActors\WaterSpout.h">
+      <Filter>Source\Swashbucklers\Public\GameplayAbilities\SpellActors</Filter>
     </ClInclude>
     <Filter Include="Source\Swashbucklers\Public\GameStates">
       <UniqueIdentifier>{21DAF08D-0937-36B9-B2A8-E2843A4BA97D}</UniqueIdentifier>
@@ -543,6 +564,9 @@
     <ClInclude Include="..\..\Source\Swashbucklers\Public\Ships\ArtilleryShip.h">
       <Filter>Source\Swashbucklers\Public\Ships</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Ships\DeployableShip.h">
+      <Filter>Source\Swashbucklers\Public\Ships</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\Swashbucklers\Public\Ships\ExplosiveShip.h">
       <Filter>Source\Swashbucklers\Public\Ships</Filter>
     </ClInclude>
@@ -568,6 +592,12 @@
       <UniqueIdentifier>{AE8EF6A8-CDF3-3274-9BBE-7B798926ACEA}</UniqueIdentifier>
     </Filter>
     <ClInclude Include="..\..\Source\Swashbucklers\Public\Weapons\Cannon.h">
+      <Filter>Source\Swashbucklers\Public\Weapons</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Weapons\TripleCannon.h">
+      <Filter>Source\Swashbucklers\Public\Weapons</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Swashbucklers\Public\Weapons\TripleCannonAnim.h">
       <Filter>Source\Swashbucklers\Public\Weapons</Filter>
     </ClInclude>
     <Filter Include="Source\Swashbucklers\Public\Weapons\Projectiles">

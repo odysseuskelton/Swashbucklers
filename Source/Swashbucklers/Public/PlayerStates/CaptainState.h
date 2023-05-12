@@ -61,6 +61,8 @@ public:
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess))
 	TArray<TSubclassOf<AShip>> OwnedShips;
 
+	bool bExitingGame = false;
+
 private:
 
 	ACaptainController* CaptainController;
@@ -162,6 +164,7 @@ public:
 	FORCEINLINE TArray<TSubclassOf<AShip>> GetPlayerShips() override { return OwnedShips; }
 	FORCEINLINE virtual void SetDefaultShip(TSubclassOf<AShip> NewDefaultShip) { DefaultShip = NewDefaultShip; }
 	FORCEINLINE virtual void SetCurrentShip(TSubclassOf<AShip> NewDefaultShip) { CurrentShip = NewDefaultShip; }
+	FORCEINLINE virtual USBAttributeSet* GetPlayerAttributeSet() override { return AttributeSet; }
 	void BuyShip(TSubclassOf<AShip> ShipToBuy) override;
 	void BuyAbility(TSubclassOf<USBGameplayAbility> AbilityToBuy, EAbilitySlot SlotSelected) override;
 	int32 GetPlayerPOE() override; 

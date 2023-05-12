@@ -532,3 +532,4 @@ void ACaptainState::SendPlayerPOE(int32 POEToSend)
 
 	AttributeSet->ReceivePOE(POEToSend);
 }
+

@@ -39,6 +39,9 @@ APlayerShip::APlayerShip()
 
 	PlayerNameplateComponent = CreateDefaultSubobject<UPlayerNameplateComponent>(TEXT("PlayerNameplate"));
 	PlayerNameplateComponent->SetupAttachment(ShipMesh);
+
+	CaptainMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CaptainMesh"));
+	CaptainMesh->SetupAttachment(GetRootComponent());
 }
 
 void APlayerShip::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -74,6 +77,8 @@ void APlayerShip::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 	DOREPLIFETIME(APlayerShip, StarboardCannonRotation);
 	DOREPLIFETIME(APlayerShip, PortCannonRotation);
+	DOREPLIFETIME(APlayerShip, bTurningLeft);
+	DOREPLIFETIME(APlayerShip, bTurningRight);
 
 }
 
@@ -120,24 +125,67 @@ void APlayerShip::Turn(const FInputActionValue& Value)
 
 	if (MovementVector.X == 1)
 	{
+		bTurningLeft = false;
+		bTurningRight = true;
+		if (GetLocalRole() != ENetRole::ROLE_Authority)
+		{
+			ServerCaptainTurn(bTurningLeft, bTurningRight);
+		}
+
 		FRotator RotationToSet = GetActorRotation();
 		RotationToSet.Roll = TurnRollAmount;
 		SetActorRotation(FMath::RInterpTo(GetActorRotation(), RotationToSet, DeltaSeconds, StrafeSpeed));
+		if (RudderMesh)
+		{
+			RudderMesh->SetRelativeRotation(FMath::RInterpTo(RudderMesh->GetRelativeRotation(), FRotator(0.f,-70.f,0.f), DeltaSeconds, RudderTurnSpeed));
+		}
+
 	}
 	else if (MovementVector.X == -1)
 	{
+		bTurningRight = false;
+		bTurningLeft = true;
+		if (GetLocalRole() != ENetRole::ROLE_Authority)
+		{
+			ServerCaptainTurn(bTurningLeft, bTurningRight);
+		}
 		FRotator RotationToSet = GetActorRotation();
 		RotationToSet.Roll = -TurnRollAmount;
 		SetActorRotation(FMath::RInterpTo(GetActorRotation(), RotationToSet, DeltaSeconds, StrafeSpeed));
+		if (RudderMesh)
+		{
+			RudderMesh->SetRelativeRotation(FMath::RInterpTo(RudderMesh->GetRelativeRotation(), FRotator(0.f, 70.f, 0.f), DeltaSeconds, RudderTurnSpeed));
+		}
 	}
+
 }
 
 void APlayerShip::RightShip(const FInputActionValue& Value)
 {
+	bTurningLeft = false;
+	bTurningRight = false;
+
+	if (GetLocalRole() != ENetRole::ROLE_Authority)
+	{
+		ServerCaptainTurn(bTurningLeft, bTurningRight);
+	}
+	if (RudderMesh)
+	{
+		RudderMesh->SetRelativeRotation(FMath::RInterpTo(RudderMesh->GetRelativeRotation(), FRotator::ZeroRotator, DeltaSeconds, RudderTurnSpeed));
+	}
+
 	FRotator RotationToSet = GetActorRotation();
 	RotationToSet.Pitch = FMath::Clamp(GetActorRotation().Pitch, -15.f, 15.f);
 	RotationToSet.Roll = 0.f;
 	SetActorRotation(FMath::RInterpTo(GetActorRotation(), RotationToSet, DeltaSeconds, StrafeSpeed / 2));
+
+}
+
+
+void APlayerShip::ServerCaptainTurn_Implementation(bool bNewLeft, bool bNewRight)
+{
+	bTurningLeft = bNewLeft;
+	bTurningRight = bNewRight;
 }
 
 void APlayerShip::FirePortCannons()
@@ -479,6 +527,20 @@ void APlayerShip::BeginPlay()
 	}
 	AcquireCannonAbilities();
 
+}
+
+void APlayerShip::SetSailColors(ETeam TeamToSet)
+{
+	Super::SetSailColors(TeamToSet);
+
+	if (TeamToSet == ETeam::ET_Pirate && CaptainMesh)
+	{
+		CaptainMesh->SetMaterial(0, PirateCaptainMaterial);
+	}
+	else if (TeamToSet == ETeam::ET_Privateer && CaptainMesh)
+	{
+		CaptainMesh->SetMaterial(0, PrivateerCaptainMaterial);
+	}
 }
 
 void APlayerShip::InitializeOverlays()
@@ -849,7 +911,7 @@ void APlayerShip::ServerStartInteracting_Implementation(APlayerController* Clien
 
 void APlayerShip::ClientStartInteracting_Implementation(const TScriptInterface<IInteractableInterface> & ScriptInterface)
 {
-	if (!ScriptInterface) return;
+	if (!ScriptInterface || !PlayerController) return;
 
 	ScriptInterface->BeginInteraction(PlayerController);
 	

@@ -37,6 +37,7 @@ struct FHitResult;
 	virtual void ServerActivateSlotAction_Implementation(EAbilitySlot AbilitySlot); \
 	virtual void ServerFireAuxiliary_Implementation(TSubclassOf<USBGameplayAbility>  AuxAbilityToActivate); \
 	virtual void ServerReleaseAuxiliarycannons_Implementation(); \
+	virtual void ServerCaptainTurn_Implementation(bool bNewLeft, bool bNewRight); \
 	virtual void ServerHoistSails_Implementation(); \
 	virtual void ServerDropSails_Implementation(); \
 	virtual void ClientStartInteracting_Implementation(TScriptInterface<IInteractableInterface> const& ScriptInterface); \
@@ -64,6 +65,7 @@ struct FHitResult;
 	DECLARE_FUNCTION(execServerActivateSlotAction); \
 	DECLARE_FUNCTION(execServerFireAuxiliary); \
 	DECLARE_FUNCTION(execServerReleaseAuxiliarycannons); \
+	DECLARE_FUNCTION(execServerCaptainTurn); \
 	DECLARE_FUNCTION(execServerHoistSails); \
 	DECLARE_FUNCTION(execServerDropSails); \
 	DECLARE_FUNCTION(execHandleEndInteract); \
@@ -91,6 +93,7 @@ struct FHitResult;
 	virtual void ServerActivateSlotAction_Implementation(EAbilitySlot AbilitySlot); \
 	virtual void ServerFireAuxiliary_Implementation(TSubclassOf<USBGameplayAbility>  AuxAbilityToActivate); \
 	virtual void ServerReleaseAuxiliarycannons_Implementation(); \
+	virtual void ServerCaptainTurn_Implementation(bool bNewLeft, bool bNewRight); \
 	virtual void ServerHoistSails_Implementation(); \
 	virtual void ServerDropSails_Implementation(); \
 	virtual void ClientStartInteracting_Implementation(TScriptInterface<IInteractableInterface> const& ScriptInterface); \
@@ -118,6 +121,7 @@ struct FHitResult;
 	DECLARE_FUNCTION(execServerActivateSlotAction); \
 	DECLARE_FUNCTION(execServerFireAuxiliary); \
 	DECLARE_FUNCTION(execServerReleaseAuxiliarycannons); \
+	DECLARE_FUNCTION(execServerCaptainTurn); \
 	DECLARE_FUNCTION(execServerHoistSails); \
 	DECLARE_FUNCTION(execServerDropSails); \
 	DECLARE_FUNCTION(execHandleEndInteract); \
@@ -146,7 +150,9 @@ public: \
 		NETFIELD_REP_START=(uint16)((int32)Super::ENetFields_Private::NETFIELD_REP_END + (int32)1), \
 		StarboardCannonRotation=NETFIELD_REP_START, \
 		PortCannonRotation, \
-		NETFIELD_REP_END=PortCannonRotation	}; \
+		bTurningLeft, \
+		bTurningRight, \
+		NETFIELD_REP_END=bTurningRight	}; \
 	NO_API virtual void ValidateGeneratedRepEnums(const TArray<struct FRepRecord>& ClassReps) const override;
 
 
@@ -163,7 +169,9 @@ public: \
 		NETFIELD_REP_START=(uint16)((int32)Super::ENetFields_Private::NETFIELD_REP_END + (int32)1), \
 		StarboardCannonRotation=NETFIELD_REP_START, \
 		PortCannonRotation, \
-		NETFIELD_REP_END=PortCannonRotation	}; \
+		bTurningLeft, \
+		bTurningRight, \
+		NETFIELD_REP_END=bTurningRight	}; \
 	NO_API virtual void ValidateGeneratedRepEnums(const TArray<struct FRepRecord>& ClassReps) const override;
 
 

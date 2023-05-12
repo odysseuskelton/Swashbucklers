@@ -6,6 +6,7 @@
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
 #include "Interfaces/MenuInterface.h"
+#include "PlayerStates/CaptainState.h"
 
 
 void UInGameMenu::Setup()
@@ -78,6 +79,7 @@ void UInGameMenu::OpenSettingsMenu()
 
 void UInGameMenu::ExitToMainMenu()
 {
+
 	if (GetOwningPlayer()->HasAuthority())
 	{
 		IMenuInterface* MenuInterface = Cast<IMenuInterface>(GetGameInstance());
@@ -89,10 +91,11 @@ void UInGameMenu::ExitToMainMenu()
 	}
 	else
 	{
-		IMenuInterface* MenuInterface = Cast<IMenuInterface>(GetGameInstance());
-		if (MenuInterface)
+		GetOwningPlayer()->ClientTravel("/Game/Core/Maps/MainMenu?listen", TRAVEL_Absolute);
+		ACaptainState* CapState = GetOwningPlayer()->GetPlayerState<ACaptainState>();
+		if (CapState)
 		{
-			MenuInterface->ReturnToMainMenu();
+			CapState->bExitingGame = true;
 		}
 	}
 }

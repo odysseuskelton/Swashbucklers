@@ -107,9 +107,9 @@ void EmptyLinkFunctionForGeneratedCodeMerchantShip() {}
 		static const FClassRegisterCompiledInInfo ClassInfo[];
 	};
 	const FClassRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_MerchantShip_h_Statics::ClassInfo[] = {
-		{ Z_Construct_UClass_AMerchantShip, AMerchantShip::StaticClass, TEXT("AMerchantShip"), &Z_Registration_Info_UClass_AMerchantShip, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(AMerchantShip), 2736891173U) },
+		{ Z_Construct_UClass_AMerchantShip, AMerchantShip::StaticClass, TEXT("AMerchantShip"), &Z_Registration_Info_UClass_AMerchantShip, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(AMerchantShip), 3999143011U) },
 	};
-	static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_MerchantShip_h_3680670922(TEXT("/Script/Swashbucklers"),
+	static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_MerchantShip_h_3381576238(TEXT("/Script/Swashbucklers"),
 		Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_MerchantShip_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_MerchantShip_h_Statics::ClassInfo),
 		nullptr, 0,
 		nullptr, 0);

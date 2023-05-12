@@ -302,6 +302,10 @@ void EmptyLinkFunctionForGeneratedCodeAIArtilleryShip() {}
 #endif
 		static const UECodeGen_Private::FStructPropertyParams NewProp_ArtilleryGEHandle;
 #if WITH_METADATA
+		static const UECodeGen_Private::FMetaDataPairParam NewProp_AIBounty_MetaData[];
+#endif
+		static const UECodeGen_Private::FFloatPropertyParams NewProp_AIBounty;
+#if WITH_METADATA
 		static const UECodeGen_Private::FMetaDataPairParam NewProp_TurretBaseMesh_MetaData[];
 #endif
 		static const UECodeGen_Private::FObjectPropertyParams NewProp_TurretBaseMesh;
@@ -403,6 +407,13 @@ void EmptyLinkFunctionForGeneratedCodeAIArtilleryShip() {}
 #endif
 	const UECodeGen_Private::FStructPropertyParams Z_Construct_UClass_AAIArtilleryShip_Statics::NewProp_ArtilleryGEHandle = { "ArtilleryGEHandle", nullptr, (EPropertyFlags)0x0020080000000004, UECodeGen_Private::EPropertyGenFlags::Struct, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, STRUCT_OFFSET(AAIArtilleryShip, ArtilleryGEHandle), Z_Construct_UScriptStruct_FGameplayEffectSpecHandle, METADATA_PARAMS(Z_Construct_UClass_AAIArtilleryShip_Statics::NewProp_ArtilleryGEHandle_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_AAIArtilleryShip_Statics::NewProp_ArtilleryGEHandle_MetaData)) }; // 1303953225
 #if WITH_METADATA
+	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UClass_AAIArtilleryShip_Statics::NewProp_AIBounty_MetaData[] = {
+		{ "Category", "AIArtilleryShip" },
+		{ "ModuleRelativePath", "Public/Ships/AIArtilleryShip.h" },
+	};
+#endif
+	const UECodeGen_Private::FFloatPropertyParams Z_Construct_UClass_AAIArtilleryShip_Statics::NewProp_AIBounty = { "AIBounty", nullptr, (EPropertyFlags)0x0020080000000001, UECodeGen_Private::EPropertyGenFlags::Float, RF_Public|RF_Transient|RF_MarkAsNative, 1, nullptr, nullptr, STRUCT_OFFSET(AAIArtilleryShip, AIBounty), METADATA_PARAMS(Z_Construct_UClass_AAIArtilleryShip_Statics::NewProp_AIBounty_MetaData, UE_ARRAY_COUNT(Z_Construct_UClass_AAIArtilleryShip_Statics::NewProp_AIBounty_MetaData)) };
+#if WITH_METADATA
 	const UECodeGen_Private::FMetaDataPairParam Z_Construct_UClass_AAIArtilleryShip_Statics::NewProp_TurretBaseMesh_MetaData[] = {
 		{ "Category", "AIArtilleryShip" },
 		{ "EditInline", "true" },
@@ -430,6 +441,7 @@ void EmptyLinkFunctionForGeneratedCodeAIArtilleryShip() {}
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AAIArtilleryShip_Statics::NewProp_CannonDistanceMultiplier,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AAIArtilleryShip_Statics::NewProp_ArtilleryProjectileClass,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AAIArtilleryShip_Statics::NewProp_ArtilleryGEHandle,
+		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AAIArtilleryShip_Statics::NewProp_AIBounty,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AAIArtilleryShip_Statics::NewProp_TurretBaseMesh,
 		(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AAIArtilleryShip_Statics::NewProp_TurretCannonMesh,
 	};
@@ -470,9 +482,9 @@ void EmptyLinkFunctionForGeneratedCodeAIArtilleryShip() {}
 		static const FClassRegisterCompiledInInfo ClassInfo[];
 	};
 	const FClassRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_AIArtilleryShip_h_Statics::ClassInfo[] = {
-		{ Z_Construct_UClass_AAIArtilleryShip, AAIArtilleryShip::StaticClass, TEXT("AAIArtilleryShip"), &Z_Registration_Info_UClass_AAIArtilleryShip, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(AAIArtilleryShip), 2954231312U) },
+		{ Z_Construct_UClass_AAIArtilleryShip, AAIArtilleryShip::StaticClass, TEXT("AAIArtilleryShip"), &Z_Registration_Info_UClass_AAIArtilleryShip, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(AAIArtilleryShip), 3530305962U) },
 	};
-	static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_AIArtilleryShip_h_587123330(TEXT("/Script/Swashbucklers"),
+	static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_AIArtilleryShip_h_3236437246(TEXT("/Script/Swashbucklers"),
 		Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_AIArtilleryShip_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Swashbucklers_Source_Swashbucklers_Public_Ships_AIArtilleryShip_h_Statics::ClassInfo),
 		nullptr, 0,
 		nullptr, 0);
